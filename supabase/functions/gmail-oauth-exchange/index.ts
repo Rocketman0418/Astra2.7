@@ -111,7 +111,11 @@ Deno.serve(async (req: Request) => {
 
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000);
 
-    const { error: dbError } = await supabase
+    console.log('💾 Attempting to store Gmail auth for user:', user.id);
+    console.log('💾 Email:', profile.email);
+    console.log('💾 Expires at:', expiresAt.toISOString());
+
+    const { data, error: dbError } = await supabase
       .from('gmail_auth')
       .upsert({
         user_id: user.id,
@@ -128,9 +132,16 @@ Deno.serve(async (req: Request) => {
       });
 
     if (dbError) {
-      console.error('❌ Failed to store tokens:', dbError);
-      throw new Error('Failed to store Gmail authentication');
+      console.error('❌ Failed to store tokens');
+      console.error('❌ Error code:', dbError.code);
+      console.error('❌ Error message:', dbError.message);
+      console.error('❌ Error details:', dbError.details);
+      console.error('❌ Error hint:', dbError.hint);
+      console.error('❌ Full error:', JSON.stringify(dbError));
+      throw new Error(`Failed to store Gmail authentication: ${dbError.message}`);
     }
+
+    console.log('✅ Data returned:', data);
 
     console.log('✅ Gmail authentication stored successfully');
 
