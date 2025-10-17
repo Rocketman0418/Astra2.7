@@ -8,7 +8,11 @@ import { GmailCallback } from './components/GmailCallback';
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
 
+  console.log('🔍 [App] Current pathname:', window.location.pathname);
+  console.log('🔍 [App] Full URL:', window.location.href);
+
   if (window.location.pathname === '/auth/gmail/callback') {
+    console.log('✅ [App] Rendering GmailCallback component');
     return <GmailCallback />;
   }
 
