@@ -101,7 +101,7 @@ Deno.serve(async (req: Request) => {
       if (tokens.error === 'invalid_grant') {
         await supabase
           .from('gmail_auth')
-          .update({ is_active: false })
+          .delete()
           .eq('user_id', user.id);
 
         throw new Error('Refresh token is invalid. Please reconnect your Gmail account.');
@@ -116,8 +116,7 @@ Deno.serve(async (req: Request) => {
 
     const updateData: any = {
       access_token: tokens.access_token,
-      expires_at: expiresAt.toISOString(),
-      updated_at: new Date().toISOString()
+      expires_at: expiresAt.toISOString()
     };
 
     if (tokens.refresh_token) {
