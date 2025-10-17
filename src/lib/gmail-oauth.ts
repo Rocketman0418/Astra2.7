@@ -36,6 +36,8 @@ export const initiateGmailOAuth = () => {
 
   const redirectUri = getRedirectUri();
   console.log('📧 Starting Gmail OAuth flow...');
+  console.log('📧 window.location.origin:', window.location.origin);
+  console.log('📧 window.location.href:', window.location.href);
   console.log('📧 Client ID:', GOOGLE_CLIENT_ID.substring(0, 20) + '...');
   console.log('📧 Redirect URI:', redirectUri);
 
@@ -48,7 +50,8 @@ export const initiateGmailOAuth = () => {
   authUrl.searchParams.append('prompt', 'consent');
   authUrl.searchParams.append('state', state);
 
-  console.log('📧 Redirecting to:', authUrl.toString().substring(0, 100) + '...');
+  console.log('📧 Full auth URL:', authUrl.toString());
+  console.log('📧 Redirecting to Google...');
   window.location.href = authUrl.toString();
 };
 
