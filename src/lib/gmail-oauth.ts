@@ -34,15 +34,21 @@ export const initiateGmailOAuth = () => {
   const state = crypto.randomUUID();
   sessionStorage.setItem('gmail_oauth_state', state);
 
+  const redirectUri = getRedirectUri();
+  console.log('📧 Starting Gmail OAuth flow...');
+  console.log('📧 Client ID:', GOOGLE_CLIENT_ID.substring(0, 20) + '...');
+  console.log('📧 Redirect URI:', redirectUri);
+
   const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   authUrl.searchParams.append('client_id', GOOGLE_CLIENT_ID);
-  authUrl.searchParams.append('redirect_uri', getRedirectUri());
+  authUrl.searchParams.append('redirect_uri', redirectUri);
   authUrl.searchParams.append('response_type', 'code');
   authUrl.searchParams.append('scope', SCOPES);
   authUrl.searchParams.append('access_type', 'offline');
   authUrl.searchParams.append('prompt', 'consent');
   authUrl.searchParams.append('state', state);
 
+  console.log('📧 Redirecting to:', authUrl.toString().substring(0, 100) + '...');
   window.location.href = authUrl.toString();
 };
 
@@ -58,6 +64,10 @@ export const handleGmailCallback = async (code: string, state: string): Promise<
     throw new Error('Not authenticated');
   }
 
+  const redirectUri = getRedirectUri();
+  console.log('📧 Exchanging OAuth code for tokens...');
+  console.log('📧 Using redirect URI:', redirectUri);
+
   const response = await fetch(
     `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gmail-oauth-exchange`,
     {
@@ -66,16 +76,29 @@ export const handleGmailCallback = async (code: string, state: string): Promise<
         'Authorization': `Bearer ${session.access_token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ code })
+      body: JSON.stringify({ code, redirect_uri: redirectUri })
     }
   );
 
+  console.log('📧 Response status:', response.status);
+
   if (!response.ok) {
-    const error = await response.json();
+    const errorText = await response.text();
+    console.error('📧 Error response:', errorText);
+
+    let error;
+    try {
+      error = JSON.parse(errorText);
+    } catch {
+      throw new Error(`Failed to exchange code for tokens: ${errorText}`);
+    }
+
     throw new Error(error.error || 'Failed to exchange code for tokens');
   }
 
-  return response.json();
+  const result = await response.json();
+  console.log('📧 Successfully connected Gmail:', result.email);
+  return result;
 };
 
 export const getGmailAuth = async (): Promise<GmailAuthData | null> => {

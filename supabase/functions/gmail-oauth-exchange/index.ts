@@ -55,7 +55,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { code } = await req.json();
+    const { code, redirect_uri } = await req.json();
 
     if (!code) {
       return new Response(
@@ -67,7 +67,10 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    const finalRedirectUri = redirect_uri || gmailRedirectUri;
+
     console.log('📧 Exchanging authorization code for tokens...');
+    console.log('📧 Using redirect URI:', finalRedirectUri);
 
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -76,7 +79,7 @@ Deno.serve(async (req: Request) => {
         code,
         client_id: googleClientId,
         client_secret: googleClientSecret,
-        redirect_uri: gmailRedirectUri,
+        redirect_uri: finalRedirectUri,
         grant_type: 'authorization_code'
       })
     });
