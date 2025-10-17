@@ -129,7 +129,8 @@ Deno.serve(async (req: Request) => {
         updated_at: new Date().toISOString()
       }, {
         onConflict: 'user_id'
-      });
+      })
+      .select();
 
     if (dbError) {
       console.error('❌ Failed to store tokens');
