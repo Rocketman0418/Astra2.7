@@ -63,24 +63,13 @@ export const ReportsView: React.FC = () => {
     }
   }, [reportMessages]);
 
-  // Auto-generate visualizations for all reports
+  // DISABLED: Auto-generate visualizations for all reports
+  // Reports should not attempt to generate visualizations client-side
+  // The Gemini API doesn't support CORS and should only be called from edge functions
+  // Future: Have the n8n webhook generate and return visualizations server-side
   useEffect(() => {
-    reportMessages.forEach(message => {
-      const messageId = message.chatId || message.id;
-      const metadata = message.reportMetadata || {};
-
-      // Check if this message needs auto-visualization
-      const needsAutoVisualization =
-        !message.visualization_data &&
-        !metadata.visualization_generating &&
-        !metadata.visualization_error &&
-        !visualizationStates[messageId]?.isGenerating;
-
-      if (needsAutoVisualization) {
-        console.log(`🚀 Auto-generating visualization for message:`, messageId);
-        handleCreateVisualization(messageId, message.text);
-      }
-    });
+    // Disabled auto-visualization to prevent CORS errors
+    console.log('ℹ️ Auto-visualization disabled for reports to prevent API errors');
   }, [reportMessages, visualizationStates]);
 
   // Set up scheduler to check for reports every minute

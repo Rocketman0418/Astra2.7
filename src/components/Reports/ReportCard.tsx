@@ -102,7 +102,8 @@ export const ReportCard: React.FC<ReportCardProps> = ({
   visualizationState,
   isReportRunning = false
 }) => {
-  const [showTextSummary, setShowTextSummary] = React.useState(false);
+  // Show text summary by default since visualizations are disabled
+  const [showTextSummary, setShowTextSummary] = React.useState(true);
   const [isVisualizationExpanded, setIsVisualizationExpanded] = React.useState(false);
 
   if (message.isUser) return null;
@@ -185,23 +186,15 @@ export const ReportCard: React.FC<ReportCardProps> = ({
 
       {/* Report Content */}
       <div className="p-6">
-        {/* Error State */}
-        {vizError && (
+        {/* Error State - Hidden since visualizations are disabled for reports */}
+        {vizError && false && (
           <div className="mb-4 p-3 bg-red-900/20 border border-red-700 rounded-lg text-red-300 text-sm">
             <strong>Visualization failed:</strong> {vizError}
-            {onCreateVisualization && message.chatId && (
-              <button
-                onClick={() => onCreateVisualization(message.chatId!, message.text)}
-                className="ml-2 text-red-200 hover:text-red-100 underline"
-              >
-                Retry
-              </button>
-            )}
           </div>
         )}
 
-        {/* Generating State */}
-        {isGenerating && (
+        {/* Generating State - Hidden since visualizations are disabled */}
+        {isGenerating && false && (
           <div className="text-center py-8">
             <div className="inline-flex items-center space-x-3 px-6 py-4 bg-blue-600/20 border border-blue-500/30 rounded-xl">
               <svg className="animate-spin h-6 w-6 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -281,36 +274,7 @@ export const ReportCard: React.FC<ReportCardProps> = ({
           </div>
 
           <div className="flex items-center space-x-2">
-            {/* Toggle between Visualization and Text Summary */}
-            {hasVisualization && !isGenerating && (
-              <button
-                onClick={() => setShowTextSummary(!showTextSummary)}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm font-medium"
-              >
-                {showTextSummary ? (
-                  <>
-                    <BarChart3 className="w-4 h-4" />
-                    <span>Show Visualization</span>
-                  </>
-                ) : (
-                  <>
-                    <FileText className="w-4 h-4" />
-                    <span>Show Text Summary</span>
-                  </>
-                )}
-              </button>
-            )}
-
-            {/* View Full Screen Button */}
-            {hasVisualization && !isGenerating && !showTextSummary && onViewVisualization && message.chatId && (
-              <button
-                onClick={() => onViewVisualization(message.chatId!)}
-                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all text-sm font-medium"
-              >
-                <BarChart3 className="w-4 h-4" />
-                <span>View Full Screen</span>
-              </button>
-            )}
+            {/* Visualization buttons hidden since visualizations are disabled for reports */}
           </div>
         </div>
       </div>
