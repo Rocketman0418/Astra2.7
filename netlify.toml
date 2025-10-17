@@ -6,3 +6,8 @@
   NODE_VERSION = "18"
   # Disable secrets scanning for expected client-side API keys
   SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
