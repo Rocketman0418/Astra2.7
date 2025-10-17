@@ -3,9 +3,14 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ReportsProvider } from './contexts/ReportsContext';
 import { AuthScreen } from './components/auth/AuthScreen';
 import { MainContainer } from './components/MainContainer';
+import { GmailCallback } from './components/GmailCallback';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
+
+  if (window.location.pathname === '/auth/gmail/callback') {
+    return <GmailCallback />;
+  }
 
   if (loading) {
     return (
