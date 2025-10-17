@@ -70,7 +70,9 @@ Deno.serve(async (req: Request) => {
     const finalRedirectUri = redirect_uri || gmailRedirectUri;
 
     console.log('📧 Exchanging authorization code for tokens...');
+    console.log('📧 Client ID:', googleClientId?.substring(0, 30) + '...');
     console.log('📧 Using redirect URI:', finalRedirectUri);
+    console.log('📧 Env GMAIL_REDIRECT_URI:', gmailRedirectUri);
 
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -87,8 +89,12 @@ Deno.serve(async (req: Request) => {
     const tokens = await tokenResponse.json();
 
     if (!tokenResponse.ok) {
-      console.error('❌ Failed to get tokens:', tokens);
-      throw new Error(tokens.error_description || 'Failed to get tokens');
+      console.error('❌ Failed to get tokens from Google');
+      console.error('❌ Status:', tokenResponse.status);
+      console.error('❌ Error:', tokens.error);
+      console.error('❌ Error description:', tokens.error_description);
+      console.error('❌ Full response:', JSON.stringify(tokens));
+      throw new Error(tokens.error_description || tokens.error || 'Failed to get tokens');
     }
 
     console.log('✅ Tokens received successfully');
