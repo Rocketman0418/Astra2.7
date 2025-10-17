@@ -116,7 +116,8 @@ Deno.serve(async (req: Request) => {
 
     const updateData: any = {
       access_token: tokens.access_token,
-      expires_at: expiresAt.toISOString()
+      expires_at: expiresAt.toISOString(),
+      is_active: true
     };
 
     if (tokens.refresh_token) {
