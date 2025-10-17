@@ -10,9 +10,19 @@ const AppContent: React.FC = () => {
 
   console.log('🔍 [App] Current pathname:', window.location.pathname);
   console.log('🔍 [App] Full URL:', window.location.href);
+  console.log('🔍 [App] Search params:', window.location.search);
+  console.log('🔍 [App] Has code param:', new URLSearchParams(window.location.search).has('code'));
+  console.log('🔍 [App] Has state param:', new URLSearchParams(window.location.search).has('state'));
 
   if (window.location.pathname === '/auth/gmail/callback') {
     console.log('✅ [App] Rendering GmailCallback component');
+    return <GmailCallback />;
+  }
+
+  // Also check if we have OAuth params on root path (fallback)
+  const searchParams = new URLSearchParams(window.location.search);
+  if (searchParams.has('code') && searchParams.has('state') && window.location.pathname === '/') {
+    console.log('⚠️ [App] Found OAuth params on root path - rendering GmailCallback');
     return <GmailCallback />;
   }
 
