@@ -105,12 +105,9 @@ export const getGmailAuth = async (): Promise<GmailAuthData | null> => {
   const { data, error } = await supabase
     .from('gmail_auth')
     .select('*')
-    .single();
+    .maybeSingle();
 
   if (error) {
-    if (error.code === 'PGRST116') {
-      return null;
-    }
     throw error;
   }
 
