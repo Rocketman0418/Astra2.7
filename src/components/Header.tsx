@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Menu, User, MessageSquare, Users, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { ChatMode } from '../types';
 import { NotificationBell } from './NotificationBell';
+import { UserSettingsModal } from './UserSettingsModal';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -11,13 +12,14 @@ interface HeaderProps {
   onToggleTeamMenu?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ 
-  onToggleSidebar, 
+export const Header: React.FC<HeaderProps> = ({
+  onToggleSidebar,
   showSidebarToggle = true,
   chatMode = 'private',
   onToggleTeamMenu
 }) => {
   const { user } = useAuth();
+  const [showSettings, setShowSettings] = useState(false);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-blue-600 to-purple-700 shadow-lg px-4 h-16">
@@ -73,11 +75,19 @@ export const Header: React.FC<HeaderProps> = ({
               {user?.email}
             </p>
           </div>
-          <div className="w-8 h-8 bg-blue-800 rounded-full flex items-center justify-center">
+          <button
+            onClick={() => setShowSettings(true)}
+            className="w-8 h-8 bg-blue-800 rounded-full flex items-center justify-center hover:bg-blue-900 transition-colors cursor-pointer"
+          >
             <User className="w-4 h-4 text-white" />
-          </div>
+          </button>
         </div>
       </div>
+
+      <UserSettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+      />
     </header>
   );
 };

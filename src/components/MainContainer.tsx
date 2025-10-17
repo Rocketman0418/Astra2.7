@@ -6,6 +6,7 @@ import { GroupChat } from './GroupChat';
 import { ReportsView } from './Reports/ReportsView';
 import { ChatModeToggle } from './ChatModeToggle';
 import { SavedVisualizationsList } from './SavedVisualizationsList';
+import { UserSettingsModal } from './UserSettingsModal';
 import { ChatMode } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useSavedVisualizations } from '../hooks/useSavedVisualizations';
@@ -19,6 +20,7 @@ export const MainContainer: React.FC = () => {
   const [showTeamMenu, setShowTeamMenu] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [showSavedVisualizations, setShowSavedVisualizations] = useState(false);
+  const [showUserSettings, setShowUserSettings] = useState(false);
 
   const {
     savedVisualizations,
@@ -77,6 +79,10 @@ export const MainContainer: React.FC = () => {
     setShowSavedVisualizations(true);
   };
 
+  const handleOpenUserSettings = () => {
+    setShowUserSettings(true);
+  };
+
   const handleDeleteVisualization = async (id: string) => {
     const result = await deleteVisualization(id);
     if (!result.success) {
@@ -106,8 +112,15 @@ export const MainContainer: React.FC = () => {
           onStartNewConversation={handleStartNewConversation}
           activeConversationId={activeConversationId}
           onOpenSavedVisualizations={handleOpenSavedVisualizations}
+          onOpenUserSettings={handleOpenUserSettings}
         />
       )}
+
+      {/* User Settings Modal */}
+      <UserSettingsModal
+        isOpen={showUserSettings}
+        onClose={() => setShowUserSettings(false)}
+      />
       
       <div className="flex flex-col h-screen">
         <Header 

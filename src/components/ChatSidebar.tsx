@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Trash2, Plus, Search, X, LogOut, User, Bookmark } from 'lucide-react';
+import { MessageSquare, Trash2, Plus, Search, X, LogOut, User, Bookmark, Mail } from 'lucide-react';
 import { useChats, Conversation } from '../hooks/useChats';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -11,6 +11,7 @@ interface ChatSidebarProps {
   onStartNewConversation: () => void;
   activeConversationId: string | null;
   onOpenSavedVisualizations?: () => void;
+  onOpenUserSettings?: () => void;
 }
 
 export const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -19,7 +20,8 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onLoadConversation,
   onStartNewConversation,
   activeConversationId,
-  onOpenSavedVisualizations
+  onOpenSavedVisualizations,
+  onOpenUserSettings
 }) => {
   const { user, signOut } = useAuth();
   const {
@@ -159,6 +161,20 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               <Plus className="w-4 h-4" />
               <span>New Chat</span>
             </button>
+
+            {/* Email Integration Button */}
+            {onOpenUserSettings && (
+              <button
+                onClick={() => {
+                  onOpenUserSettings();
+                  onClose();
+                }}
+                className="w-full mt-2 bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 min-h-[44px]"
+              >
+                <Mail className="w-4 h-4" />
+                <span>+ Email</span>
+              </button>
+            )}
 
             {/* My Visualizations Button */}
             {onOpenSavedVisualizations && (
