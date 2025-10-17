@@ -124,9 +124,7 @@ Deno.serve(async (req: Request) => {
         refresh_token: tokens.refresh_token,
         token_type: tokens.token_type || 'Bearer',
         expires_at: expiresAt.toISOString(),
-        scope: tokens.scope,
-        is_active: true,
-        updated_at: new Date().toISOString()
+        scope: tokens.scope
       }, {
         onConflict: 'user_id'
       })
