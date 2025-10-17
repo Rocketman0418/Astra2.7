@@ -105,7 +105,20 @@ Deno.serve(async (req: Request) => {
         headers: { Authorization: `Bearer ${tokens.access_token}` }
       }
     );
+
+    if (!profileResponse.ok) {
+      console.error('❌ Failed to get user profile from Google');
+      throw new Error('Failed to retrieve user profile from Google');
+    }
+
     const profile = await profileResponse.json();
+
+    console.log('📧 Full profile response:', JSON.stringify(profile));
+
+    if (!profile.email) {
+      console.error('❌ No email in profile response');
+      throw new Error('Gmail email address not found in authorization response. Please ensure you granted email permissions.');
+    }
 
     console.log('📧 Gmail account:', profile.email);
 
