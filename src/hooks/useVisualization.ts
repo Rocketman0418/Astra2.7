@@ -71,8 +71,9 @@ export const useVisualization = (
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
+        // Using gemini-1.5-flash for better stability and CORS support
         const model = genAI.getGenerativeModel({
-          model: 'gemini-flash-latest',
+          model: 'gemini-1.5-flash',
           generationConfig: {
             temperature: 1.0,
             topK: 64,
