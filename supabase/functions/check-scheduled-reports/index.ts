@@ -327,20 +327,28 @@ function calculateNextRunTime(
   }
 
   // Determine if target date is in EDT or EST
+  // EDT (Daylight): Eastern is UTC-4, EST (Standard): Eastern is UTC-5
+  // When user selects 7 AM Eastern, we need to convert to UTC
+  // 7 AM EST (winter) = 12:00 UTC (add 5 hours)
+  // 7 AM EDT (summer) = 11:00 UTC (add 4 hours)
   const testDate = new Date(Date.UTC(targetYear, targetMonth - 1, targetDay, 12, 0, 0));
   const isEDT = isEasternDaylightTime(testDate);
   const offsetHours = isEDT ? 4 : 5;
+
+  console.log(`📅 Calculating next run: ${hours}:${minutes} Eastern -> UTC`);
+  console.log(`📅 Is EDT: ${isEDT}, Offset: ${offsetHours} hours`);
 
   const utcTime = new Date(Date.UTC(
     targetYear,
     targetMonth - 1,
     targetDay,
-    hours + offsetHours,
+    hours + offsetHours,  // Convert Eastern to UTC by adding offset
     minutes,
     0,
     0
   ));
 
+  console.log(`📅 Calculated UTC time: ${utcTime.toISOString()}`);
   return utcTime.toISOString();
 }
 
