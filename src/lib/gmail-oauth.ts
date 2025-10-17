@@ -119,10 +119,15 @@ export const getGmailAuth = async (): Promise<GmailAuthData | null> => {
 };
 
 export const disconnectGmail = async (): Promise<void> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    throw new Error('Not authenticated');
+  }
+
   const { error } = await supabase
     .from('gmail_auth')
     .delete()
-    .match({});
+    .eq('user_id', session.user.id);
 
   if (error) {
     throw error;
