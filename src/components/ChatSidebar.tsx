@@ -3,6 +3,7 @@ import { MessageSquare, Trash2, Plus, Search, X, LogOut, User, Bookmark, Mail } 
 import { useChats, Conversation } from '../hooks/useChats';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { useUserProfile } from '../hooks/useUserProfile';
 
 interface ChatSidebarProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onOpenUserSettings
 }) => {
   const { user, signOut } = useAuth();
+  const { profile } = useUserProfile();
   const {
     conversations,
     deleteConversation,
@@ -284,12 +286,22 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="w-full flex items-center space-x-3 p-2 hover:bg-gray-700 rounded-lg transition-colors"
               >
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
+                  {profile?.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 text-left">
                   <p className="text-white text-sm font-medium truncate">
-                    {user?.user_metadata?.full_name || 'User'}
+                    {profile?.full_name || user?.user_metadata?.full_name || 'User'}
                   </p>
                   <p className="text-gray-400 text-xs truncate">
                     {user?.email}

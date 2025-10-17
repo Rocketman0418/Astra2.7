@@ -18,6 +18,7 @@ interface ChatContainerProps {
   onConversationLoaded: () => void;
   onNewChatStarted: () => void;
   onConversationChange: (conversationId: string | null) => void;
+  onOpenEmailSettings?: () => void;
 }
 
 export const ChatContainer: React.FC<ChatContainerProps> = ({
@@ -27,7 +28,8 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   shouldStartNewChat,
   onConversationLoaded,
   onNewChatStarted,
-  onConversationChange
+  onConversationChange,
+  onOpenEmailSettings
 }) => {
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -407,8 +409,9 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
           disabled={isLoading}
           favorites={favorites}
           onRemoveFavorite={removeFromFavorites}
-         replyState={replyState}
-         onCancelReply={cancelReply}
+          replyState={replyState}
+          onCancelReply={cancelReply}
+          onOpenEmailSettings={onOpenEmailSettings}
         />
       </div>
     </div>

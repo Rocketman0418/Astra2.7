@@ -148,6 +148,7 @@ export const MainContainer: React.FC = () => {
               onConversationLoaded={() => setConversationToLoad(null)}
               onNewChatStarted={() => setShouldStartNewChat(false)}
               onConversationChange={setActiveConversationId}
+              onOpenEmailSettings={handleOpenUserSettings}
             />
           ) : (
             <GroupChat 

@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { ChatMode } from '../types';
 import { NotificationBell } from './NotificationBell';
 import { UserSettingsModal } from './UserSettingsModal';
+import { useUserProfile } from '../hooks/useUserProfile';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -19,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleTeamMenu
 }) => {
   const { user } = useAuth();
+  const { profile } = useUserProfile();
   const [showSettings, setShowSettings] = useState(false);
 
   return (
@@ -69,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({
           <NotificationBell />
           <div className="hidden sm:block text-right">
             <p className="text-white text-sm font-medium">
-              {user?.user_metadata?.full_name || 'User'}
+              {profile?.full_name || user?.user_metadata?.full_name || 'User'}
             </p>
             <p className="text-blue-200 text-xs">
               {user?.email}
@@ -77,9 +79,19 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
           <button
             onClick={() => setShowSettings(true)}
-            className="w-8 h-8 bg-blue-800 rounded-full flex items-center justify-center hover:bg-blue-900 transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full flex items-center justify-center hover:ring-2 hover:ring-white/30 transition-all cursor-pointer overflow-hidden"
           >
-            <User className="w-4 h-4 text-white" />
+            {profile?.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-blue-800 flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
+            )}
           </button>
         </div>
       </div>
