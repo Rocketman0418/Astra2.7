@@ -33,7 +33,15 @@ export const GmailCallback: React.FC = () => {
         }, 2000);
       } catch (err: any) {
         console.error('Gmail callback error:', err);
-        setError(err.message || 'Failed to connect Gmail account');
+        let errorMessage = err.message || 'Failed to connect Gmail account';
+
+        if (errorMessage.includes('Missing Google OAuth configuration')) {
+          errorMessage = 'Gmail integration is not fully configured on the server. Please ensure GOOGLE_CLIENT_SECRET and GMAIL_REDIRECT_URI are set in Supabase Edge Functions. See GMAIL_SETUP.md for details.';
+        } else if (errorMessage.includes('Failed to exchange code')) {
+          errorMessage = 'Failed to complete OAuth flow. Please check that your Google OAuth credentials are configured correctly.';
+        }
+
+        setError(errorMessage);
         setStatus('error');
       }
     };

@@ -8,6 +8,7 @@ import {
   refreshGmailToken,
   GmailAuthData
 } from '../lib/gmail-oauth';
+import { GmailConfigCheck } from './GmailConfigCheck';
 
 export const GmailSettings: React.FC = () => {
   const [gmailAuth, setGmailAuth] = useState<GmailAuthData | null>(null);
@@ -35,6 +36,11 @@ export const GmailSettings: React.FC = () => {
 
   const handleConnect = () => {
     try {
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        setError('Gmail integration is not configured. Please check GMAIL_SETUP.md for setup instructions.');
+        return;
+      }
       initiateGmailOAuth();
     } catch (err: any) {
       setError(err.message);
@@ -87,6 +93,8 @@ export const GmailSettings: React.FC = () => {
         <Mail className="w-6 h-6 text-blue-500" />
         <h3 className="text-lg font-semibold text-white">Gmail Workspace Integration</h3>
       </div>
+
+      <GmailConfigCheck />
 
       {error && (
         <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
