@@ -10,10 +10,19 @@ export const GmailCallback: React.FC = () => {
   useEffect(() => {
     const processCallback = async () => {
       try {
+        console.log('📧 [GmailCallback] Processing OAuth callback...');
+        console.log('📧 [GmailCallback] Current URL:', window.location.href);
+
         const params = new URLSearchParams(window.location.search);
         const code = params.get('code');
         const state = params.get('state');
         const errorParam = params.get('error');
+
+        console.log('📧 [GmailCallback] URL params:', {
+          hasCode: !!code,
+          hasState: !!state,
+          error: errorParam
+        });
 
         if (errorParam) {
           throw new Error(`OAuth error: ${errorParam}`);
@@ -23,16 +32,19 @@ export const GmailCallback: React.FC = () => {
           throw new Error('Missing required OAuth parameters');
         }
 
+        console.log('📧 [GmailCallback] Calling handleGmailCallback...');
         const result = await handleGmailCallback(code, state);
+        console.log('📧 [GmailCallback] Success! Email:', result.email);
 
         setEmail(result.email);
         setStatus('success');
 
         setTimeout(() => {
+          console.log('📧 [GmailCallback] Redirecting to home...');
           window.location.href = '/';
         }, 2000);
       } catch (err: any) {
-        console.error('Gmail callback error:', err);
+        console.error('📧 [GmailCallback] Error:', err);
         let errorMessage = err.message || 'Failed to connect Gmail account';
 
         if (errorMessage.includes('Missing Google OAuth configuration')) {
