@@ -31,12 +31,12 @@ BEGIN
 
   -- DST starts on the second Sunday of March at 2 AM
   march_second_sunday := (DATE_TRUNC('month', make_date(year_val, 3, 1)) + interval '1 month' - interval '1 day')::date;
-  march_second_sunday := march_second_sunday + ((14 - EXTRACT(DOW FROM march_second_sunday)::integer) % 7)::text || ' days';
+  march_second_sunday := march_second_sunday + make_interval(days => (14 - EXTRACT(DOW FROM march_second_sunday)::integer) % 7);
   march_second_sunday := march_second_sunday + interval '2 hours';
 
   -- DST ends on the first Sunday of November at 2 AM
   november_first_sunday := (DATE_TRUNC('month', make_date(year_val, 11, 1)))::date;
-  november_first_sunday := november_first_sunday + ((7 - EXTRACT(DOW FROM november_first_sunday)::integer) % 7)::text || ' days';
+  november_first_sunday := november_first_sunday + make_interval(days => (7 - EXTRACT(DOW FROM november_first_sunday)::integer) % 7);
   november_first_sunday := november_first_sunday + interval '2 hours';
 
   RETURN check_date >= march_second_sunday AND check_date < november_first_sunday;
