@@ -105,7 +105,7 @@ export const handleGmailCallback = async (code: string, state: string): Promise<
   return result;
 };
 
-export const getGmailAuth = async (): Promise<GmailAuthData | null> => {
+export const getGmailAuth = async (autoRefresh = false): Promise<GmailAuthData | null> => {
   const { data, error } = await supabase
     .from('gmail_auth')
     .select('*')
@@ -113,6 +113,18 @@ export const getGmailAuth = async (): Promise<GmailAuthData | null> => {
 
   if (error) {
     throw error;
+  }
+
+  if (autoRefresh && data && isGmailTokenExpired(data.expires_at)) {
+    console.log('Token expired, auto-refreshing...');
+    await refreshGmailToken();
+
+    const { data: refreshedData } = await supabase
+      .from('gmail_auth')
+      .select('*')
+      .maybeSingle();
+
+    return refreshedData;
   }
 
   return data;

@@ -34,6 +34,28 @@ export const GmailSettings: React.FC = () => {
     loadGmailAuth();
   }, []);
 
+  useEffect(() => {
+    if (!gmailAuth || !gmailAuth.is_active) return;
+
+    const checkAndRefreshToken = async () => {
+      if (isGmailTokenExpired(gmailAuth.expires_at)) {
+        try {
+          console.log('Token expired, automatically refreshing...');
+          await refreshGmailToken();
+          await loadGmailAuth();
+        } catch (err) {
+          console.error('Auto-refresh failed:', err);
+        }
+      }
+    };
+
+    checkAndRefreshToken();
+
+    const interval = setInterval(checkAndRefreshToken, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [gmailAuth]);
+
   const handleConnect = () => {
     try {
       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
