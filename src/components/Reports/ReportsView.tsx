@@ -5,6 +5,7 @@ import { useVisualization } from '../../hooks/useVisualization';
 import { ReportCard } from './ReportCard';
 import { CreateReportModal } from '../Reports/CreateReportModal';
 import { VisualizationView } from '../VisualizationView';
+import { extractVisualizationTitle } from '../../utils/extractVisualizationTitle';
 import { ManageReportsModal } from '../ManageReportsModal';
 import { supabase } from '../../lib/supabase';
 
@@ -238,10 +239,12 @@ export const ReportsView: React.FC = () => {
     const visualizationContent = message?.visualization_data || getVisualization(currentVisualization)?.content;
     
     if (visualizationContent && visualizationContent !== 'generated') {
+      const reportTitle = message?.reportMetadata?.report_title || 'Report Visualization';
       return (
         <VisualizationView
           content={visualizationContent}
           onBack={hideVisualization}
+          title={reportTitle}
         />
       );
     }

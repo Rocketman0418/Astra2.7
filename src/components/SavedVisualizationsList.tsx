@@ -38,6 +38,7 @@ export const SavedVisualizationsList: React.FC<SavedVisualizationsListProps> = (
       <VisualizationView
         content={viewingVisualization.visualization_data}
         onBack={() => setViewingVisualization(null)}
+        title={viewingVisualization.title}
       />
     );
   }

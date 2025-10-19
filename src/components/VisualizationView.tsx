@@ -1,20 +1,27 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Plus, Check } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { ArrowLeft, Plus, Check, Download } from 'lucide-react';
+import { exportVisualizationToPDF } from '../utils/exportVisualizationToPDF';
+import { useAuth } from '../contexts/AuthContext';
 
 interface VisualizationViewProps {
   content: string;
   onBack: () => void;
   onSave?: () => Promise<void>;
   isSaved?: boolean;
+  title?: string;
 }
 
 export const VisualizationView: React.FC<VisualizationViewProps> = ({
   content,
   onBack,
   onSave,
-  isSaved = false
+  isSaved = false,
+  title = 'Visualization'
 }) => {
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const visualizationRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
   const handleSave = async () => {
     if (!onSave || isSaved) return;
@@ -24,6 +31,23 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
       await onSave();
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleExport = async () => {
+    if (!visualizationRef.current) return;
+
+    setExporting(true);
+    try {
+      await exportVisualizationToPDF(visualizationRef.current, {
+        filename: title,
+        title: title,
+        userName: user?.email?.split('@')[0] || 'User'
+      });
+    } catch (error: any) {
+      alert(error.message || 'Failed to export PDF');
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -43,40 +67,61 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
             </h1>
           </div>
 
-          {onSave && (
+          <div className="flex items-center gap-2">
             <button
-              onClick={handleSave}
-              disabled={saving || isSaved}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors min-h-[44px] touch-manipulation ${
-                isSaved
-                  ? 'bg-green-600 text-white cursor-default'
-                  : 'bg-gradient-to-r from-blue-700 to-blue-800 text-white hover:from-blue-800 hover:to-blue-900'
-              } disabled:opacity-50`}
+              onClick={handleExport}
+              disabled={exporting}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors min-h-[44px] touch-manipulation bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 disabled:opacity-50"
             >
-              {isSaved ? (
-                <>
-                  <Check className="w-5 h-5" />
-                  <span className="font-semibold">Saved</span>
-                </>
-              ) : (
-                <>
-                  <Plus className="w-5 h-5" />
-                  <span className="font-semibold">{saving ? 'Saving...' : 'My Visualizations'}</span>
-                </>
-              )}
+              <Download className="w-5 h-5" />
+              <span className="font-semibold">{exporting ? 'Exporting...' : 'Export PDF'}</span>
             </button>
-          )}
+
+            {onSave && (
+              <button
+                onClick={handleSave}
+                disabled={saving || isSaved}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors min-h-[44px] touch-manipulation ${
+                  isSaved
+                    ? 'bg-green-600 text-white cursor-default'
+                    : 'bg-gradient-to-r from-blue-700 to-blue-800 text-white hover:from-blue-800 hover:to-blue-900'
+                } disabled:opacity-50`}
+              >
+                {isSaved ? (
+                  <>
+                    <Check className="w-5 h-5" />
+                    <span className="font-semibold">Saved</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-5 h-5" />
+                    <span className="font-semibold">{saving ? 'Saving...' : 'My Visualizations'}</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
       <div className="flex-1 overflow-auto p-4 bg-gray-800">
         <div
+          ref={visualizationRef}
           className="w-full h-full"
           dangerouslySetInnerHTML={{ __html: content }}
         />
 
-        {onSave && (
-          <div className="flex justify-center mt-6 pb-6">
+        <div className="flex justify-center gap-3 mt-6 pb-6 flex-wrap">
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="flex items-center gap-2 px-6 py-3 rounded-lg transition-colors min-h-[44px] touch-manipulation bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 disabled:opacity-50"
+          >
+            <Download className="w-5 h-5" />
+            <span className="font-semibold">{exporting ? 'Exporting...' : 'Export PDF'}</span>
+          </button>
+
+          {onSave && (
             <button
               onClick={handleSave}
               disabled={saving || isSaved}
@@ -98,8 +143,8 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
                 </>
               )}
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

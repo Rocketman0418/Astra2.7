@@ -3,6 +3,7 @@ import { MessageBubble } from './MessageBubble';
 import { LoadingIndicator } from './LoadingIndicator';
 import { ChatInput } from './ChatInput';
 import { VisualizationView } from './VisualizationView';
+import { extractVisualizationTitle } from '../utils/extractVisualizationTitle';
 import { useChat } from '../hooks/useChat';
 import { useFavorites } from '../hooks/useFavorites';
 import { useVisualization } from '../hooks/useVisualization';
@@ -371,6 +372,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
           onBack={hideVisualization}
           onSave={handleSaveVisualization}
           isSaved={isSaved}
+          title={extractVisualizationTitle(visualization.content)}
         />
       );
     }

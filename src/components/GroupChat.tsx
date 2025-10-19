@@ -4,6 +4,7 @@ import { GroupMessage } from './GroupMessage';
 import { MentionInput } from './MentionInput';
 import { LoadingIndicator } from './LoadingIndicator';
 import { VisualizationView } from './VisualizationView';
+import { extractVisualizationTitle } from '../utils/extractVisualizationTitle';
 import { VisualizationLoadingView } from './VisualizationLoadingView';
 import { useGroupChat } from '../hooks/useGroupChat';
 import { useVisualization } from '../hooks/useVisualization';
@@ -808,6 +809,7 @@ ${finalSummary}
         <VisualizationView
           content={message.visualization_data}
           onBack={hideVisualization}
+          title={extractVisualizationTitle(message.visualization_data)}
         />
       );
     }
@@ -820,6 +822,7 @@ ${finalSummary}
         <VisualizationView
           content={visualization.content}
           onBack={hideVisualization}
+          title={extractVisualizationTitle(visualization.content)}
         />
       );
     }
