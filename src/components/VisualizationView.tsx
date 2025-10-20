@@ -71,7 +71,7 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
             <button
               onClick={handleExport}
               disabled={exporting}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors min-h-[44px] touch-manipulation bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors min-h-[44px] touch-manipulation bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 disabled:opacity-50"
             >
               <Download className="w-5 h-5" />
               <span className="font-semibold">{exporting ? 'Exporting...' : 'Export PDF'}</span>
@@ -115,7 +115,7 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="flex items-center gap-2 px-6 py-3 rounded-lg transition-colors min-h-[44px] touch-manipulation bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-3 rounded-lg transition-colors min-h-[44px] touch-manipulation bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 disabled:opacity-50"
           >
             <Download className="w-5 h-5" />
             <span className="font-semibold">{exporting ? 'Exporting...' : 'Export PDF'}</span>
