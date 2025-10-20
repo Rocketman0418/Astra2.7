@@ -152,7 +152,7 @@ export const exportVisualizationToPDF = async (
     const originalWidth = element.scrollWidth;
     const originalHeight = element.scrollHeight;
 
-    const targetWidth = 5400;
+    const targetWidth = 3600;
     const scale = targetWidth / originalWidth;
 
     const canvas = await html2canvas(element, {
@@ -168,16 +168,16 @@ export const exportVisualizationToPDF = async (
     });
 
     const pdf = new jsPDF({
-      orientation: 'portrait',
+      orientation: 'landscape',
       unit: 'mm',
-      format: 'a4'
+      format: 'a3'
     });
 
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
 
-    const marginSides = 12;
-    const marginBottom = 22;
+    const marginSides = 20;
+    const marginBottom = 25;
     const contentWidth = pageWidth - (marginSides * 2);
 
     const imgWidthMm = contentWidth;
