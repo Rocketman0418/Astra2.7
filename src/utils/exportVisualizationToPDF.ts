@@ -152,7 +152,7 @@ export const exportVisualizationToPDF = async (
     const originalWidth = element.scrollWidth;
     const originalHeight = element.scrollHeight;
 
-    const targetWidth = 2700;
+    const targetWidth = 5400;
     const scale = targetWidth / originalWidth;
 
     const canvas = await html2canvas(element, {
