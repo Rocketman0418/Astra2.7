@@ -1,6 +1,8 @@
-import React from 'react';
-import { Calendar, Clock, Play, Trash2, ChevronDown, ChevronUp, FileText, BarChart3 } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Calendar, Clock, Play, Trash2, ChevronDown, ChevronUp, FileText, BarChart3, Download } from 'lucide-react';
 import { ReportMessage } from '../../types';
+import { exportVisualizationToPDF } from '../../utils/exportVisualizationToPDF';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ReportCardProps {
   message: ReportMessage;
@@ -104,6 +106,9 @@ export const ReportCard: React.FC<ReportCardProps> = ({
 }) => {
   const [showTextSummary, setShowTextSummary] = React.useState(false);
   const [isVisualizationExpanded, setIsVisualizationExpanded] = React.useState(false);
+  const [exporting, setExporting] = useState(false);
+  const visualizationRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
   if (message.isUser) return null;
 
@@ -116,6 +121,23 @@ export const ReportCard: React.FC<ReportCardProps> = ({
   const handleDeleteMessage = () => {
     if (window.confirm('Are you sure you want to delete this report instance? This will not affect your scheduled report configuration.')) {
       onDeleteMessage?.(message.id);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    if (!visualizationRef.current || !message.visualization_data) return;
+
+    setExporting(true);
+    try {
+      await exportVisualizationToPDF(visualizationRef.current, {
+        filename: reportMeta?.report_title || 'report',
+        title: reportMeta?.report_title || 'Report Visualization',
+        userName: user?.email?.split('@')[0] || 'User'
+      });
+    } catch (error: any) {
+      alert(error.message || 'Failed to export PDF');
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -237,14 +259,8 @@ export const ReportCard: React.FC<ReportCardProps> = ({
         {!showTextSummary && !isGenerating && hasVisualization && (
           <div className="space-y-4">
             {/* Visualization Preview */}
-            <div className={`relative ${isVisualizationExpanded ? '' : 'max-h-96 overflow-hidden'}`}>
-              <iframe
-                srcDoc={message.visualization_data}
-                className="w-full bg-gray-900 rounded-lg border border-gray-700"
-                style={{ height: isVisualizationExpanded ? '800px' : '300px' }}
-                title="Visualization Preview"
-                sandbox="allow-scripts"
-              />
+            <div ref={visualizationRef} className={`relative ${isVisualizationExpanded ? '' : 'max-h-96 overflow-hidden'}`}>
+              <div dangerouslySetInnerHTML={{ __html: message.visualization_data || '' }} />
               {!isVisualizationExpanded && (
                 <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none" />
               )}
@@ -298,6 +314,18 @@ export const ReportCard: React.FC<ReportCardProps> = ({
                     <span>Show Text Summary</span>
                   </>
                 )}
+              </button>
+            )}
+
+            {/* Export PDF Button */}
+            {hasVisualization && !isGenerating && !showTextSummary && message.visualization_data && (
+              <button
+                onClick={handleExportPDF}
+                disabled={exporting}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
+              >
+                <Download className="w-4 h-4" />
+                <span>{exporting ? 'Exporting...' : 'Export PDF'}</span>
               </button>
             )}
 
