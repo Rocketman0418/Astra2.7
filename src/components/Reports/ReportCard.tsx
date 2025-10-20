@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Calendar, Clock, Play, Trash2, ChevronDown, ChevronUp, FileText, BarChart3, Download } from 'lucide-react';
 import { ReportMessage } from '../../types';
 import { exportVisualizationToPDF } from '../../utils/exportVisualizationToPDF';
@@ -107,7 +107,6 @@ export const ReportCard: React.FC<ReportCardProps> = ({
   const [showTextSummary, setShowTextSummary] = React.useState(false);
   const [isVisualizationExpanded, setIsVisualizationExpanded] = React.useState(false);
   const [exporting, setExporting] = useState(false);
-  const visualizationRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
   if (message.isUser) return null;
@@ -125,15 +124,23 @@ export const ReportCard: React.FC<ReportCardProps> = ({
   };
 
   const handleExportPDF = async () => {
-    if (!visualizationRef.current || !message.visualization_data) return;
+    if (!message.visualization_data) return;
 
     setExporting(true);
     try {
-      await exportVisualizationToPDF(visualizationRef.current, {
+      const tempContainer = document.createElement('div');
+      tempContainer.innerHTML = message.visualization_data;
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      document.body.appendChild(tempContainer);
+
+      await exportVisualizationToPDF(tempContainer, {
         filename: reportMeta?.report_title || 'report',
         title: reportMeta?.report_title || 'Report Visualization',
         userName: user?.email?.split('@')[0] || 'User'
       });
+
+      document.body.removeChild(tempContainer);
     } catch (error: any) {
       alert(error.message || 'Failed to export PDF');
     } finally {
@@ -260,9 +267,6 @@ export const ReportCard: React.FC<ReportCardProps> = ({
           <div className="space-y-4">
             {/* Visualization Preview */}
             <div className={`relative ${isVisualizationExpanded ? '' : 'max-h-96 overflow-hidden'}`}>
-              <div ref={visualizationRef} style={{ display: 'none' }}>
-                <div dangerouslySetInnerHTML={{ __html: message.visualization_data || '' }} />
-              </div>
               <iframe
                 srcDoc={message.visualization_data}
                 className="w-full bg-gray-900 rounded-lg border border-gray-700"
