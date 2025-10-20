@@ -175,9 +175,9 @@ export const exportVisualizationToPDF = async (
     });
 
     const pdf = new jsPDF({
-      orientation: 'portrait',
+      orientation: 'landscape',
       unit: 'mm',
-      format: 'a4'
+      format: 'a3'
     });
 
     const pageWidth = pdf.internal.pageSize.getWidth();
