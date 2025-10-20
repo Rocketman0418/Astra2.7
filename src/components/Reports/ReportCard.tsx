@@ -128,23 +128,25 @@ export const ReportCard: React.FC<ReportCardProps> = ({
 
     setExporting(true);
     try {
+      const styleTag = `
+        <style>
+          * {
+            word-spacing: normal !important;
+            letter-spacing: normal !important;
+          }
+          h1, h2, h3, h4, h5, h6 {
+            word-spacing: 0.25rem !important;
+            letter-spacing: 0.02em !important;
+          }
+        </style>
+      `;
+
       const tempContainer = document.createElement('div');
-      tempContainer.innerHTML = message.visualization_data;
-      tempContainer.style.position = 'fixed';
-      tempContainer.style.left = '-99999px';
-      tempContainer.style.top = '0';
-      tempContainer.style.width = '1600px';
-      tempContainer.style.minWidth = '1600px';
-      tempContainer.style.padding = '60px';
-      tempContainer.style.backgroundColor = '#1f2937';
-      tempContainer.style.color = 'white';
-      tempContainer.style.fontFamily = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
-      tempContainer.style.visibility = 'hidden';
-      tempContainer.style.pointerEvents = 'none';
+      tempContainer.innerHTML = styleTag + message.visualization_data;
+      tempContainer.style.cssText = 'position: absolute; left: -9999px; top: 0;';
 
       document.body.appendChild(tempContainer);
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       await exportVisualizationToPDF(tempContainer, {
         filename: reportMeta?.report_title || 'report',

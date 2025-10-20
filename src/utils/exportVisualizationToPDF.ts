@@ -152,8 +152,7 @@ export const exportVisualizationToPDF = async (
     const originalWidth = Math.max(element.scrollWidth, element.offsetWidth);
     const originalHeight = Math.max(element.scrollHeight, element.offsetHeight);
 
-    const targetWidth = 3200;
-    const scale = Math.min(targetWidth / originalWidth, 2.5);
+    const scale = 2;
 
     const canvas = await html2canvas(element, {
       scale: scale,
@@ -166,8 +165,7 @@ export const exportVisualizationToPDF = async (
       width: originalWidth,
       height: originalHeight,
       letterRendering: true,
-      allowTaint: true,
-      foreignObjectRendering: false
+      allowTaint: true
     });
 
     const pdf = new jsPDF({

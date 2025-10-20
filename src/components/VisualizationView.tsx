@@ -39,11 +39,36 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
 
     setExporting(true);
     try {
-      await exportVisualizationToPDF(visualizationRef.current, {
+      const styleTag = document.createElement('style');
+      styleTag.textContent = `
+        * {
+          word-spacing: normal !important;
+          letter-spacing: normal !important;
+        }
+        h1, h2, h3, h4, h5, h6 {
+          word-spacing: 0.25rem !important;
+          letter-spacing: 0.02em !important;
+        }
+      `;
+
+      const tempContainer = document.createElement('div');
+      tempContainer.appendChild(styleTag);
+
+      const contentClone = visualizationRef.current.cloneNode(true) as HTMLElement;
+      tempContainer.appendChild(contentClone);
+
+      tempContainer.style.cssText = 'position: absolute; left: -9999px; top: 0;';
+      document.body.appendChild(tempContainer);
+
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      await exportVisualizationToPDF(tempContainer, {
         filename: title,
         title: title,
         userName: user?.email?.split('@')[0] || 'User'
       });
+
+      document.body.removeChild(tempContainer);
     } catch (error: any) {
       alert(error.message || 'Failed to export PDF');
     } finally {
