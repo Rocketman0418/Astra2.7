@@ -152,8 +152,8 @@ export const exportVisualizationToPDF = async (
     const originalWidth = element.scrollWidth;
     const originalHeight = element.scrollHeight;
 
-    const targetWidth = 3600;
-    const scale = targetWidth / originalWidth;
+    const targetWidth = 2400;
+    const scale = Math.min(targetWidth / originalWidth, 3);
 
     const canvas = await html2canvas(element, {
       scale: scale,
@@ -164,19 +164,26 @@ export const exportVisualizationToPDF = async (
       windowHeight: originalHeight,
       imageTimeout: 0,
       width: originalWidth,
-      height: originalHeight
+      height: originalHeight,
+      onclone: (clonedDoc) => {
+        const clonedElement = clonedDoc.querySelector('body > div:last-child') as HTMLElement;
+        if (clonedElement) {
+          clonedElement.style.width = '1200px';
+          clonedElement.style.maxWidth = '1200px';
+        }
+      }
     });
 
     const pdf = new jsPDF({
-      orientation: 'landscape',
+      orientation: 'portrait',
       unit: 'mm',
-      format: 'a3'
+      format: 'a4'
     });
 
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
 
-    const marginSides = 20;
+    const marginSides = 15;
     const marginBottom = 25;
     const contentWidth = pageWidth - (marginSides * 2);
 
@@ -191,7 +198,7 @@ export const exportVisualizationToPDF = async (
 
     while (yOffset < imgHeightMm) {
       const isFirstPage = pageNum === 1;
-      const headerHeight = isFirstPage ? 50 : 25;
+      const headerHeight = isFirstPage ? 45 : 25;
       const availableHeight = pageHeight - headerHeight - marginBottom;
 
       const idealEndY = yOffset + availableHeight;
@@ -207,7 +214,7 @@ export const exportVisualizationToPDF = async (
           canvas,
           startYPx,
           idealEndYPx,
-          150
+          200
         );
 
         actualEndY = (bestBreakPx / canvas.height) * imgHeightMm;

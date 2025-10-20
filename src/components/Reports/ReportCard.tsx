@@ -132,7 +132,14 @@ export const ReportCard: React.FC<ReportCardProps> = ({
       tempContainer.innerHTML = message.visualization_data;
       tempContainer.style.position = 'absolute';
       tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '0';
+      tempContainer.style.width = '1200px';
+      tempContainer.style.maxWidth = '1200px';
+      tempContainer.style.padding = '40px';
+      tempContainer.style.backgroundColor = '#1f2937';
       document.body.appendChild(tempContainer);
+
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       await exportVisualizationToPDF(tempContainer, {
         filename: reportMeta?.report_title || 'report',
