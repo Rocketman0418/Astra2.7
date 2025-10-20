@@ -259,8 +259,17 @@ export const ReportCard: React.FC<ReportCardProps> = ({
         {!showTextSummary && !isGenerating && hasVisualization && (
           <div className="space-y-4">
             {/* Visualization Preview */}
-            <div ref={visualizationRef} className={`relative ${isVisualizationExpanded ? '' : 'max-h-96 overflow-hidden'}`}>
-              <div dangerouslySetInnerHTML={{ __html: message.visualization_data || '' }} />
+            <div className={`relative ${isVisualizationExpanded ? '' : 'max-h-96 overflow-hidden'}`}>
+              <div ref={visualizationRef} style={{ display: 'none' }}>
+                <div dangerouslySetInnerHTML={{ __html: message.visualization_data || '' }} />
+              </div>
+              <iframe
+                srcDoc={message.visualization_data}
+                className="w-full bg-gray-900 rounded-lg border border-gray-700"
+                style={{ height: isVisualizationExpanded ? '800px' : '300px' }}
+                title="Visualization Preview"
+                sandbox="allow-scripts"
+              />
               {!isVisualizationExpanded && (
                 <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none" />
               )}
