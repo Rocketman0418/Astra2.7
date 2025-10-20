@@ -7,6 +7,29 @@ export interface ExportOptions {
   userName?: string;
 }
 
+const cleanTitle = (title: string): string => {
+  let cleaned = title;
+
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = title;
+  cleaned = tempDiv.textContent || tempDiv.innerText || title;
+
+  cleaned = cleaned.replace(/[\u{1F300}-\u{1F9FF}]/gu, '');
+  cleaned = cleaned.replace(/[\u{2600}-\u{26FF}]/gu, '');
+  cleaned = cleaned.replace(/[\u{2700}-\u{27BF}]/gu, '');
+  cleaned = cleaned.replace(/[^\x00-\x7F]/g, '');
+
+  cleaned = cleaned.replace(/^[^a-zA-Z0-9]+/, '');
+
+  cleaned = cleaned.trim();
+
+  if (cleaned.length > 60) {
+    cleaned = cleaned.substring(0, 60) + '...';
+  }
+
+  return cleaned || 'Visualization Report';
+};
+
 export const exportVisualizationToPDF = async (
   element: HTMLElement,
   options: ExportOptions = {}
@@ -18,13 +41,16 @@ export const exportVisualizationToPDF = async (
       userName = 'User'
     } = options;
 
+    const cleanedTitle = cleanTitle(title);
+
     const canvas = await html2canvas(element, {
-      scale: 2,
+      scale: 3,
       useCORS: true,
       logging: false,
       backgroundColor: '#1f2937',
       windowWidth: element.scrollWidth,
-      windowHeight: element.scrollHeight
+      windowHeight: element.scrollHeight,
+      imageTimeout: 0
     });
 
     const imgWidth = 210;
@@ -44,10 +70,13 @@ export const exportVisualizationToPDF = async (
     pdf.rect(0, 0, pageWidth, actualPageHeight, 'F');
 
     pdf.setTextColor(255, 255, 255);
-    pdf.setFontSize(18);
-    pdf.text(title, pageWidth / 2, 15, { align: 'center' });
+    pdf.setFontSize(16);
+    const titleLines = pdf.splitTextToSize(cleanedTitle, pageWidth - 20);
+    pdf.text(titleLines, pageWidth / 2, 15, { align: 'center' });
 
-    pdf.setFontSize(10);
+    const titleHeight = 15 + (titleLines.length - 1) * 5;
+
+    pdf.setFontSize(9);
     pdf.setTextColor(156, 163, 175);
     const currentDate = new Date().toLocaleString('en-US', {
       year: 'numeric',
@@ -56,20 +85,22 @@ export const exportVisualizationToPDF = async (
       hour: '2-digit',
       minute: '2-digit'
     });
-    pdf.text(`Generated: ${currentDate}`, pageWidth / 2, 22, { align: 'center' });
-    pdf.text(`User: ${userName}`, pageWidth / 2, 27, { align: 'center' });
+    pdf.text(`Generated: ${currentDate}`, pageWidth / 2, titleHeight + 7, { align: 'center' });
+    pdf.text(`User: ${userName}`, pageWidth / 2, titleHeight + 12, { align: 'center' });
 
     pdf.setDrawColor(75, 85, 99);
     pdf.setLineWidth(0.5);
-    pdf.line(10, 30, pageWidth - 10, 30);
+    pdf.line(10, titleHeight + 15, pageWidth - 10, titleHeight + 15);
 
     const imgData = canvas.toDataURL('image/png');
 
-    const marginTop = 35;
-    const marginBottom = 15;
+    const marginTop = titleHeight + 20;
+    const marginBottom = 12;
+    const marginSides = 5;
     const availableHeight = actualPageHeight - marginTop - marginBottom;
+    const availableWidth = pageWidth - (marginSides * 2);
 
-    let finalImgWidth = imgWidth - 20;
+    let finalImgWidth = availableWidth;
     let finalImgHeight = (canvas.height * finalImgWidth) / canvas.width;
 
     if (finalImgHeight > availableHeight) {
