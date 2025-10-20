@@ -143,7 +143,16 @@ export const ReportCard: React.FC<ReportCardProps> = ({
 
       const tempContainer = document.createElement('div');
       tempContainer.innerHTML = styleTag + message.visualization_data;
-      tempContainer.style.cssText = 'position: absolute; left: -9999px; top: 0;';
+      tempContainer.style.cssText = `
+        position: absolute;
+        left: -9999px;
+        top: 0;
+        width: 1400px;
+        min-width: 1400px;
+        padding: 40px;
+        background-color: #1f2937;
+        font-size: 16px;
+      `;
 
       document.body.appendChild(tempContainer);
       await new Promise(resolve => setTimeout(resolve, 500));
