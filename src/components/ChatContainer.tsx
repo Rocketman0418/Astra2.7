@@ -9,7 +9,6 @@ import { useFavorites } from '../hooks/useFavorites';
 import { useVisualization } from '../hooks/useVisualization';
 import { useAuth } from '../contexts/AuthContext';
 import { useSavedVisualizations } from '../hooks/useSavedVisualizations';
-import { extractVisualizationTitle } from '../utils/extractVisualizationTitle';
 
 interface ChatContainerProps {
   sidebarOpen: boolean;
