@@ -137,9 +137,23 @@ export const ReportCard: React.FC<ReportCardProps> = ({
       tempContainer.style.maxWidth = '1200px';
       tempContainer.style.padding = '40px';
       tempContainer.style.backgroundColor = '#1f2937';
+      tempContainer.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+      tempContainer.style.letterSpacing = 'normal';
+      tempContainer.style.wordSpacing = 'normal';
+
+      const allElements = tempContainer.querySelectorAll('*');
+      allElements.forEach((el: Element) => {
+        const htmlEl = el as HTMLElement;
+        htmlEl.style.letterSpacing = 'normal';
+        htmlEl.style.wordSpacing = 'normal';
+        if (htmlEl.style.display === 'flex' || htmlEl.style.display === 'inline-flex') {
+          htmlEl.style.gap = htmlEl.style.gap || '0.5rem';
+        }
+      });
+
       document.body.appendChild(tempContainer);
 
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 800));
 
       await exportVisualizationToPDF(tempContainer, {
         filename: reportMeta?.report_title || 'report',

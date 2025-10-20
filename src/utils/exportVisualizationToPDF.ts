@@ -165,11 +165,27 @@ export const exportVisualizationToPDF = async (
       imageTimeout: 0,
       width: originalWidth,
       height: originalHeight,
+      letterRendering: true,
+      allowTaint: true,
       onclone: (clonedDoc) => {
         const clonedElement = clonedDoc.querySelector('body > div:last-child') as HTMLElement;
         if (clonedElement) {
           clonedElement.style.width = '1200px';
           clonedElement.style.maxWidth = '1200px';
+
+          const allTextElements = clonedElement.querySelectorAll('*');
+          allTextElements.forEach((el: Element) => {
+            const htmlEl = el as HTMLElement;
+            const computedStyle = window.getComputedStyle(htmlEl);
+
+            if (computedStyle.display === 'flex' || computedStyle.display === 'inline-flex') {
+              htmlEl.style.display = 'block';
+            }
+
+            htmlEl.style.whiteSpace = 'normal';
+            htmlEl.style.letterSpacing = 'normal';
+            htmlEl.style.wordSpacing = 'normal';
+          });
         }
       }
     });
