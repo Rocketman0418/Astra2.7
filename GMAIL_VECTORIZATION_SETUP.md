@@ -11,7 +11,7 @@ This feature allows Astra to sync and vectorize Gmail emails for AI-powered sear
    - Gmail API scopes enabled
 
 2. **n8n Webhook Endpoint**
-   - Webhook URL: `https://healthrocket.app.n8n.cloud/webhook-test/gmail-full-sync`
+   - Webhook URL: `https://healthrocket.app.n8n.cloud/webhook/gmail-full-sync`
    - Backend workflow handles email fetching, vectorization, and storage
    - Automatic sync runs every 15 minutes
 
@@ -25,7 +25,7 @@ Add to your `.env` file:
 
 ```bash
 # Gmail Email Vectorization
-VITE_N8N_GMAIL_SYNC_WEBHOOK=https://healthrocket.app.n8n.cloud/webhook-test/gmail-full-sync
+VITE_N8N_GMAIL_SYNC_WEBHOOK=https://healthrocket.app.n8n.cloud/webhook/gmail-full-sync
 ```
 
 ## User Flow
