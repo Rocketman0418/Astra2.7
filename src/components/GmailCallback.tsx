@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Mail, CheckCircle, XCircle, Loader } from 'lucide-react';
 import { handleGmailCallback } from '../lib/gmail-oauth';
+import { GmailSyncConsentModal } from './GmailSyncConsentModal';
+import { GmailSyncProgressScreen } from './GmailSyncProgressScreen';
+import { useGmailSync } from '../hooks/useGmailSync';
 
 export const GmailCallback: React.FC = () => {
-  const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
+  const [status, setStatus] = useState<'processing' | 'success' | 'consent' | 'syncing' | 'error'>('processing');
   const [email, setEmail] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [syncPromise, setSyncPromise] = useState<Promise<any> | null>(null);
+  const { triggerSync } = useGmailSync();
 
   useEffect(() => {
     const processCallback = async () => {
@@ -37,12 +42,7 @@ export const GmailCallback: React.FC = () => {
         console.log('📧 [GmailCallback] Success! Email:', result.email);
 
         setEmail(result.email);
-        setStatus('success');
-
-        setTimeout(() => {
-          console.log('📧 [GmailCallback] Redirecting to home...');
-          window.location.href = '/';
-        }, 2000);
+        setStatus('consent');
       } catch (err: any) {
         console.error('📧 [GmailCallback] Error:', err);
         let errorMessage = err.message || 'Failed to connect Gmail account';
@@ -60,6 +60,41 @@ export const GmailCallback: React.FC = () => {
 
     processCallback();
   }, []);
+
+  const handleProceedWithSync = () => {
+    const promise = triggerSync();
+    setSyncPromise(promise);
+    setStatus('syncing');
+  };
+
+  const handleSkipSync = () => {
+    console.log('📧 [GmailCallback] User skipped initial sync');
+    window.location.href = '/';
+  };
+
+  const handleDismissSyncScreen = () => {
+    console.log('📧 [GmailCallback] Dismissing sync screen');
+    window.location.href = '/';
+  };
+
+  if (status === 'consent') {
+    return (
+      <GmailSyncConsentModal
+        email={email}
+        onProceed={handleProceedWithSync}
+        onSkip={handleSkipSync}
+      />
+    );
+  }
+
+  if (status === 'syncing' && syncPromise) {
+    return (
+      <GmailSyncProgressScreen
+        syncPromise={syncPromise}
+        onDismiss={handleDismissSyncScreen}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
@@ -79,29 +114,6 @@ export const GmailCallback: React.FC = () => {
                 </h2>
                 <p className="text-gray-400">
                   Processing your authorization...
-                </p>
-              </div>
-            </>
-          )}
-
-          {status === 'success' && (
-            <>
-              <div className="flex justify-center">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping"></div>
-                  <CheckCircle className="w-16 h-16 text-green-500 relative" />
-                </div>
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-2">
-                  Gmail Connected!
-                </h2>
-                <p className="text-gray-400">
-                  Successfully connected{' '}
-                  <span className="text-white font-medium">{email}</span>
-                </p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Redirecting you back to Astra...
                 </p>
               </div>
             </>

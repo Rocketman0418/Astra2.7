@@ -1,25 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, CheckCircle, XCircle, RefreshCw, Trash2 } from 'lucide-react';
+import { Mail, CheckCircle, XCircle, RefreshCw, Trash2, Download, Clock } from 'lucide-react';
 import {
   initiateGmailOAuth,
-  getGmailAuth,
-  disconnectGmail,
+  disconnectGmail as disconnectGmailAuth,
   isGmailTokenExpired,
   refreshGmailToken,
   GmailAuthData
 } from '../lib/gmail-oauth';
 import { GmailConfigCheck } from './GmailConfigCheck';
+import { useGmailSync } from '../hooks/useGmailSync';
+import { GmailSyncConsentModal } from './GmailSyncConsentModal';
+import { GmailSyncProgressScreen } from './GmailSyncProgressScreen';
+import { supabase } from '../lib/supabase';
 
 export const GmailSettings: React.FC = () => {
   const [gmailAuth, setGmailAuth] = useState<GmailAuthData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [refreshing, setRefreshing] = useState(false);
+  const [showSyncConsent, setShowSyncConsent] = useState(false);
+  const [syncPromise, setSyncPromise] = useState<Promise<any> | null>(null);
+  const { isConnected, emailCount, lastSyncDate, syncing, triggerSync, refreshState } = useGmailSync();
 
   const loadGmailAuth = async () => {
     try {
       setLoading(true);
-      const auth = await getGmailAuth();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setLoading(false);
+        return;
+      }
+
+      const { data: auth } = await supabase
+        .from('gmail_auth')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+
       setGmailAuth(auth);
       setError('');
     } catch (err: any) {
@@ -70,14 +87,15 @@ export const GmailSettings: React.FC = () => {
   };
 
   const handleDisconnect = async () => {
-    if (!confirm('Are you sure you want to disconnect your Gmail account?')) {
+    if (!confirm('Are you sure you want to disconnect Gmail? Astra will no longer have access to your emails.')) {
       return;
     }
 
     try {
       setLoading(true);
-      await disconnectGmail();
+      await disconnectGmailAuth();
       setGmailAuth(null);
+      await refreshState();
       setError('');
     } catch (err: any) {
       setError(err.message);
@@ -99,6 +117,26 @@ export const GmailSettings: React.FC = () => {
     }
   };
 
+  const handleSyncEmails = () => {
+    if (!gmailAuth?.email) return;
+    setShowSyncConsent(true);
+  };
+
+  const handleProceedWithSync = () => {
+    const promise = triggerSync();
+    setSyncPromise(promise);
+    setShowSyncConsent(false);
+  };
+
+  const handleSkipSync = () => {
+    setShowSyncConsent(false);
+  };
+
+  const handleDismissSyncScreen = async () => {
+    setSyncPromise(null);
+    await refreshState();
+  };
+
   const isExpired = gmailAuth ? isGmailTokenExpired(gmailAuth.expires_at) : false;
 
   if (loading && !gmailAuth) {
@@ -109,11 +147,30 @@ export const GmailSettings: React.FC = () => {
     );
   }
 
+  if (showSyncConsent && gmailAuth) {
+    return (
+      <GmailSyncConsentModal
+        email={gmailAuth.email}
+        onProceed={handleProceedWithSync}
+        onSkip={handleSkipSync}
+      />
+    );
+  }
+
+  if (syncPromise) {
+    return (
+      <GmailSyncProgressScreen
+        syncPromise={syncPromise}
+        onDismiss={handleDismissSyncScreen}
+      />
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-3">
         <Mail className="w-6 h-6 text-blue-500" />
-        <h3 className="text-lg font-semibold text-white">Gmail Workspace Integration</h3>
+        <h3 className="text-lg font-semibold text-white">Gmail Email Vectorization</h3>
       </div>
 
       <GmailConfigCheck />
@@ -133,15 +190,15 @@ export const GmailSettings: React.FC = () => {
         <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
           <div className="space-y-4">
             <p className="text-gray-300">
-              Connect your Gmail Workspace account to allow Astra to access your emails and help you manage your inbox.
+              Connect Gmail to let Astra search and understand your email history.
             </p>
             <div className="space-y-2">
-              <p className="text-sm text-gray-400">Astra will be able to:</p>
+              <p className="text-sm text-gray-400">Benefits:</p>
               <ul className="text-sm text-gray-400 space-y-1 ml-4">
-                <li>• Read your emails</li>
-                <li>• Compose and send emails on your behalf</li>
-                <li>• Manage labels and categories</li>
-                <li>• Search through your inbox</li>
+                <li>• Ask Astra questions about your emails</li>
+                <li>• Search emails using natural language</li>
+                <li>• Get AI-powered insights from your inbox</li>
+                <li>• Private and secure - only you can access your data</li>
               </ul>
             </div>
             <button
@@ -149,7 +206,7 @@ export const GmailSettings: React.FC = () => {
               className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-2"
             >
               <Mail className="w-5 h-5" />
-              <span>Connect Gmail Account</span>
+              <span>Connect Gmail</span>
             </button>
           </div>
         </div>
@@ -174,12 +231,32 @@ export const GmailSettings: React.FC = () => {
                       ? 'Token expired - refresh needed'
                       : 'Connection inactive'}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Token expires: {new Date(gmailAuth.expires_at).toLocaleString()}
-                  </p>
+                  {emailCount > 0 && (
+                    <div className="flex items-center space-x-4 mt-2">
+                      <div className="flex items-center space-x-1 text-xs text-gray-500">
+                        <Mail className="w-3 h-3" />
+                        <span>{emailCount.toLocaleString()} emails synced</span>
+                      </div>
+                      {lastSyncDate && (
+                        <div className="flex items-center space-x-1 text-xs text-gray-500">
+                          <Clock className="w-3 h-3" />
+                          <span>Last sync: {lastSyncDate.toLocaleDateString()}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
+
+            {emailCount > 0 && (
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                <p className="text-sm text-blue-300 flex items-center space-x-2">
+                  <Clock className="w-4 h-4" />
+                  <span>New emails sync automatically every 15 minutes</span>
+                </p>
+              </div>
+            )}
 
             <div className="flex flex-wrap gap-2">
               {isExpired && (
@@ -192,6 +269,14 @@ export const GmailSettings: React.FC = () => {
                   <span>{refreshing ? 'Refreshing...' : 'Refresh Token'}</span>
                 </button>
               )}
+              <button
+                onClick={handleSyncEmails}
+                disabled={syncing}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Download className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+                <span>{syncing ? 'Syncing...' : emailCount > 0 ? 'Sync Emails' : 'Start Initial Sync'}</span>
+              </button>
               <button
                 onClick={handleDisconnect}
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center space-x-2"
