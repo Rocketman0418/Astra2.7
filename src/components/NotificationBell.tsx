@@ -2,7 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Bell, X, Check, ExternalLink } from 'lucide-react';
 import { useAppNotifications } from '../hooks/useAppNotifications';
 
-export const NotificationBell: React.FC = () => {
+interface NotificationBellProps {
+  onOpenSettings?: () => void;
+}
+
+export const NotificationBell: React.FC<NotificationBellProps> = ({ onOpenSettings }) => {
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useAppNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -40,9 +44,15 @@ export const NotificationBell: React.FC = () => {
       await markAsRead(notification.id);
     }
 
-    // Navigate to action URL if provided
+    // Handle action URL if provided
     if (notification.action_url) {
-      window.location.href = notification.action_url;
+      if (notification.action_url === 'settings' && onOpenSettings) {
+        // Open settings modal in-app
+        onOpenSettings();
+      } else {
+        // Navigate to external URL
+        window.location.href = notification.action_url;
+      }
     }
 
     setIsOpen(false);

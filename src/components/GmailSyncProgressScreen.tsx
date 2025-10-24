@@ -133,20 +133,13 @@ export const GmailSyncProgressScreen: React.FC<GmailSyncProgressScreenProps> = (
                   Email Sync Started!
                 </h2>
                 <p className="text-gray-400 text-lg mb-2">
-                  {result?.message || 'Your email sync is now processing in the background.'}
+                  Your email sync is now processing in the background.
                 </p>
-                {result?.sync_details && (
-                  <div className="mt-3 space-y-1">
-                    <p className="text-gray-500 text-sm">
-                      Processing {result.sync_details.total_batches} batches of emails
-                    </p>
-                    {result.next_steps?.estimated_completion && (
-                      <p className="text-blue-400 text-sm font-medium">
-                        {result.next_steps.estimated_completion}
-                      </p>
-                    )}
-                  </div>
-                )}
+                <div className="mt-3">
+                  <p className="text-blue-400 text-sm font-medium">
+                    Status: In Progress
+                  </p>
+                </div>
               </div>
 
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 space-y-2">
@@ -157,9 +150,7 @@ export const GmailSyncProgressScreen: React.FC<GmailSyncProgressScreenProps> = (
                   <li>• Your emails are being fetched and analyzed</li>
                   <li>• Visit Settings → Gmail Integration to see progress</li>
                   <li>• Email count will update automatically as emails are processed</li>
-                  {result?.sync_details && (
-                    <li>• You can close this screen and continue using the app</li>
-                  )}
+                  <li>• We'll notify you when sync is complete</li>
                 </ul>
               </div>
 
@@ -171,7 +162,7 @@ export const GmailSyncProgressScreen: React.FC<GmailSyncProgressScreenProps> = (
               </button>
 
               <p className="text-xs text-gray-500">
-                {result?.next_steps?.info || "You'll be able to ask Astra about your emails once processing is complete."}
+                You'll receive a notification when your emails are ready.
               </p>
             </>
           )}

@@ -48,6 +48,30 @@ export const useGmailSync = () => {
     syncing: false,
     error: null
   });
+  const [previousEmailCount, setPreviousEmailCount] = useState<number>(0);
+
+  const createSyncCompletionNotification = async (userId: string, emailCount: number) => {
+    try {
+      const { error } = await supabase
+        .from('astra_notifications')
+        .insert({
+          user_id: userId,
+          type: 'system',
+          title: 'Gmail Sync Complete',
+          message: `Successfully synced ${emailCount} emails. You can now ask Astra about your emails!`,
+          action_url: 'settings',
+          is_read: false
+        });
+
+      if (error) {
+        console.error('[useGmailSync] Failed to create notification:', error);
+      } else {
+        console.log('[useGmailSync] ✅ Created sync completion notification');
+      }
+    } catch (err) {
+      console.error('[useGmailSync] Error creating notification:', err);
+    }
+  };
 
   const loadSyncState = async () => {
     try {
@@ -79,10 +103,27 @@ export const useGmailSync = () => {
         .limit(1)
         .maybeSingle();
 
+      const currentCount = count || 0;
+
+      // Detect sync completion: significant increase in email count (>= 10 emails)
+      if (currentCount >= 10 && previousEmailCount < 10 && currentCount > previousEmailCount) {
+        // Check if we've already notified about initial sync
+        const notifiedKey = `gmail_sync_notified_${session.user.id}`;
+        const hasNotified = localStorage.getItem(notifiedKey);
+
+        if (!hasNotified) {
+          console.log('[useGmailSync] Initial sync detected! Creating notification...');
+          await createSyncCompletionNotification(session.user.id, currentCount);
+          localStorage.setItem(notifiedKey, 'true');
+        }
+      }
+
+      setPreviousEmailCount(currentCount);
+
       setState({
         isConnected: !!gmailAuth,
         gmailAuth: gmailAuth || null,
-        emailCount: count || 0,
+        emailCount: currentCount,
         lastSyncDate: lastEmail ? new Date(lastEmail.created_at) : null,
         loading: false,
         syncing: false,

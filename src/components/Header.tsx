@@ -68,7 +68,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right side - User info */}
         <div className="flex items-center space-x-2">
-          <NotificationBell />
+          <NotificationBell onOpenSettings={() => setShowSettings(true)} />
           <div className="hidden sm:block text-right">
             <p className="text-white text-sm font-medium">
               {profile?.full_name || user?.user_metadata?.full_name || 'User'}

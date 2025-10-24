@@ -122,12 +122,17 @@ The n8n webhook should return a JSON response with the following structure:
 
 ### 3. Initial Sync Process
 - Shows progress screen with animated loading state
+- Displays "Status: In Progress" (no estimated time)
 - Calls n8n webhook with user ID
+- User can immediately dismiss and continue using app
 - Background process:
   - Fetches all emails from Gmail
   - Generates embeddings using OpenAI
   - Stores in `company_emails` table
-- Success notification shows email count
+- **In-app notification when sync completes** (>= 10 emails synced)
+  - Notification appears in bell icon
+  - Clicking notification opens Settings page to view sync status
+  - Shows total email count in notification
 
 ### 4. Ongoing Sync
 - Automatic sync every 15 minutes (n8n workflow)
@@ -146,9 +151,10 @@ The n8n webhook should return a JSON response with the following structure:
 
 #### `GmailSyncProgressScreen`
 - Loading animation during sync
-- Real-time status updates
+- Shows "Status: In Progress" without time estimates
 - Success/error handling
 - "Continue Using App" button (sync continues in background)
+- Informs user they'll receive a notification when complete
 
 #### Updated `GmailCallback`
 - Shows consent modal after OAuth
@@ -168,6 +174,11 @@ The n8n webhook should return a JSON response with the following structure:
 - Manages Gmail sync state
 - Provides `triggerSync()` function
 - Tracks email count and last sync
+- **Detects sync completion** and creates in-app notification
+  - Triggers when email count reaches >= 10 emails
+  - Creates notification in `astra_notifications` table
+  - Only notifies once per user using localStorage
+  - Notification action opens Settings modal
 - Error handling and state management
 
 #### `useGmailTokenRefresh`
