@@ -44,8 +44,27 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const token = authHeader.replace('Bearer ', '');
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    // Parse JWT to get user ID
+    let userId: string;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      userId = payload.sub;
+      console.log('📧 User ID from JWT:', userId);
+    } catch (e) {
+      console.error('❌ Failed to parse JWT:', e);
+      return new Response(
+        JSON.stringify({ error: 'Invalid token format' }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Verify user exists
+    const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(userId);
     if (userError || !user) {
+      console.error('❌ User verification failed:', userError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         {
@@ -54,6 +73,8 @@ Deno.serve(async (req: Request) => {
         }
       );
     }
+
+    console.log('✅ User verified:', user.email);
 
     const { code, redirect_uri } = await req.json();
 
