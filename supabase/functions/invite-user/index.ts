@@ -17,8 +17,8 @@ Deno.serve(async (req: Request) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -29,14 +29,28 @@ Deno.serve(async (req: Request) => {
     }
 
     const jwt = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(jwt);
+
+    // Use anon key to verify JWT
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: authHeader,
+        },
+      },
+    });
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 
     if (authError || !user) {
+      console.error("Auth error:", authError);
       return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
+        JSON.stringify({ error: `Unauthorized: ${authError?.message || 'Invalid token'}` }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Use service role for admin operations
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     if (user.email !== "clay@rockethub.ai") {
       return new Response(
@@ -62,7 +76,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { data: existingUsers } = await supabase.auth.admin.listUsers();
+    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
     const userExists = existingUsers?.users?.some(u => u.email === email);
 
     if (userExists) {
@@ -72,7 +86,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { data: existingInvite } = await supabase
+    const { data: existingInvite } = await supabaseAdmin
       .from("admin_invites")
       .select("*")
       .eq("email", email)
@@ -86,7 +100,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
@@ -100,7 +114,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { error: inviteError } = await supabase
+    const { error: inviteError } = await supabaseAdmin
       .from("admin_invites")
       .insert({
         email,
