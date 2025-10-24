@@ -120,11 +120,14 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
         return;
       }
 
+      console.log('[Invite] Sending request with token:', session.access_token.substring(0, 20) + '...');
+
       const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-user`;
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -133,7 +136,9 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
         }),
       });
 
+      console.log('[Invite] Response status:', response.status);
       const result = await response.json();
+      console.log('[Invite] Response body:', result);
 
       if (!response.ok) {
         throw new Error(result.error || 'Failed to invite user');
