@@ -3,14 +3,20 @@ import { Mail, Loader, CheckCircle, XCircle } from 'lucide-react';
 
 interface GmailSyncProgressScreenProps {
   onDismiss: () => void;
-  syncPromise: Promise<{ success: boolean; metrics?: any; error?: string }>;
+  syncPromise: Promise<{
+    success: boolean;
+    status?: 'processing' | 'complete';
+    message?: string;
+    metrics?: any;
+    error?: string;
+  }>;
 }
 
 export const GmailSyncProgressScreen: React.FC<GmailSyncProgressScreenProps> = ({
   onDismiss,
   syncPromise
 }) => {
-  const [status, setStatus] = useState<'syncing' | 'success' | 'error'>('syncing');
+  const [status, setStatus] = useState<'syncing' | 'processing' | 'success' | 'error'>('syncing');
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string>('');
 
@@ -21,11 +27,17 @@ export const GmailSyncProgressScreen: React.FC<GmailSyncProgressScreenProps> = (
 
         if (syncResult.success) {
           setResult(syncResult);
-          setStatus('success');
 
-          setTimeout(() => {
-            onDismiss();
-          }, 3000);
+          // Check if webhook indicates processing has started (async job)
+          if (syncResult.status === 'processing' || syncResult.message?.includes('processing')) {
+            setStatus('processing');
+          } else {
+            // Immediate completion (backwards compatibility)
+            setStatus('success');
+            setTimeout(() => {
+              onDismiss();
+            }, 3000);
+          }
         } else {
           setError(syncResult.error || 'Sync failed');
           setStatus('error');
@@ -87,6 +99,51 @@ export const GmailSyncProgressScreen: React.FC<GmailSyncProgressScreenProps> = (
 
               <p className="text-xs text-gray-500">
                 You can close this screen and continue using the app. We'll notify you when the sync is complete.
+              </p>
+            </>
+          )}
+
+          {status === 'processing' && (
+            <>
+              <div className="flex justify-center">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-pulse"></div>
+                  <CheckCircle className="w-20 h-20 text-blue-500 relative" />
+                </div>
+              </div>
+
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-3">
+                  Email Sync Started!
+                </h2>
+                <p className="text-gray-400 text-lg mb-2">
+                  {result?.message || 'Your email sync is now processing in the background.'}
+                </p>
+                <p className="text-gray-500 text-sm">
+                  This may take several minutes depending on your email volume.
+                </p>
+              </div>
+
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 space-y-2">
+                <p className="text-blue-400 text-sm font-medium">
+                  What happens next:
+                </p>
+                <ul className="text-gray-400 text-sm space-y-1 text-left">
+                  <li>• Your emails are being fetched and analyzed</li>
+                  <li>• Visit Settings → Gmail Integration to see progress</li>
+                  <li>• Email count will update automatically as emails are processed</li>
+                </ul>
+              </div>
+
+              <button
+                onClick={onDismiss}
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all shadow-lg"
+              >
+                Continue Using App
+              </button>
+
+              <p className="text-xs text-gray-500">
+                You'll be able to ask Astra about your emails once processing is complete.
               </p>
             </>
           )}

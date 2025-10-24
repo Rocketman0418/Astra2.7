@@ -41,6 +41,45 @@ Add to your `.env` file:
 VITE_N8N_GMAIL_SYNC_WEBHOOK=https://healthrocket.app.n8n.cloud/webhook/gmail-full-sync
 ```
 
+## Webhook Response Format
+
+The n8n webhook should return a JSON response with the following structure:
+
+### For Async/Background Processing (Recommended)
+```json
+{
+  "success": true,
+  "status": "processing",
+  "message": "Email sync has started. Processing emails in the background."
+}
+```
+
+### For Immediate Completion (Legacy)
+```json
+{
+  "success": true,
+  "status": "complete",
+  "metrics": {
+    "emails_processed": 150,
+    "emails_stored": 150,
+    "sync_duration_ms": 45000
+  }
+}
+```
+
+### For Errors
+```json
+{
+  "success": false,
+  "error": "Failed to fetch emails: Invalid token"
+}
+```
+
+**UI Behavior:**
+- **Processing status**: Shows "Email Sync Started!" screen, user can immediately dismiss and check Settings page for progress
+- **Complete status**: Shows "Email Sync Complete!" with email count, auto-dismisses after 3 seconds
+- **Error**: Shows error message with retry option
+
 ## User Flow
 
 ### 1. OAuth Connection

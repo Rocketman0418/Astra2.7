@@ -6,10 +6,12 @@ const SYNC_WEBHOOK_URL = import.meta.env.VITE_N8N_GMAIL_SYNC_WEBHOOK;
 
 interface SyncResult {
   success: boolean;
+  status?: 'processing' | 'complete';
+  message?: string;
   metrics?: {
-    emails_processed: number;
-    emails_stored: number;
-    sync_duration_ms: number;
+    emails_processed?: number;
+    emails_stored?: number;
+    sync_duration_ms?: number;
   };
   error?: string;
 }
@@ -126,6 +128,8 @@ export const useGmailSync = () => {
 
       return {
         success: true,
+        status: result.status || 'complete',
+        message: result.message,
         metrics: result.metrics
       };
     } catch (err: any) {
