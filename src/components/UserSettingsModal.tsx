@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, User as UserIcon, Camera, Trash2, Upload, Save, UserPlus } from 'lucide-react';
+import { X, User as UserIcon, Camera, Trash2, Upload, Save, UserPlus, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { GmailSettings } from './GmailSettings';
 import { useUserProfile } from '../hooks/useUserProfile';
@@ -18,6 +18,11 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
   const [uploading, setUploading] = useState(false);
   const [savingName, setSavingName] = useState(false);
   const [error, setError] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [inviteEmail, setInviteEmail] = useState('');
@@ -102,6 +107,43 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
     setError('');
   };
 
+  const handleChangePassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      setPasswordError('Both password fields are required');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
+    setChangingPassword(true);
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      setPasswordSuccess('Password updated successfully');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      setPasswordError(err.message || 'Failed to update password');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
   const handleInviteUser = async () => {
     if (!inviteEmail || !invitePassword) {
       setInviteError('Email and password are required');
@@ -173,8 +215,23 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
                 </div>
               )}
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-white">User Settings</h2>
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-white">User Settings</h2>
+                <button
+                  onClick={async () => {
+                    if (confirm('Are you sure you want to log out?')) {
+                      await supabase.auth.signOut();
+                      onClose();
+                    }
+                  }}
+                  className="p-2 hover:bg-gray-700 rounded-lg transition-colors flex items-center space-x-2 text-gray-400 hover:text-white"
+                  title="Log out"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="text-sm">Logout</span>
+                </button>
+              </div>
               <p className="text-sm text-gray-400">{user?.email}</p>
             </div>
           </div>
@@ -313,6 +370,69 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-700/50 rounded-lg p-6 border border-gray-600">
+            <div className="flex items-center space-x-3 mb-6">
+              <UserIcon className="w-5 h-5 text-yellow-400" />
+              <h3 className="text-lg font-semibold text-white">Change Password</h3>
+            </div>
+
+            {passwordSuccess && (
+              <div className="mb-4 bg-green-500/10 border border-green-500/50 rounded-lg p-4">
+                <p className="text-green-400 text-sm">{passwordSuccess}</p>
+              </div>
+            )}
+
+            {passwordError && (
+              <div className="mb-4 bg-red-500/10 border border-red-500/50 rounded-lg p-4">
+                <p className="text-red-400 text-sm">{passwordError}</p>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password (min 6 characters)"
+                  disabled={changingPassword}
+                  className="w-full px-4 py-2 bg-gray-900 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Confirm New Password</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter new password"
+                  disabled={changingPassword}
+                  className="w-full px-4 py-2 bg-gray-900 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+
+              <button
+                onClick={handleChangePassword}
+                disabled={changingPassword || !newPassword || !confirmPassword}
+                className="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center space-x-2"
+              >
+                {changingPassword ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Updating Password...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>Update Password</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
