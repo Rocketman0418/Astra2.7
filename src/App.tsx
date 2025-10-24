@@ -4,9 +4,13 @@ import { ReportsProvider } from './contexts/ReportsContext';
 import { AuthScreen } from './components/auth/AuthScreen';
 import { MainContainer } from './components/MainContainer';
 import { GmailCallback } from './components/GmailCallback';
+import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
+
+  // Automatically refresh Gmail tokens in the background
+  useGmailTokenRefresh();
 
   console.log('🔍 [App] Current pathname:', window.location.pathname);
   console.log('🔍 [App] Full URL:', window.location.href);

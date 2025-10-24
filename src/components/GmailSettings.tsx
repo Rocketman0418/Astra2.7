@@ -4,7 +4,6 @@ import {
   initiateGmailOAuth,
   disconnectGmail as disconnectGmailAuth,
   isGmailTokenExpired,
-  refreshGmailToken,
   GmailAuthData
 } from '../lib/gmail-oauth';
 import { GmailConfigCheck } from './GmailConfigCheck';
@@ -17,7 +16,6 @@ export const GmailSettings: React.FC = () => {
   const [gmailAuth, setGmailAuth] = useState<GmailAuthData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
-  const [refreshing, setRefreshing] = useState(false);
   const [showSyncConsent, setShowSyncConsent] = useState(false);
   const [syncPromise, setSyncPromise] = useState<Promise<any> | null>(null);
   const { isConnected, emailCount, lastSyncDate, syncing, triggerSync, refreshState } = useGmailSync();
@@ -49,29 +47,29 @@ export const GmailSettings: React.FC = () => {
 
   useEffect(() => {
     loadGmailAuth();
-  }, []);
 
-  useEffect(() => {
-    if (!gmailAuth || !gmailAuth.is_active) return;
-
-    const checkAndRefreshToken = async () => {
-      if (isGmailTokenExpired(gmailAuth.expires_at)) {
-        try {
-          console.log('Token expired, automatically refreshing...');
-          await refreshGmailToken();
-          await loadGmailAuth();
-        } catch (err) {
-          console.error('Auto-refresh failed:', err);
+    // Set up real-time subscription to gmail_auth table
+    // This will update the UI when tokens are refreshed by the global service
+    const channel = supabase
+      .channel('gmail-auth-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'gmail_auth'
+        },
+        (payload) => {
+          console.log('[GmailSettings] Gmail auth changed, reloading...');
+          loadGmailAuth();
         }
-      }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
     };
-
-    checkAndRefreshToken();
-
-    const interval = setInterval(checkAndRefreshToken, 5 * 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, [gmailAuth]);
+  }, []);
 
   const handleConnect = () => {
     try {
@@ -101,19 +99,6 @@ export const GmailSettings: React.FC = () => {
       setError(err.message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleRefresh = async () => {
-    try {
-      setRefreshing(true);
-      await refreshGmailToken();
-      await loadGmailAuth();
-      setError('');
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setRefreshing(false);
     }
   };
 
@@ -258,17 +243,16 @@ export const GmailSettings: React.FC = () => {
               </div>
             )}
 
+            {isExpired && (
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+                <p className="text-sm text-yellow-300 flex items-center space-x-2">
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Token expired - refreshing automatically...</span>
+                </p>
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-2">
-              {isExpired && (
-                <button
-                  onClick={handleRefresh}
-                  disabled={refreshing}
-                  className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-                  <span>{refreshing ? 'Refreshing...' : 'Refresh Token'}</span>
-                </button>
-              )}
               <button
                 onClick={handleSyncEmails}
                 disabled={syncing}

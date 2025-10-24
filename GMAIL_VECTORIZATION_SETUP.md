@@ -3,6 +3,13 @@
 ## Overview
 This feature allows Astra to sync and vectorize Gmail emails for AI-powered search and insights.
 
+## Key Features
+
+- **Automatic Token Refresh**: Gmail OAuth tokens are refreshed automatically in the background every 5 minutes, ensuring n8n workflows always have valid credentials
+- **User-Friendly UI**: Clean consent and progress screens guide users through email sync
+- **Real-Time Updates**: Settings page updates automatically when tokens are refreshed
+- **Background Processing**: Email sync happens via n8n webhook, allowing users to continue using the app
+
 ## Prerequisites
 
 1. **Gmail OAuth Setup** (already configured)
@@ -18,6 +25,12 @@ This feature allows Astra to sync and vectorize Gmail emails for AI-powered sear
 3. **Database Tables**
    - `gmail_auth` - OAuth tokens and connection status
    - `company_emails` - Vectorized emails with embeddings
+
+4. **Automatic Token Refresh Service**
+   - Runs globally when user is logged in
+   - Checks token expiration every 5 minutes
+   - Automatically refreshes expired tokens
+   - No user interaction required
 
 ## Environment Variables
 
@@ -91,6 +104,30 @@ VITE_N8N_GMAIL_SYNC_WEBHOOK=https://healthrocket.app.n8n.cloud/webhook/gmail-ful
 - Provides `triggerSync()` function
 - Tracks email count and last sync
 - Error handling and state management
+
+#### `useGmailTokenRefresh`
+- **NEW**: Automatic token refresh service
+- Runs globally in App.tsx when user is logged in
+- Checks token expiration every 5 minutes
+- Automatically refreshes expired tokens without user interaction
+- Ensures n8n workflows always have valid credentials
+- Logs all refresh operations to console for debugging
+
+### Token Refresh Behavior
+
+**How it works:**
+1. Service starts when user logs in (runs in `App.tsx`)
+2. Checks Gmail token expiration every 5 minutes
+3. If token is expired or will expire within 5 minutes, automatically refreshes
+4. Updates `gmail_auth` table with new token and expiration time
+5. Settings page receives real-time update via Supabase subscription
+6. No user interaction or page visit required
+
+**Benefits:**
+- n8n workflows never fail due to expired tokens
+- Users don't need to visit Settings page to keep token active
+- Seamless background operation
+- Real-time UI updates when tokens change
 
 ## Database Schema
 
