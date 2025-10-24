@@ -155,10 +155,14 @@ export const isGmailTokenExpired = (expiresAt: string): boolean => {
 };
 
 export const refreshGmailToken = async (): Promise<void> => {
+  console.log('[refreshGmailToken] Starting token refresh...');
+
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
     throw new Error('Not authenticated');
   }
+
+  console.log('[refreshGmailToken] Session found, calling edge function...');
 
   const response = await fetch(
     `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gmail-refresh-token`,
@@ -166,13 +170,28 @@ export const refreshGmailToken = async (): Promise<void> => {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         'Content-Type': 'application/json',
       }
     }
   );
 
+  console.log('[refreshGmailToken] Response status:', response.status);
+
   if (!response.ok) {
-    const error = await response.json();
+    const errorText = await response.text();
+    console.error('[refreshGmailToken] Error response:', errorText);
+
+    let error;
+    try {
+      error = JSON.parse(errorText);
+    } catch {
+      throw new Error(`Failed to refresh token: ${errorText}`);
+    }
+
     throw new Error(error.error || 'Failed to refresh token');
   }
+
+  const result = await response.json();
+  console.log('[refreshGmailToken] Token refreshed successfully, expires at:', result.expires_at);
 };
