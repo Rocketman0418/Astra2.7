@@ -33,23 +33,35 @@ Deno.serve(async (req: Request) => {
     const jwt = authHeader.replace("Bearer ", "");
     console.log("JWT token length:", jwt.length);
 
-    // Use anon key to verify JWT
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+    // Use service role for all operations including auth verification
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(jwt);
-
-    console.log("User from JWT:", user?.email);
-    console.log("Auth error:", authError);
-
-    if (authError || !user) {
+    // Parse JWT to get user ID (JWT format: header.payload.signature)
+    let userId: string;
+    try {
+      const payload = JSON.parse(atob(jwt.split('.')[1]));
+      userId = payload.sub;
+      console.log("User ID from JWT:", userId);
+    } catch (e) {
+      console.error("Failed to parse JWT:", e);
       return new Response(
-        JSON.stringify({ error: `Unauthorized: ${authError?.message || 'Auth session missing!'}` }),
+        JSON.stringify({ error: "Invalid token format" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Use service role for admin operations
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    // Verify user exists and get their details
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.admin.getUserById(userId);
+
+    console.log("User from admin API:", user?.email);
+    console.log("Auth error:", authError);
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: `Unauthorized: ${authError?.message || 'User not found'}` }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (user.email !== "clay@rockethub.ai") {
       return new Response(
