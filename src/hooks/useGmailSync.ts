@@ -6,12 +6,24 @@ const SYNC_WEBHOOK_URL = import.meta.env.VITE_N8N_GMAIL_SYNC_WEBHOOK;
 
 interface SyncResult {
   success: boolean;
-  status?: 'processing' | 'complete';
+  status?: 'processing' | 'complete' | 'partial_success';
   message?: string;
   metrics?: {
     emails_processed?: number;
     emails_stored?: number;
     sync_duration_ms?: number;
+  };
+  sync_details?: {
+    user_id: string;
+    sync_type: string;
+    total_batches: number;
+    batches_triggered: number;
+    batches_failed: number;
+    estimated_completion_minutes: number;
+  };
+  next_steps?: {
+    info: string;
+    estimated_completion: string;
   };
   error?: string;
 }
@@ -103,35 +115,49 @@ export const useGmailSync = () => {
 
       console.log('[useGmailSync] Triggering sync for user:', session.user.id);
 
-      const response = await fetch(SYNC_WEBHOOK_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: session.user.id,
-          timestamp: new Date().toISOString()
-        })
-      });
+      // Create AbortController with 5 minute timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5 * 60 * 1000);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Sync failed: ${errorText}`);
+      try {
+        const response = await fetch(SYNC_WEBHOOK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: session.user.id,
+            timestamp: new Date().toISOString()
+          }),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Sync failed: ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log('[useGmailSync] Sync result:', result);
+
+        await loadSyncState();
+
+        setState(prev => ({ ...prev, syncing: false }));
+
+        return {
+          success: true,
+          status: result.status || 'complete',
+          message: result.message,
+          metrics: result.metrics,
+          sync_details: result.sync_details,
+          next_steps: result.next_steps
+        };
+      } catch (fetchErr: any) {
+        clearTimeout(timeoutId);
+        throw fetchErr;
       }
-
-      const result = await response.json();
-      console.log('[useGmailSync] Sync result:', result);
-
-      await loadSyncState();
-
-      setState(prev => ({ ...prev, syncing: false }));
-
-      return {
-        success: true,
-        status: result.status || 'complete',
-        message: result.message,
-        metrics: result.metrics
-      };
     } catch (err: any) {
       console.error('[useGmailSync] Sync error:', err);
       const errorMessage = err.message || 'Failed to sync emails';

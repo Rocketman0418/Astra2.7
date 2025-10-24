@@ -45,7 +45,28 @@ VITE_N8N_GMAIL_SYNC_WEBHOOK=https://healthrocket.app.n8n.cloud/webhook/gmail-ful
 
 The n8n webhook should return a JSON response with the following structure:
 
-### For Async/Background Processing (Recommended)
+### For Async/Background Processing with Batch Details (Recommended)
+```json
+{
+  "success": true,
+  "status": "partial_success",
+  "message": "Email sync started with 86/168 batches triggered successfully.",
+  "sync_details": {
+    "user_id": "user-uuid",
+    "sync_type": "initial_full_sync",
+    "total_batches": 168,
+    "batches_triggered": 86,
+    "batches_failed": 82,
+    "estimated_completion_minutes": 70
+  },
+  "next_steps": {
+    "info": "Email processing is happening in the background. Your emails will be available soon.",
+    "estimated_completion": "Approximately 70 minutes"
+  }
+}
+```
+
+### For Simple Background Processing
 ```json
 {
   "success": true,
@@ -76,9 +97,14 @@ The n8n webhook should return a JSON response with the following structure:
 ```
 
 **UI Behavior:**
-- **Processing status**: Shows "Email Sync Started!" screen, user can immediately dismiss and check Settings page for progress
+- **partial_success/processing status**: Shows "Email Sync Started!" screen with batch details and estimated completion time, user can immediately dismiss
 - **Complete status**: Shows "Email Sync Complete!" with email count, auto-dismisses after 3 seconds
 - **Error**: Shows error message with retry option
+
+**Technical Details:**
+- Webhook timeout: 5 minutes (extended from default 2 minutes)
+- Long-running operations will not cause UI errors
+- User can check Settings → Gmail Integration for real-time progress
 
 ## User Flow
 

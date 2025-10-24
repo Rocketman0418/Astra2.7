@@ -5,9 +5,21 @@ interface GmailSyncProgressScreenProps {
   onDismiss: () => void;
   syncPromise: Promise<{
     success: boolean;
-    status?: 'processing' | 'complete';
+    status?: 'processing' | 'complete' | 'partial_success';
     message?: string;
     metrics?: any;
+    sync_details?: {
+      user_id: string;
+      sync_type: string;
+      total_batches: number;
+      batches_triggered: number;
+      batches_failed: number;
+      estimated_completion_minutes: number;
+    };
+    next_steps?: {
+      info: string;
+      estimated_completion: string;
+    };
     error?: string;
   }>;
 }
@@ -29,7 +41,11 @@ export const GmailSyncProgressScreen: React.FC<GmailSyncProgressScreenProps> = (
           setResult(syncResult);
 
           // Check if webhook indicates processing has started (async job)
-          if (syncResult.status === 'processing' || syncResult.message?.includes('processing')) {
+          if (
+            syncResult.status === 'processing' ||
+            syncResult.status === 'partial_success' ||
+            syncResult.message?.includes('processing')
+          ) {
             setStatus('processing');
           } else {
             // Immediate completion (backwards compatibility)
@@ -119,9 +135,18 @@ export const GmailSyncProgressScreen: React.FC<GmailSyncProgressScreenProps> = (
                 <p className="text-gray-400 text-lg mb-2">
                   {result?.message || 'Your email sync is now processing in the background.'}
                 </p>
-                <p className="text-gray-500 text-sm">
-                  This may take several minutes depending on your email volume.
-                </p>
+                {result?.sync_details && (
+                  <div className="mt-3 space-y-1">
+                    <p className="text-gray-500 text-sm">
+                      Processing {result.sync_details.total_batches} batches of emails
+                    </p>
+                    {result.next_steps?.estimated_completion && (
+                      <p className="text-blue-400 text-sm font-medium">
+                        {result.next_steps.estimated_completion}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 space-y-2">
@@ -132,6 +157,9 @@ export const GmailSyncProgressScreen: React.FC<GmailSyncProgressScreenProps> = (
                   <li>• Your emails are being fetched and analyzed</li>
                   <li>• Visit Settings → Gmail Integration to see progress</li>
                   <li>• Email count will update automatically as emails are processed</li>
+                  {result?.sync_details && (
+                    <li>• You can close this screen and continue using the app</li>
+                  )}
                 </ul>
               </div>
 
@@ -143,7 +171,7 @@ export const GmailSyncProgressScreen: React.FC<GmailSyncProgressScreenProps> = (
               </button>
 
               <p className="text-xs text-gray-500">
-                You'll be able to ask Astra about your emails once processing is complete.
+                {result?.next_steps?.info || "You'll be able to ask Astra about your emails once processing is complete."}
               </p>
             </>
           )}
