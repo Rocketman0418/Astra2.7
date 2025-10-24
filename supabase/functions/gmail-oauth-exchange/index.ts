@@ -63,10 +63,20 @@ Deno.serve(async (req: Request) => {
 
     // Verify user exists
     const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(userId);
+
+    console.log('📧 Admin API getUserById result:');
+    console.log('📧 - User ID queried:', userId);
+    console.log('📧 - User found:', !!user);
+    console.log('📧 - User email:', user?.email);
+    console.log('📧 - Error:', userError);
+
     if (userError || !user) {
       console.error('❌ User verification failed:', userError);
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({
+          error: 'User not found in database. Please ensure you have signed up with this email address first.',
+          details: userError?.message
+        }),
         {
           status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
