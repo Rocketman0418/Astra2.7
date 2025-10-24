@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { X, User as UserIcon, Camera, Trash2, Upload, Save } from 'lucide-react';
+import { X, User as UserIcon, Camera, Trash2, Upload, Save, UserPlus } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { GmailSettings } from './GmailSettings';
 import { useUserProfile } from '../hooks/useUserProfile';
+import { supabase } from '../lib/supabase';
 
 interface UserSettingsModalProps {
   isOpen: boolean;
@@ -18,6 +19,14 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
   const [savingName, setSavingName] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [invitePassword, setInvitePassword] = useState('');
+  const [inviting, setInviting] = useState(false);
+  const [inviteSuccess, setInviteSuccess] = useState('');
+  const [inviteError, setInviteError] = useState('');
+
+  const isAdmin = user?.email === 'clay@rockethub.ai';
 
   React.useEffect(() => {
     if (profile) {
@@ -91,6 +100,54 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
     setFullName(profile?.full_name || '');
     setIsEditingName(false);
     setError('');
+  };
+
+  const handleInviteUser = async () => {
+    if (!inviteEmail || !invitePassword) {
+      setInviteError('Email and password are required');
+      return;
+    }
+
+    setInviting(true);
+    setInviteError('');
+    setInviteSuccess('');
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setInviteError('Not authenticated');
+        setInviting(false);
+        return;
+      }
+
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-user`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: inviteEmail,
+          password: invitePassword,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to invite user');
+      }
+
+      setInviteSuccess(`Successfully created account for ${inviteEmail}`);
+      setInviteEmail('');
+      setInvitePassword('');
+    } catch (err: any) {
+      console.error('Error inviting user:', err);
+      setInviteError(err.message || 'Failed to invite user');
+    } finally {
+      setInviting(false);
+    }
   };
 
   return (
@@ -255,6 +312,82 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
           </div>
 
           <GmailSettings />
+
+          {isAdmin && (
+            <div className="bg-gray-700/50 rounded-lg p-6 border border-gray-600">
+              <div className="flex items-center space-x-3 mb-6">
+                <UserPlus className="w-5 h-5 text-green-400" />
+                <h3 className="text-lg font-semibold text-white">Admin: Invite New User</h3>
+              </div>
+
+              {inviteSuccess && (
+                <div className="mb-4 bg-green-500/10 border border-green-500/50 rounded-lg p-4">
+                  <p className="text-green-400 text-sm">{inviteSuccess}</p>
+                </div>
+              )}
+
+              {inviteError && (
+                <div className="mb-4 bg-red-500/10 border border-red-500/50 rounded-lg p-4">
+                  <p className="text-red-400 text-sm">{inviteError}</p>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm text-gray-400 mb-1 block">Email Address</label>
+                  <input
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="user@example.com"
+                    disabled={inviting}
+                    className="w-full px-4 py-2 bg-gray-900 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-400 mb-1 block">Password</label>
+                  <input
+                    type="password"
+                    value={invitePassword}
+                    onChange={(e) => setInvitePassword(e.target.value)}
+                    placeholder="Set initial password"
+                    disabled={inviting}
+                    className="w-full px-4 py-2 bg-gray-900 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">User will be able to change this password after first login</p>
+                </div>
+
+                <button
+                  onClick={handleInviteUser}
+                  disabled={inviting || !inviteEmail || !invitePassword}
+                  className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center space-x-2"
+                >
+                  {inviting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Creating Account...</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-4 h-4" />
+                      <span>Create User Account</span>
+                    </>
+                  )}
+                </button>
+
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                  <p className="text-blue-400 text-sm font-medium mb-2">How it works:</p>
+                  <ul className="text-gray-400 text-xs space-y-1">
+                    <li>• Account is created immediately with the specified email and password</li>
+                    <li>• Email is automatically confirmed (no verification email sent)</li>
+                    <li>• User can log in immediately using the provided credentials</li>
+                    <li>• User can change their password after logging in</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
