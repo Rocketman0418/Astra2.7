@@ -6,6 +6,7 @@ export interface UserProfile {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
+  email: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -25,33 +26,24 @@ export const useUserProfile = () => {
 
     try {
       setLoading(true);
-      const { data, error: fetchError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle();
 
-      if (fetchError) throw fetchError;
+      // Get fresh user data from Supabase auth
+      const { data: { user: freshUser }, error: userError } = await supabase.auth.getUser();
 
-      if (!data) {
-        const newProfile: Partial<UserProfile> = {
-          id: user.id,
-          full_name: user.user_metadata?.full_name || null,
-          avatar_url: null
-        };
+      if (userError) throw userError;
+      if (!freshUser) throw new Error('User not found');
 
-        const { data: insertedProfile, error: insertError } = await supabase
-          .from('user_profiles')
-          .insert(newProfile)
-          .select()
-          .single();
+      // Build profile from auth.users data
+      const userProfile: UserProfile = {
+        id: freshUser.id,
+        email: freshUser.email || null,
+        full_name: freshUser.user_metadata?.full_name || null,
+        avatar_url: freshUser.user_metadata?.avatar_url || null,
+        created_at: freshUser.created_at,
+        updated_at: freshUser.updated_at || freshUser.created_at
+      };
 
-        if (insertError) throw insertError;
-        setProfile(insertedProfile);
-      } else {
-        setProfile(data);
-      }
-
+      setProfile(userProfile);
       setError(null);
     } catch (err: any) {
       console.error('Error fetching profile:', err);
@@ -69,17 +61,28 @@ export const useUserProfile = () => {
     if (!user) throw new Error('No user logged in');
 
     try {
-      const { data, error: updateError } = await supabase
-        .from('user_profiles')
-        .update(updates)
-        .eq('id', user.id)
-        .select()
-        .single();
+      // Update user metadata via Supabase auth
+      const { data, error: updateError } = await supabase.auth.updateUser({
+        data: updates
+      });
 
       if (updateError) throw updateError;
 
-      setProfile(data);
-      return { success: true, data };
+      // Refresh profile from updated user data
+      if (data.user) {
+        const updatedProfile: UserProfile = {
+          id: data.user.id,
+          email: data.user.email || null,
+          full_name: data.user.user_metadata?.full_name || null,
+          avatar_url: data.user.user_metadata?.avatar_url || null,
+          created_at: data.user.created_at,
+          updated_at: data.user.updated_at || data.user.created_at
+        };
+        setProfile(updatedProfile);
+        return { success: true, data: updatedProfile };
+      }
+
+      return { success: true };
     } catch (err: any) {
       console.error('Error updating profile:', err);
       return { success: false, error: err.message };

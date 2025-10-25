@@ -27,7 +27,7 @@ SECURITY DEFINER
 AS $$
   SELECT COUNT(DISTINCT thread_id)
   FROM document_chunks_emails
-  WHERE user_id = p_user_id
+  WHERE user_id::uuid = p_user_id
   AND thread_id IS NOT NULL;
 $$;
 
