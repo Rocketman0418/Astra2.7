@@ -91,12 +91,12 @@ export const useGmailSync = () => {
         .maybeSingle();
 
       const { count } = await supabase
-        .from('company_emails')
+        .from('document_chunks_emails')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', session.user.id);
 
       const { data: lastEmail } = await supabase
-        .from('company_emails')
+        .from('document_chunks_emails')
         .select('created_at')
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false })
@@ -230,6 +230,37 @@ export const useGmailSync = () => {
 
   useEffect(() => {
     loadSyncState();
+
+    // Set up real-time subscription to document_chunks_emails table
+    // This will update the email count as emails are synced
+    let channel: any;
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) return;
+
+      channel = supabase
+        .channel('document-chunks-emails-sync')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'document_chunks_emails',
+            filter: `user_id=eq.${session.user.id}`
+          },
+          () => {
+            console.log('[useGmailSync] New email detected, refreshing state...');
+            loadSyncState();
+          }
+        )
+        .subscribe();
+    });
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   return {
