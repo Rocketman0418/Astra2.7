@@ -15,7 +15,7 @@ export const GmailSettings: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [showSyncModal, setShowSyncModal] = useState(false);
-  const { emailCount, lastSyncDate, refreshState, startSync } = useGmailSync();
+  const { emailCount, lastSyncDate, refreshState, triggerSync } = useGmailSync();
 
   const loadGmailAuth = async () => {
     try {
@@ -233,7 +233,10 @@ export const GmailSettings: React.FC = () => {
           email={gmailAuth.email}
           onProceed={async () => {
             setShowSyncModal(false);
-            await startSync();
+            const result = await triggerSync();
+            if (!result.success) {
+              setError(result.error || 'Failed to start sync');
+            }
           }}
           onSkip={() => {
             setShowSyncModal(false);
