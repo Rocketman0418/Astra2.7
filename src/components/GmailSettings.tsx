@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, CheckCircle, XCircle, RefreshCw, Trash2, Download, Clock } from 'lucide-react';
+import { Mail, CheckCircle, XCircle, RefreshCw, Trash2, Clock } from 'lucide-react';
 import {
   initiateGmailOAuth,
   disconnectGmail as disconnectGmailAuth,
@@ -8,17 +8,13 @@ import {
 } from '../lib/gmail-oauth';
 import { GmailConfigCheck } from './GmailConfigCheck';
 import { useGmailSync } from '../hooks/useGmailSync';
-import { GmailSyncConsentModal } from './GmailSyncConsentModal';
-import { GmailSyncProgressScreen } from './GmailSyncProgressScreen';
 import { supabase } from '../lib/supabase';
 
 export const GmailSettings: React.FC = () => {
   const [gmailAuth, setGmailAuth] = useState<GmailAuthData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
-  const [showSyncConsent, setShowSyncConsent] = useState(false);
-  const [syncPromise, setSyncPromise] = useState<Promise<any> | null>(null);
-  const { isConnected, emailCount, lastSyncDate, syncing, triggerSync, refreshState } = useGmailSync();
+  const { emailCount, lastSyncDate, refreshState } = useGmailSync();
 
   const loadGmailAuth = async () => {
     try {
@@ -102,25 +98,6 @@ export const GmailSettings: React.FC = () => {
     }
   };
 
-  const handleSyncEmails = () => {
-    if (!gmailAuth?.email) return;
-    setShowSyncConsent(true);
-  };
-
-  const handleProceedWithSync = () => {
-    const promise = triggerSync();
-    setSyncPromise(promise);
-    setShowSyncConsent(false);
-  };
-
-  const handleSkipSync = () => {
-    setShowSyncConsent(false);
-  };
-
-  const handleDismissSyncScreen = async () => {
-    setSyncPromise(null);
-    await refreshState();
-  };
 
   const isExpired = gmailAuth ? isGmailTokenExpired(gmailAuth.expires_at) : false;
 
@@ -132,24 +109,6 @@ export const GmailSettings: React.FC = () => {
     );
   }
 
-  if (showSyncConsent && gmailAuth) {
-    return (
-      <GmailSyncConsentModal
-        email={gmailAuth.email}
-        onProceed={handleProceedWithSync}
-        onSkip={handleSkipSync}
-      />
-    );
-  }
-
-  if (syncPromise) {
-    return (
-      <GmailSyncProgressScreen
-        syncPromise={syncPromise}
-        onDismiss={handleDismissSyncScreen}
-      />
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -238,7 +197,7 @@ export const GmailSettings: React.FC = () => {
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
                 <p className="text-sm text-blue-300 flex items-center space-x-2">
                   <Clock className="w-4 h-4" />
-                  <span>New emails sync automatically every 15 minutes</span>
+                  <span>New emails sync automatically every 5 minutes</span>
                 </p>
               </div>
             )}
@@ -253,14 +212,6 @@ export const GmailSettings: React.FC = () => {
             )}
 
             <div className="flex flex-wrap gap-2">
-              <button
-                onClick={handleSyncEmails}
-                disabled={syncing}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Download className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-                <span>{syncing ? 'Syncing...' : emailCount > 0 ? 'Sync Emails' : 'Start Initial Sync'}</span>
-              </button>
               <button
                 onClick={handleDisconnect}
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center space-x-2"

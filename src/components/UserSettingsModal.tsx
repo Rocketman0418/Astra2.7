@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User as UserIcon, Save, UserPlus, LogOut } from 'lucide-react';
+import { X, User as UserIcon, Save, UserPlus, LogOut, Key } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { GmailSettings } from './GmailSettings';
 import { useUserProfile } from '../hooks/useUserProfile';
@@ -15,6 +15,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
   const { profile, loading, updateProfile } = useUserProfile();
   const [name, setName] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [savingName, setSavingName] = useState(false);
   const [error, setError] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -260,69 +261,93 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
                     <label className="text-sm text-gray-400 mb-1 block">Email</label>
                     <p className="text-white">{user?.email}</p>
                   </div>
-            </div>
-          </div>
 
-          <div className="bg-gray-700/50 rounded-lg p-6 border border-gray-600">
-            <div className="flex items-center space-x-3 mb-6">
-              <UserIcon className="w-5 h-5 text-yellow-400" />
-              <h3 className="text-lg font-semibold text-white">Change Password</h3>
-            </div>
+                  <div className="pt-2 border-t border-gray-600">
+                    {!isChangingPassword ? (
+                      <button
+                        onClick={() => {
+                          setIsChangingPassword(true);
+                          setPasswordError('');
+                          setPasswordSuccess('');
+                        }}
+                        className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+                      >
+                        <Key className="w-4 h-4" />
+                        <span>Change Password</span>
+                      </button>
+                    ) : (
+                      <div className="space-y-4">
+                        {passwordSuccess && (
+                          <div className="bg-green-500/10 border border-green-500/50 rounded-lg p-3">
+                            <p className="text-green-400 text-sm">{passwordSuccess}</p>
+                          </div>
+                        )}
 
-            {passwordSuccess && (
-              <div className="mb-4 bg-green-500/10 border border-green-500/50 rounded-lg p-4">
-                <p className="text-green-400 text-sm">{passwordSuccess}</p>
-              </div>
-            )}
+                        {passwordError && (
+                          <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3">
+                            <p className="text-red-400 text-sm">{passwordError}</p>
+                          </div>
+                        )}
 
-            {passwordError && (
-              <div className="mb-4 bg-red-500/10 border border-red-500/50 rounded-lg p-4">
-                <p className="text-red-400 text-sm">{passwordError}</p>
-              </div>
-            )}
+                        <div>
+                          <label className="text-sm text-gray-400 mb-1 block">New Password</label>
+                          <input
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="Enter new password (min 6 characters)"
+                            disabled={changingPassword}
+                            className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                          />
+                        </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm text-gray-400 mb-1 block">New Password</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password (min 6 characters)"
-                  disabled={changingPassword}
-                  className="w-full px-4 py-2 bg-gray-900 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-              </div>
+                        <div>
+                          <label className="text-sm text-gray-400 mb-1 block">Confirm New Password</label>
+                          <input
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="Re-enter new password"
+                            disabled={changingPassword}
+                            className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                          />
+                        </div>
 
-              <div>
-                <label className="text-sm text-gray-400 mb-1 block">Confirm New Password</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Re-enter new password"
-                  disabled={changingPassword}
-                  className="w-full px-4 py-2 bg-gray-900 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-              </div>
-
-              <button
-                onClick={handleChangePassword}
-                disabled={changingPassword || !newPassword || !confirmPassword}
-                className="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center space-x-2"
-              >
-                {changingPassword ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Updating Password...</span>
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    <span>Update Password</span>
-                  </>
-                )}
-              </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleChangePassword}
+                            disabled={changingPassword || !newPassword || !confirmPassword}
+                            className="flex-1 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center space-x-2"
+                          >
+                            {changingPassword ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                <span>Updating...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Save className="w-4 h-4" />
+                                <span>Update Password</span>
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setIsChangingPassword(false);
+                              setNewPassword('');
+                              setConfirmPassword('');
+                              setPasswordError('');
+                              setPasswordSuccess('');
+                            }}
+                            disabled={changingPassword}
+                            className="px-4 py-2 bg-gray-600 hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
             </div>
           </div>
 
