@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, CheckCircle, XCircle, RefreshCw, Trash2, Clock } from 'lucide-react';
+import { Mail, CheckCircle, XCircle, Trash2, Clock } from 'lucide-react';
 import {
   initiateGmailOAuth,
   disconnectGmail as disconnectGmailAuth,
-  isGmailTokenExpired,
   GmailAuthData
 } from '../lib/gmail-oauth';
 import { GmailConfigCheck } from './GmailConfigCheck';
@@ -98,9 +97,6 @@ export const GmailSettings: React.FC = () => {
     }
   };
 
-
-  const isExpired = gmailAuth ? isGmailTokenExpired(gmailAuth.expires_at) : false;
-
   if (loading && !gmailAuth) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -159,21 +155,17 @@ export const GmailSettings: React.FC = () => {
           <div className="space-y-4">
             <div className="flex items-start justify-between">
               <div className="flex items-start space-x-3">
-                <div className={`p-2 rounded-lg ${gmailAuth.is_active && !isExpired ? 'bg-green-500/20' : 'bg-yellow-500/20'}`}>
-                  {gmailAuth.is_active && !isExpired ? (
+                <div className={`p-2 rounded-lg ${gmailAuth.is_active ? 'bg-green-500/20' : 'bg-gray-500/20'}`}>
+                  {gmailAuth.is_active ? (
                     <CheckCircle className="w-5 h-5 text-green-500" />
                   ) : (
-                    <XCircle className="w-5 h-5 text-yellow-500" />
+                    <XCircle className="w-5 h-5 text-gray-500" />
                   )}
                 </div>
                 <div className="flex-1">
                   <p className="text-white font-medium">{gmailAuth.email}</p>
                   <p className="text-sm text-gray-400 mt-1">
-                    {gmailAuth.is_active && !isExpired
-                      ? 'Connected and active'
-                      : isExpired
-                      ? 'Token expired - refresh needed'
-                      : 'Connection inactive'}
+                    {gmailAuth.is_active ? 'Connected and active' : 'Connection inactive'}
                   </p>
                   {emailCount > 0 && (
                     <div className="flex items-center space-x-4 mt-2">
@@ -198,15 +190,6 @@ export const GmailSettings: React.FC = () => {
                 <p className="text-sm text-blue-300 flex items-center space-x-2">
                   <Clock className="w-4 h-4" />
                   <span>New emails sync automatically every 5 minutes</span>
-                </p>
-              </div>
-            )}
-
-            {isExpired && (
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
-                <p className="text-sm text-yellow-300 flex items-center space-x-2">
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Token expired - refreshing automatically...</span>
                 </p>
               </div>
             )}
