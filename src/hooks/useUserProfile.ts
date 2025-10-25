@@ -4,9 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 
 export interface UserProfile {
   id: string;
-  full_name: string | null;
-  avatar_url: string | null;
+  name: string | null;
   email: string | null;
+  is_admin: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -27,23 +27,36 @@ export const useUserProfile = () => {
     try {
       setLoading(true);
 
-      // Get fresh user data from Supabase auth
-      const { data: { user: freshUser }, error: userError } = await supabase.auth.getUser();
+      // Fetch from public.users table
+      const { data, error: fetchError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
 
-      if (userError) throw userError;
-      if (!freshUser) throw new Error('User not found');
+      if (fetchError) throw fetchError;
 
-      // Build profile from auth.users data
-      const userProfile: UserProfile = {
-        id: freshUser.id,
-        email: freshUser.email || null,
-        full_name: freshUser.user_metadata?.full_name || null,
-        avatar_url: freshUser.user_metadata?.avatar_url || null,
-        created_at: freshUser.created_at,
-        updated_at: freshUser.updated_at || freshUser.created_at
-      };
+      // If no record exists, create one
+      if (!data) {
+        const newUser: Partial<UserProfile> = {
+          id: user.id,
+          email: user.email || '',
+          name: user.user_metadata?.full_name || user.email?.split('@')[0] || null,
+          is_admin: false
+        };
 
-      setProfile(userProfile);
+        const { data: insertedUser, error: insertError } = await supabase
+          .from('users')
+          .insert(newUser)
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        setProfile(insertedUser);
+      } else {
+        setProfile(data);
+      }
+
       setError(null);
     } catch (err: any) {
       console.error('Error fetching profile:', err);
@@ -57,90 +70,24 @@ export const useUserProfile = () => {
     fetchProfile();
   }, [user]);
 
-  const updateProfile = async (updates: { full_name?: string; avatar_url?: string }) => {
+  const updateProfile = async (updates: { name?: string }) => {
     if (!user) throw new Error('No user logged in');
 
     try {
-      // Update user metadata via Supabase auth
-      const { data, error: updateError } = await supabase.auth.updateUser({
-        data: updates
-      });
+      // Update in public.users table
+      const { data, error: updateError } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('id', user.id)
+        .select()
+        .single();
 
       if (updateError) throw updateError;
 
-      // Refresh profile from updated user data
-      if (data.user) {
-        const updatedProfile: UserProfile = {
-          id: data.user.id,
-          email: data.user.email || null,
-          full_name: data.user.user_metadata?.full_name || null,
-          avatar_url: data.user.user_metadata?.avatar_url || null,
-          created_at: data.user.created_at,
-          updated_at: data.user.updated_at || data.user.created_at
-        };
-        setProfile(updatedProfile);
-        return { success: true, data: updatedProfile };
-      }
-
-      return { success: true };
+      setProfile(data);
+      return { success: true, data };
     } catch (err: any) {
       console.error('Error updating profile:', err);
-      return { success: false, error: err.message };
-    }
-  };
-
-  const uploadAvatar = async (file: File) => {
-    if (!user) throw new Error('No user logged in');
-
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/avatar-${Date.now()}.${fileExt}`;
-
-      if (profile?.avatar_url) {
-        const oldPath = profile.avatar_url.split('/').pop();
-        if (oldPath) {
-          await supabase.storage
-            .from('avatars')
-            .remove([`${user.id}/${oldPath}`]);
-        }
-      }
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-
-      const updateResult = await updateProfile({ avatar_url: publicUrl });
-      return updateResult;
-    } catch (err: any) {
-      console.error('Error uploading avatar:', err);
-      return { success: false, error: err.message };
-    }
-  };
-
-  const deleteAvatar = async () => {
-    if (!user || !profile?.avatar_url) return { success: false, error: 'No avatar to delete' };
-
-    try {
-      const oldPath = profile.avatar_url.split('/').pop();
-      if (oldPath) {
-        await supabase.storage
-          .from('avatars')
-          .remove([`${user.id}/${oldPath}`]);
-      }
-
-      const updateResult = await updateProfile({ avatar_url: null });
-      return updateResult;
-    } catch (err: any) {
-      console.error('Error deleting avatar:', err);
       return { success: false, error: err.message };
     }
   };
@@ -150,8 +97,6 @@ export const useUserProfile = () => {
     loading,
     error,
     updateProfile,
-    uploadAvatar,
-    deleteAvatar,
     refetch: fetchProfile
   };
 };
