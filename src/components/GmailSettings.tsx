@@ -7,6 +7,7 @@ import {
 } from '../lib/gmail-oauth';
 import { GmailConfigCheck } from './GmailConfigCheck';
 import { GmailSyncConsentModal } from './GmailSyncConsentModal';
+import { GmailSyncProgressScreen } from './GmailSyncProgressScreen';
 import { useGmailSync } from '../hooks/useGmailSync';
 import { supabase } from '../lib/supabase';
 
@@ -15,6 +16,7 @@ export const GmailSettings: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [showSyncModal, setShowSyncModal] = useState(false);
+  const [syncPromise, setSyncPromise] = useState<Promise<any> | null>(null);
   const { emailCount, lastSyncDate, refreshState, triggerSync } = useGmailSync();
 
   const loadGmailAuth = async () => {
@@ -233,13 +235,21 @@ export const GmailSettings: React.FC = () => {
           email={gmailAuth.email}
           onProceed={async () => {
             setShowSyncModal(false);
-            const result = await triggerSync();
-            if (!result.success) {
-              setError(result.error || 'Failed to start sync');
-            }
+            const promise = triggerSync();
+            setSyncPromise(promise);
           }}
           onSkip={() => {
             setShowSyncModal(false);
+          }}
+        />
+      )}
+
+      {syncPromise && (
+        <GmailSyncProgressScreen
+          syncPromise={syncPromise}
+          onDismiss={() => {
+            setSyncPromise(null);
+            refreshState();
           }}
         />
       )}
