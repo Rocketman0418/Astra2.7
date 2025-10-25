@@ -180,15 +180,23 @@ export const useGmailSync = () => {
           throw new Error(`Sync failed: ${errorText}`);
         }
 
-        const result = await response.json();
+        let result = await response.json();
         console.log('[useGmailSync] Sync result:', result);
+
+        // Handle array response (n8n webhook may return array)
+        if (Array.isArray(result) && result.length > 0) {
+          result = result[0];
+        }
 
         await loadSyncState();
 
         setState(prev => ({ ...prev, syncing: false }));
 
+        // Check if result has success property, if not assume success from result object structure
+        const isSuccess = result.success !== false;
+
         return {
-          success: true,
+          success: isSuccess,
           status: result.status || 'complete',
           message: result.message,
           metrics: result.metrics,
