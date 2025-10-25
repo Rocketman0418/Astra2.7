@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, CheckCircle, XCircle, Trash2, Clock } from 'lucide-react';
+import { Mail, CheckCircle, XCircle, Trash2, Clock, Download } from 'lucide-react';
 import {
   initiateGmailOAuth,
   disconnectGmail as disconnectGmailAuth,
   GmailAuthData
 } from '../lib/gmail-oauth';
 import { GmailConfigCheck } from './GmailConfigCheck';
+import { GmailSyncConsentModal } from './GmailSyncConsentModal';
 import { useGmailSync } from '../hooks/useGmailSync';
 import { supabase } from '../lib/supabase';
 
@@ -13,7 +14,8 @@ export const GmailSettings: React.FC = () => {
   const [gmailAuth, setGmailAuth] = useState<GmailAuthData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
-  const { emailCount, lastSyncDate, refreshState } = useGmailSync();
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const { emailCount, lastSyncDate, refreshState, startSync } = useGmailSync();
 
   const loadGmailAuth = async () => {
     try {
@@ -185,7 +187,20 @@ export const GmailSettings: React.FC = () => {
               </div>
             </div>
 
-            {emailCount > 0 && (
+            {emailCount === 0 ? (
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                <p className="text-sm text-blue-300 mb-3">
+                  Your Gmail is connected but no emails have been synced yet. Start the initial sync to enable Astra to search your emails.
+                </p>
+                <button
+                  onClick={() => setShowSyncModal(true)}
+                  className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-2"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Start Initial Sync</span>
+                </button>
+              </div>
+            ) : (
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
                 <p className="text-sm text-blue-300 flex items-center space-x-2">
                   <Clock className="w-4 h-4" />
@@ -212,6 +227,19 @@ export const GmailSettings: React.FC = () => {
           <strong>Privacy Note:</strong> Your Gmail credentials are stored securely and are only used to perform actions you explicitly request through Astra.
         </p>
       </div>
+
+      {showSyncModal && gmailAuth && (
+        <GmailSyncConsentModal
+          email={gmailAuth.email}
+          onProceed={async () => {
+            setShowSyncModal(false);
+            await startSync();
+          }}
+          onSkip={() => {
+            setShowSyncModal(false);
+          }}
+        />
+      )}
     </div>
   );
 };
