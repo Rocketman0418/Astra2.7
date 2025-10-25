@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, User as UserIcon, Save, UserPlus, LogOut, Key } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, User as UserIcon, Save, UserPlus, LogOut, Key, Camera, Trash2, Upload } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { GmailSettings } from './GmailSettings';
 import { useUserProfile } from '../hooks/useUserProfile';
@@ -12,12 +12,14 @@ interface UserSettingsModalProps {
 
 export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
-  const { profile, loading, updateProfile } = useUserProfile();
+  const { profile, loading, updateProfile, uploadAvatar, deleteAvatar } = useUserProfile();
   const [name, setName] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [savingName, setSavingName] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
@@ -64,6 +66,47 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
     setName(profile?.name || '');
     setIsEditingName(false);
     setError('');
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('File size must be less than 5MB');
+      return;
+    }
+
+    if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
+      setError('Only JPEG, PNG, GIF, and WebP images are allowed');
+      return;
+    }
+
+    setUploading(true);
+    setError('');
+
+    const result = await uploadAvatar(file);
+    setUploading(false);
+
+    if (!result.success) {
+      setError(result.error || 'Failed to upload avatar');
+    }
+  };
+
+  const handleDeleteAvatar = async () => {
+    if (!confirm('Are you sure you want to delete your avatar?')) return;
+
+    setUploading(true);
+    const result = await deleteAvatar();
+    setUploading(false);
+
+    if (!result.success) {
+      setError(result.error || 'Failed to delete avatar');
+    }
   };
 
   const handleChangePassword = async () => {
@@ -162,10 +205,18 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
         <div className="sticky top-0 bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="relative">
-            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-              <UserIcon className="w-5 h-5 text-white" />
+              {profile?.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                  <UserIcon className="w-5 h-5 text-white" />
+                </div>
+              )}
             </div>
-          </div>
             <div className="flex-1">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-white">User Settings</h2>
@@ -208,6 +259,64 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
             </div>
 
             <div className="space-y-4">
+              <div className="flex items-start space-x-6">
+                <div className="flex-shrink-0">
+                  <div className="relative group">
+                    {profile?.avatar_url ? (
+                      <img
+                        src={profile.avatar_url}
+                        alt="Profile"
+                        className="w-24 h-24 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+                        <UserIcon className="w-12 h-12 text-white" />
+                      </div>
+                    )}
+
+                    <button
+                      onClick={handleAvatarClick}
+                      disabled={uploading || loading}
+                      className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:cursor-not-allowed"
+                    >
+                      {uploading ? (
+                        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <Camera className="w-6 h-6 text-white" />
+                      )}
+                    </button>
+                  </div>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={handleAvatarClick}
+                      disabled={uploading || loading}
+                      className="flex-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded transition-colors flex items-center justify-center space-x-1"
+                    >
+                      <Upload className="w-3 h-3" />
+                      <span>Upload</span>
+                    </button>
+                    {profile?.avatar_url && (
+                      <button
+                        onClick={handleDeleteAvatar}
+                        disabled={uploading || loading}
+                        className="px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded transition-colors"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-4">
                   <div>
                     <label className="text-sm text-gray-400 mb-1 block">Full Name</label>
                     {isEditingName ? (
@@ -348,6 +457,8 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
                       </div>
                     )}
                   </div>
+                </div>
+              </div>
             </div>
           </div>
 

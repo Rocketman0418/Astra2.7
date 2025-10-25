@@ -6,6 +6,7 @@ export interface UserProfile {
   id: string;
   name: string | null;
   email: string | null;
+  avatar_url: string | null;
   is_admin: boolean;
   created_at: string;
   updated_at: string;
@@ -70,7 +71,7 @@ export const useUserProfile = () => {
     fetchProfile();
   }, [user]);
 
-  const updateProfile = async (updates: { name?: string }) => {
+  const updateProfile = async (updates: { name?: string; avatar_url?: string | null }) => {
     if (!user) throw new Error('No user logged in');
 
     try {
@@ -92,11 +93,73 @@ export const useUserProfile = () => {
     }
   };
 
+  const uploadAvatar = async (file: File) => {
+    if (!user) throw new Error('No user logged in');
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar-${Date.now()}.${fileExt}`;
+
+      // Delete old avatar if it exists
+      if (profile?.avatar_url) {
+        const oldPath = profile.avatar_url.split('/').pop();
+        if (oldPath) {
+          await supabase.storage
+            .from('avatars')
+            .remove([`${user.id}/${oldPath}`]);
+        }
+      }
+
+      // Upload new avatar
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      // Update profile with new avatar URL
+      const updateResult = await updateProfile({ avatar_url: publicUrl });
+      return updateResult;
+    } catch (err: any) {
+      console.error('Error uploading avatar:', err);
+      return { success: false, error: err.message };
+    }
+  };
+
+  const deleteAvatar = async () => {
+    if (!user || !profile?.avatar_url) return { success: false, error: 'No avatar to delete' };
+
+    try {
+      const oldPath = profile.avatar_url.split('/').pop();
+      if (oldPath) {
+        await supabase.storage
+          .from('avatars')
+          .remove([`${user.id}/${oldPath}`]);
+      }
+
+      const updateResult = await updateProfile({ avatar_url: null });
+      return updateResult;
+    } catch (err: any) {
+      console.error('Error deleting avatar:', err);
+      return { success: false, error: err.message };
+    }
+  };
+
   return {
     profile,
     loading,
     error,
     updateProfile,
+    uploadAvatar,
+    deleteAvatar,
     refetch: fetchProfile
   };
 };
