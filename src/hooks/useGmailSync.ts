@@ -90,15 +90,32 @@ export const useGmailSync = () => {
         .eq('is_active', true)
         .maybeSingle();
 
-      // Count distinct thread_id values using SQL (more accurate than fetching all records)
+      // Try to use RPC function first, fallback to client-side counting if not available
+      let count = 0;
+
       const { data: countData, error: countError } = await supabase
         .rpc('count_distinct_email_threads', { p_user_id: session.user.id });
 
       if (countError) {
-        console.error('[useGmailSync] Error counting threads:', countError);
-      }
+        console.log('[useGmailSync] RPC function not available, using fallback count method');
 
-      const count = countData || 0;
+        // Fallback: fetch with a high limit to get all records
+        const { data: threads, error: threadsError } = await supabase
+          .from('document_chunks_emails')
+          .select('thread_id')
+          .eq('user_id', session.user.id)
+          .limit(10000); // Set a high limit to get more records
+
+        if (threadsError) {
+          console.error('[useGmailSync] Error fetching threads:', threadsError);
+        } else {
+          // Count unique thread_ids
+          const uniqueThreads = new Set(threads?.map(t => t.thread_id).filter(Boolean) || []);
+          count = uniqueThreads.size;
+        }
+      } else {
+        count = countData || 0;
+      }
 
       const { data: lastEmail } = await supabase
         .from('document_chunks_emails')
