@@ -218,22 +218,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
               )}
             </div>
             <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-white">User Settings</h2>
-                <button
-                  onClick={async () => {
-                    if (confirm('Are you sure you want to log out?')) {
-                      await supabase.auth.signOut();
-                      onClose();
-                    }
-                  }}
-                  className="p-2 hover:bg-gray-700 rounded-lg transition-colors flex items-center space-x-2 text-gray-400 hover:text-white"
-                  title="Log out"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span className="text-sm">Logout</span>
-                </button>
-              </div>
+              <h2 className="text-xl font-bold text-white">User Settings</h2>
               <p className="text-sm text-gray-400">{user?.email}</p>
             </div>
           </div>
@@ -373,17 +358,31 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
 
                   <div className="pt-2 border-t border-gray-600">
                     {!isChangingPassword ? (
-                      <button
-                        onClick={() => {
-                          setIsChangingPassword(true);
-                          setPasswordError('');
-                          setPasswordSuccess('');
-                        }}
-                        className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors flex items-center space-x-2"
-                      >
-                        <Key className="w-4 h-4" />
-                        <span>Change Password</span>
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            setIsChangingPassword(true);
+                            setPasswordError('');
+                            setPasswordSuccess('');
+                          }}
+                          className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+                        >
+                          <Key className="w-4 h-4" />
+                          <span>Change Password</span>
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (confirm('Are you sure you want to log out?')) {
+                              await supabase.auth.signOut();
+                              onClose();
+                            }
+                          }}
+                          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>Logout</span>
+                        </button>
+                      </div>
                     ) : (
                       <div className="space-y-4">
                         {passwordSuccess && (
