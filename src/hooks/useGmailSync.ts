@@ -90,10 +90,19 @@ export const useGmailSync = () => {
         .eq('is_active', true)
         .maybeSingle();
 
-      const { count } = await supabase
+      // Count distinct thread_id values (one per email conversation)
+      const { data: threads, error: threadsError } = await supabase
         .from('document_chunks_emails')
-        .select('id', { count: 'exact', head: true })
+        .select('thread_id')
         .eq('user_id', session.user.id);
+
+      if (threadsError) {
+        console.error('[useGmailSync] Error fetching threads:', threadsError);
+      }
+
+      // Count unique thread_ids
+      const uniqueThreads = new Set(threads?.map(t => t.thread_id).filter(Boolean) || []);
+      const count = uniqueThreads.size;
 
       const { data: lastEmail } = await supabase
         .from('document_chunks_emails')
@@ -103,7 +112,7 @@ export const useGmailSync = () => {
         .limit(1)
         .maybeSingle();
 
-      const currentCount = count || 0;
+      const currentCount = count;
 
       // Detect sync completion: significant increase in email count (>= 10 emails)
       if (currentCount >= 10 && previousEmailCount < 10 && currentCount > previousEmailCount) {
