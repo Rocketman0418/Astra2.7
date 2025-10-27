@@ -1,5 +1,5 @@
-import React from 'react';
-import { Bookmark, Reply } from 'lucide-react';
+import React, { useState } from 'react';
+import { Bookmark, Reply, Copy, Check } from 'lucide-react';
 import { VisualizationButton } from './VisualizationButton';
 import { Message } from '../types';
 
@@ -90,6 +90,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
  visualizationState,
  onReply
 }) => {
+  const [copied, setCopied] = useState(false);
   const isLongMessage = message.text.length > 300;
   const shouldTruncate = isLongMessage && !message.isExpanded;
 
@@ -116,18 +117,29 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   
   // Get the base text content (handle reply messages)
   const baseText = isReplyMessage ? getReplyContent() : message.text;
-  
+
   // Apply truncation if needed
-  const truncatedText = shouldTruncate 
+  const truncatedText = shouldTruncate
     ? baseText.substring(0, 300) + '...'
     : baseText;
 
   // Check for line-based truncation
   const lines = truncatedText.split('\n');
   const shouldShowMore = lines.length > 5 && !message.isExpanded;
-  const finalText = shouldShowMore 
+  const finalText = shouldShowMore
     ? lines.slice(0, 5).join('\n') + '...'
     : truncatedText;
+
+  // Handle copy text
+  const handleCopyText = async () => {
+    try {
+      await navigator.clipboard.writeText(message.text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
+  };
 
   // Special styling for centered welcome message
   if (message.isCentered) {
@@ -236,8 +248,25 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         )}
         
         {!message.isUser && message.chatId && onCreateVisualization && onViewVisualization && (
-          <div className="mt-2 md:mt-3">
+          <div className="mt-2 md:mt-3 flex flex-col sm:flex-row gap-2">
             {console.log('🔍 MessageBubble: Rendering visualization button for chatId:', message.chatId, 'visualizationState:', visualizationState)}
+            <button
+              onClick={handleCopyText}
+              className="flex items-center justify-center space-x-2 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 min-h-[44px] touch-manipulation"
+              title="Copy message text"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>Copy Text</span>
+                </>
+              )}
+            </button>
             <VisualizationButton
               messageId={message.chatId}
               messageText={message.text}
