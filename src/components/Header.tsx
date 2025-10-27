@@ -50,8 +50,8 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Logo and title */}
           <div className="flex items-center space-x-3">
             {/* AI Rocket Logo */}
-            <div className="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-blue-400 shadow-lg">
-              <span className="text-2xl md:text-3xl">🚀</span>
+            <div className="flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full bg-blue-400 shadow-lg">
+              <span className="text-xl md:text-2xl">🚀</span>
             </div>
 
             {/* Brand Title */}
