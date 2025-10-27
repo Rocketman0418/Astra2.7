@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Plus, Settings, Trash2, Eye, FileText, Maximize2, RotateCcw, Copy, Check } from 'lucide-react';
+import { useVisualization } from '../hooks/useVisualization';
 import { useReportsContext } from '../contexts/ReportsContext';
 import { ManageReportsModal } from './ManageReportsModal';
 import { VisualizationView } from './VisualizationView';
@@ -14,6 +15,8 @@ export const ReportsView: React.FC = () => {
     runReportNow,
     runningReports
   } = useReportsContext();
+
+  const { generateVisualization } = useVisualization();
 
   const [showManageModal, setShowManageModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -44,30 +47,29 @@ export const ReportsView: React.FC = () => {
     setExpandedTextId(expandedTextId === messageId ? null : messageId);
   };
 
-  const handleRetry = async (messageId: string) => {
+  const handleRetry = useCallback(async (messageId: string) => {
     const message = reportMessages.find(m => m.id === messageId);
-    console.log('🔄 Retry clicked for message:', messageId);
+    console.log('🔄 Retry visualization clicked for message:', messageId);
     console.log('🔄 Message data:', message);
-    console.log('🔄 Report metadata:', message?.reportMetadata);
 
-    if (!message?.reportMetadata?.reportId) {
-      console.error('❌ Cannot retry: missing reportId in metadata');
-      alert('Unable to retry report: missing report information. Please try running the report from Manage Reports.');
+    if (!message) {
+      console.error('❌ Cannot retry: message not found');
       return;
     }
 
-    console.log('✅ Starting retry for reportId:', message.reportMetadata.reportId);
+    console.log('✅ Starting visualization retry for messageId:', messageId);
     setRetryingReportId(messageId);
     try {
-      await runReportNow(message.reportMetadata.reportId);
-      console.log('✅ Retry completed successfully');
+      // Generate a new visualization using the message text
+      await generateVisualization(messageId, message.text);
+      console.log('✅ Retry visualization completed successfully');
     } catch (err) {
-      console.error('❌ Failed to retry report:', err);
-      alert('Failed to retry report. Please try again.');
+      console.error('❌ Failed to retry visualization:', err);
+      alert('Failed to retry visualization. Please try again.');
     } finally {
       setRetryingReportId(null);
     }
-  };
+  }, [reportMessages, generateVisualization]);
 
   const handleCopyText = async (messageId: string, text: string) => {
     try {
