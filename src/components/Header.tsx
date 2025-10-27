@@ -26,7 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-blue-600 to-purple-700 shadow-lg px-4 h-16">
       <div className="flex items-center justify-between h-full py-1">
-        {/* Left side - Menu button */}
+        {/* Left side - Menu button and branding */}
         <div className="flex items-center space-x-2">
           {showSidebarToggle && (
             <button
@@ -36,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
               <Menu className="w-6 h-6 text-white" />
             </button>
           )}
-          
+
           {/* Team chat menu */}
           {chatMode === 'team' && (
             <button
@@ -46,19 +46,19 @@ export const Header: React.FC<HeaderProps> = ({
               <Menu className="w-6 h-6 text-white" />
             </button>
           )}
-        </div>
 
-        {/* Center - Logo and title */}
-        <div className="flex items-center space-x-3">
-          {/* AI Rocket Logo */}
-          <div className="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-blue-500 shadow-lg">
-            <span className="text-2xl md:text-3xl">🚀</span>
+          {/* Logo and title */}
+          <div className="flex items-center space-x-2 ml-2">
+            {/* AI Rocket Logo */}
+            <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-500 shadow-lg">
+              <span className="text-lg md:text-xl">🚀</span>
+            </div>
+
+            {/* Brand Title */}
+            <h1 className="text-base md:text-lg font-bold text-white tracking-tight">
+              AI Rocket + Astra Intelligence
+            </h1>
           </div>
-
-          {/* Brand Title */}
-          <h1 className="text-base md:text-lg font-bold text-white tracking-tight">
-            AI Rocket + Astra Intelligence
-          </h1>
         </div>
 
         {/* Right side - User info */}
