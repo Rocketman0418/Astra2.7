@@ -46,16 +46,24 @@ export const ReportsView: React.FC = () => {
 
   const handleRetry = async (messageId: string) => {
     const message = reportMessages.find(m => m.id === messageId);
+    console.log('🔄 Retry clicked for message:', messageId);
+    console.log('🔄 Message data:', message);
+    console.log('🔄 Report metadata:', message?.reportMetadata);
+
     if (!message?.reportMetadata?.reportId) {
-      console.error('Cannot retry: missing report metadata');
+      console.error('❌ Cannot retry: missing reportId in metadata');
+      alert('Unable to retry report: missing report information. Please try running the report from Manage Reports.');
       return;
     }
 
+    console.log('✅ Starting retry for reportId:', message.reportMetadata.reportId);
     setRetryingReportId(messageId);
     try {
       await runReportNow(message.reportMetadata.reportId);
+      console.log('✅ Retry completed successfully');
     } catch (err) {
-      console.error('Failed to retry report:', err);
+      console.error('❌ Failed to retry report:', err);
+      alert('Failed to retry report. Please try again.');
     } finally {
       setRetryingReportId(null);
     }
@@ -135,16 +143,14 @@ export const ReportsView: React.FC = () => {
               >
                 {/* Header with title and timestamp */}
                 <div className="p-4 border-b border-gray-700">
-                  <div className="flex items-center space-x-3 mb-2">
+                  <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center flex-shrink-0">
                       🚀
                     </div>
                     <div className="flex-1 min-w-0">
-                      {message.reportMetadata?.title && (
-                        <h3 className="text-lg font-semibold text-white truncate">
-                          {message.reportMetadata.title}
-                        </h3>
-                      )}
+                      <h3 className="text-lg font-semibold text-white truncate">
+                        {message.reportMetadata?.title || message.reportMetadata?.report_title || 'Report'}
+                      </h3>
                       <p className="text-xs text-gray-400">
                         {message.timestamp.toLocaleDateString()} at{' '}
                         {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -167,10 +173,26 @@ export const ReportsView: React.FC = () => {
                     <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none"></div>
                   </div>
                 ) : (
-                  <div className="h-64 bg-gray-900 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-gray-600 text-5xl mb-2">📊</div>
-                      <p className="text-gray-500 text-sm">No visualization available</p>
+                  <div className="h-96 bg-gray-900 flex items-center justify-center">
+                    <div className="text-center px-6">
+                      <div className="mb-6">
+                        <div className="relative inline-block">
+                          <div className="w-16 h-16 mx-auto">
+                            <svg className="w-full h-full text-blue-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          </div>
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-20 rounded-lg animate-ping"></div>
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-semibold text-white mb-2">Generating Visualization</h3>
+                      <p className="text-gray-400 text-sm mb-6">Astra is creating your interactive visualization...</p>
+                      <div className="flex justify-center space-x-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -179,7 +201,11 @@ export const ReportsView: React.FC = () => {
                 <div className="p-4 border-t border-gray-700 flex flex-wrap gap-2">
                   {message.visualization && message.visualization_data && (
                     <button
-                      onClick={() => handleViewVisualization(message.id, message.visualization_data!, message.reportMetadata?.title)}
+                      onClick={() => handleViewVisualization(
+                        message.id,
+                        message.visualization_data!,
+                        message.reportMetadata?.title || message.reportMetadata?.report_title
+                      )}
                       className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm min-h-[44px]"
                     >
                       <Maximize2 className="w-4 h-4" />

@@ -113,6 +113,8 @@ Deno.serve(async (req: Request) => {
         message: reportText,
         message_type: 'astra',
         metadata: {
+          reportId: reportId,
+          title: report.title,
           report_title: report.title,
           report_schedule: report.schedule_time,
           report_frequency: report.schedule_frequency,
