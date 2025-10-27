@@ -63,19 +63,23 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-700">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-orange-500 via-green-500 to-blue-500 rounded-full mb-4">
-              <Users className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-white mb-2">Welcome to Astra Intelligence</h1>
-            <p className="text-gray-400">Let's set up your account</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center">
+          <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 rounded-full bg-blue-400 shadow-lg">
+            <span className="text-5xl">🚀</span>
           </div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center justify-center gap-3 flex-wrap">
+            <span className="text-blue-400">AI Rocket</span>
+            <span className="text-white font-normal">+</span>
+            <span className="text-emerald-400">Astra Intelligence</span>
+          </h1>
+          <p className="text-gray-400">Let's set up your account</p>
+        </div>
 
+        <div className="bg-gray-800 rounded-xl shadow-2xl p-8 border border-gray-700">
           {error && (
-            <div className="mb-4 bg-red-500/10 border border-red-500/50 rounded-lg p-4">
+            <div className="mb-6 bg-red-500/10 border border-red-500/50 rounded-lg p-4">
               <p className="text-red-400 text-sm">{error}</p>
             </div>
           )}
@@ -131,6 +135,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
               )}
             </button>
           </form>
+        </div>
+
+        <div className="text-center text-sm text-gray-500">
+          <p>Part of the RocketHub Ecosystem</p>
         </div>
       </div>
     </div>
