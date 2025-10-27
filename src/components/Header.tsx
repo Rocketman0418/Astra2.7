@@ -50,20 +50,15 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Center - Logo and title */}
         <div className="flex items-center space-x-3">
-          {/* Company logo */}
-          <img 
-            src="/RocketHub Logo Alt 1 Small.png" 
-            alt="RocketHub Logo" 
-            className="w-20 h-20 md:w-24 md:h-24 object-contain"
-          />
-          
-          {/* Title and rocket emoji */}
-          <div className="flex items-center space-x-2">
-            <span className="text-xl md:text-2xl">🚀</span>
-            <h1 className="text-base md:text-lg font-bold text-white tracking-tight">
-              Astra Intelligence
-            </h1>
+          {/* AI Rocket Logo */}
+          <div className="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-blue-500 shadow-lg">
+            <span className="text-2xl md:text-3xl">🚀</span>
           </div>
+
+          {/* Brand Title */}
+          <h1 className="text-base md:text-lg font-bold text-white tracking-tight">
+            AI Rocket + Astra Intelligence
+          </h1>
         </div>
 
         {/* Right side - User info */}
