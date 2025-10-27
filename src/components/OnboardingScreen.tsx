@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, UserCircle } from 'lucide-react';
+import { Users, UserCircle, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface OnboardingScreenProps {
@@ -11,6 +11,14 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
   const [teamName, setTeamName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const handleBackToLogin = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Error signing out:', err);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,8 +145,15 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
           </form>
         </div>
 
-        <div className="text-center text-sm text-gray-500">
-          <p>Part of the RocketHub Ecosystem</p>
+        <div className="text-center space-y-3">
+          <button
+            onClick={handleBackToLogin}
+            className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-gray-300 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Login
+          </button>
+          <p className="text-sm text-gray-500">Part of the RocketHub Ecosystem</p>
         </div>
       </div>
     </div>
