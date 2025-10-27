@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Plus, Settings, Trash2, Eye, FileText, Maximize2, RotateCcw, Copy, Check } from 'lucide-react';
 import { useVisualization } from '../hooks/useVisualization';
 import { useReportsContext } from '../contexts/ReportsContext';
@@ -28,6 +28,25 @@ export const ReportsView: React.FC = () => {
   const [expandedTextId, setExpandedTextId] = useState<string | null>(null);
   const [retryingReportId, setRetryingReportId] = useState<string | null>(null);
   const [copiedTextId, setCopiedTextId] = useState<string | null>(null);
+  const processedVisualizationsRef = useRef<Set<string>>(new Set());
+
+  // Auto-generate visualizations for new reports
+  useEffect(() => {
+    reportMessages.forEach((message) => {
+      // Only process reports that don't have visualization_data and haven't been processed yet
+      if (!message.visualization_data && !processedVisualizationsRef.current.has(message.id)) {
+        console.log('🎨 [ReportsView] Auto-generating visualization for report:', message.id);
+        processedVisualizationsRef.current.add(message.id);
+
+        // Generate visualization asynchronously
+        generateVisualization(message.id, message.text).catch((err) => {
+          console.error('❌ [ReportsView] Failed to auto-generate visualization:', err);
+          // Remove from processed set so it can be retried
+          processedVisualizationsRef.current.delete(message.id);
+        });
+      }
+    });
+  }, [reportMessages, generateVisualization]);
 
   const handleDeleteMessage = async (messageId: string) => {
     if (confirm('Delete this report result?')) {

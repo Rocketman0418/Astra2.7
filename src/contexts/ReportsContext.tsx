@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -68,7 +68,6 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [runningReports, setRunningReports] = useState<Set<string>>(new Set());
-  const visualizationRequestedRef = useRef<Set<string>>(new Set());
 
   const fetchTemplates = useCallback(async () => {
     if (!user) return;
@@ -292,43 +291,6 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     console.log('Checking scheduled reports...');
   };
 
-  const requestVisualizationForReport = async (messageId: string, messageText: string) => {
-    if (!user) return;
-
-    try {
-      console.log('🎨 [ReportsContext] Requesting visualization for report:', messageId);
-
-      const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
-      if (!webhookUrl) {
-        console.error('❌ N8N webhook URL not configured');
-        return;
-      }
-
-      // Request visualization through webhook
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chatInput: `Create a visualization for this data:\n\n${messageText}`,
-          user_id: user.id,
-          user_email: user.email,
-          chat_id: messageId,
-          mode: 'reports',
-          request_visualization: true
-        })
-      });
-
-      if (response.ok) {
-        console.log('✅ [ReportsContext] Visualization requested successfully');
-      } else {
-        console.error('❌ [ReportsContext] Failed to request visualization:', response.status);
-      }
-    } catch (err) {
-      console.error('❌ [ReportsContext] Error requesting visualization:', err);
-    }
-  };
 
   // Initialize data and set up real-time subscription
   useEffect(() => {
@@ -384,16 +346,6 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
               if (record && (record as any).mode === 'reports') {
                 console.log('📡 [ReportsContext] Reports message changed, refreshing...');
                 fetchReportMessages();
-
-                // Auto-request visualization for new reports without visualization_data
-                if (payload.eventType === 'INSERT' && !record.visualization_data) {
-                  const messageId = record.id;
-                  if (!visualizationRequestedRef.current.has(messageId)) {
-                    console.log('🎨 [ReportsContext] Auto-requesting visualization for new report:', messageId);
-                    visualizationRequestedRef.current.add(messageId);
-                    requestVisualizationForReport(messageId, record.message);
-                  }
-                }
               }
             } else if (payload.eventType === 'DELETE' && payload.old && (payload.old as any).mode === 'reports') {
               console.log('📡 [ReportsContext] Reports message deleted, refreshing...');
