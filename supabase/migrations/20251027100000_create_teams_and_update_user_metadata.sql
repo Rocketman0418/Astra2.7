@@ -109,6 +109,10 @@ DROP POLICY IF EXISTS "Super-admins can view all invite codes" ON invite_codes;
 DROP POLICY IF EXISTS "Super-admins can create invite codes" ON invite_codes;
 DROP POLICY IF EXISTS "Super-admins can update invite codes" ON invite_codes;
 DROP POLICY IF EXISTS "Super-admins can delete invite codes" ON invite_codes;
+DROP POLICY IF EXISTS "Team admins can view team invite codes" ON invite_codes;
+DROP POLICY IF EXISTS "Team admins can create team invite codes" ON invite_codes;
+DROP POLICY IF EXISTS "Team admins can update team invite codes" ON invite_codes;
+DROP POLICY IF EXISTS "Team admins can delete team invite codes" ON invite_codes;
 
 -- Policy: Team admins can view invite codes for their team
 CREATE POLICY "Team admins can view team invite codes"
