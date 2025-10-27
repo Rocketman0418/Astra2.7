@@ -9,6 +9,7 @@ export const CustomAuth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [confirmEmail, setConfirmEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -61,7 +62,7 @@ export const CustomAuth: React.FC = () => {
     setLoading(true);
 
     try {
-      if (!email || !confirmEmail || !password || !inviteCode) {
+      if (!email || !confirmEmail || !password || !confirmPassword || !inviteCode) {
         setError('All fields are required');
         setLoading(false);
         return;
@@ -81,6 +82,12 @@ export const CustomAuth: React.FC = () => {
 
       if (password.length < 6) {
         setError('Password must be at least 6 characters');
+        setLoading(false);
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        setError('Passwords do not match');
         setLoading(false);
         return;
       }
@@ -226,6 +233,24 @@ export const CustomAuth: React.FC = () => {
             />
           </div>
         </div>
+
+        {mode === 'signup' && (
+          <div>
+            <label className="text-sm text-gray-400 mb-1 block">Confirm Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm your password"
+                disabled={loading}
+                className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                required
+              />
+            </div>
+          </div>
+        )}
 
         {mode === 'signup' && (
           <div>
