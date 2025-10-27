@@ -56,9 +56,9 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Brand Title */}
             <h1 className="text-xl md:text-2xl font-bold tracking-tight flex items-center gap-3">
-              <span className="text-white">AI Rocket</span>
+              <span className="text-blue-400">AI Rocket</span>
               <span className="text-white font-normal">+</span>
-              <span className="text-white">Astra Intelligence</span>
+              <span className="text-emerald-400">Astra Intelligence</span>
             </h1>
           </div>
         </div>
