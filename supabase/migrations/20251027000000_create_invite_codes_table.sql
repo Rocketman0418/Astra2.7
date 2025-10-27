@@ -38,17 +38,13 @@ CREATE TABLE IF NOT EXISTS invite_codes (
 -- Enable RLS
 ALTER TABLE invite_codes ENABLE ROW LEVEL SECURITY;
 
--- Policy: Super-admins can view all invite codes
+-- Policy: Super-admins can view all invite codes (using auth.jwt())
 CREATE POLICY "Super-admins can view all invite codes"
   ON invite_codes
   FOR SELECT
   TO authenticated
   USING (
-    EXISTS (
-      SELECT 1 FROM auth.users
-      WHERE auth.users.id = auth.uid()
-      AND auth.users.email = 'clay@rockethub.ai'
-    )
+    (auth.jwt()->>'email')::text = 'clay@rockethub.ai'
   );
 
 -- Policy: Super-admins can insert invite codes
@@ -57,11 +53,7 @@ CREATE POLICY "Super-admins can create invite codes"
   FOR INSERT
   TO authenticated
   WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM auth.users
-      WHERE auth.users.id = auth.uid()
-      AND auth.users.email = 'clay@rockethub.ai'
-    )
+    (auth.jwt()->>'email')::text = 'clay@rockethub.ai'
   );
 
 -- Policy: Super-admins can update invite codes
@@ -70,18 +62,10 @@ CREATE POLICY "Super-admins can update invite codes"
   FOR UPDATE
   TO authenticated
   USING (
-    EXISTS (
-      SELECT 1 FROM auth.users
-      WHERE auth.users.id = auth.uid()
-      AND auth.users.email = 'clay@rockethub.ai'
-    )
+    (auth.jwt()->>'email')::text = 'clay@rockethub.ai'
   )
   WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM auth.users
-      WHERE auth.users.id = auth.uid()
-      AND auth.users.email = 'clay@rockethub.ai'
-    )
+    (auth.jwt()->>'email')::text = 'clay@rockethub.ai'
   );
 
 -- Policy: Super-admins can delete invite codes
@@ -90,11 +74,7 @@ CREATE POLICY "Super-admins can delete invite codes"
   FOR DELETE
   TO authenticated
   USING (
-    EXISTS (
-      SELECT 1 FROM auth.users
-      WHERE auth.users.id = auth.uid()
-      AND auth.users.email = 'clay@rockethub.ai'
-    )
+    (auth.jwt()->>'email')::text = 'clay@rockethub.ai'
   );
 
 -- Policy: Anyone (including anon) can read active invite codes for validation
