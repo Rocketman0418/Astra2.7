@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { X, User as UserIcon, Save, UserPlus, LogOut, Key, Camera, Trash2, Upload } from 'lucide-react';
+import { X, User as UserIcon, Save, UserPlus, LogOut, Key, Camera, Trash2, Upload, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { GmailSettings } from './GmailSettings';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { supabase } from '../lib/supabase';
+import { AdminInviteCodesPanel } from './AdminInviteCodesPanel';
 
 interface UserSettingsModalProps {
   isOpen: boolean;
@@ -462,6 +463,10 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
           </div>
 
           <GmailSettings />
+
+          {isAdmin && (
+            <AdminInviteCodesPanel />
+          )}
 
           {isAdmin && (
             <div className="bg-gray-700/50 rounded-lg p-6 border border-gray-600">

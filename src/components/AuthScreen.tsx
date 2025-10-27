@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
-import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
-import { supabase } from '../lib/supabase';
+import React from 'react';
+import { CustomAuth } from './CustomAuth';
 
 export const AuthScreen: React.FC = () => {
   return (
@@ -16,36 +14,11 @@ export const AuthScreen: React.FC = () => {
             <span className="text-white font-normal">+</span>
             <span className="text-emerald-400">Astra Intelligence</span>
           </h1>
-          <p className="text-gray-400">AI Connected to ALL Your Data</p>
+          <p className="text-gray-400">AI For Entrepreneurs</p>
         </div>
 
         <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-2xl p-8">
-          <Auth
-            supabaseClient={supabase}
-            appearance={{
-              theme: ThemeSupa,
-              variables: {
-                default: {
-                  colors: {
-                    brand: '#3b82f6',
-                    brandAccent: '#2563eb',
-                    inputBackground: '#1f2937',
-                    inputText: '#ffffff',
-                    inputBorder: '#374151',
-                    inputBorderFocus: '#3b82f6',
-                    inputBorderHover: '#4b5563',
-                  },
-                },
-              },
-              className: {
-                container: 'auth-container',
-                button: 'auth-button',
-                input: 'auth-input',
-              },
-            }}
-            providers={[]}
-            redirectTo={window.location.origin}
-          />
+          <CustomAuth />
         </div>
 
         <div className="text-center text-sm text-gray-500">
