@@ -87,7 +87,9 @@ export const useVisualization = (
 - Use white (#ffffff) and gray-300 (#d1d5db) for text
 - Use blue (#3b82f6), purple (#8b5cf6), and cyan (#06b6d4) for accents and highlights
 - Match the visual style of a modern dark dashboard
-- Include proper spacing, rounded corners, and subtle shadows`;
+- Include proper spacing, rounded corners, and subtle shadows
+- Use responsive layouts with flexbox or CSS grid
+- Ensure all content fits within containers without overflow`;
 
         const prompt = `Create a comprehensive visual dashboard to help understand the information in the message below.
 
@@ -95,6 +97,20 @@ ${baseDesign}
 - Use graphics, emojis, and charts as needed to enhance the visualization
 - Include visual elements like progress bars, icons, charts, and infographics where appropriate
 - Make the dashboard visually engaging with relevant emojis and graphical elements
+
+CRITICAL TYPOGRAPHY & SIZING RULES:
+- Headings: Use max font-size of 1.875rem (30px)
+- Large numbers/metrics: Use max font-size of 2rem (32px) with clamp() for responsiveness
+- Subheadings: 1rem to 1.25rem (16-20px)
+- Body text: 0.875rem to 1rem (14-16px)
+
+CRITICAL LAYOUT RULES TO PREVENT OVERFLOW:
+- Add padding inside ALL cards and containers (minimum 1rem on all sides)
+- Use word-wrap: break-word on all text elements
+- Use overflow-wrap: break-word to handle long numbers and text
+- For responsive card grids, use: display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;
+- Never use fixed widths that might cause overflow
+- Ensure numbers scale down on smaller containers using clamp() or max-width with text wrapping
 
 MESSAGE TEXT:
 ${messageText}
@@ -124,12 +140,37 @@ Return only the HTML code - no other text or formatting.`;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualization</title>
     <style>
-        body { 
-            background: #111827; 
-            color: white; 
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            background: #111827;
+            color: white;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0;
             padding: 20px;
+            width: 100%;
+            overflow-x: hidden;
+        }
+        /* Prevent text overflow in all elements */
+        h1, h2, h3, h4, h5, h6, p, div, span {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+        }
+        /* Enforce maximum font sizes */
+        h1 { font-size: clamp(1.5rem, 4vw, 1.875rem) !important; }
+        h2 { font-size: clamp(1.25rem, 3.5vw, 1.5rem) !important; }
+        h3 { font-size: clamp(1.125rem, 3vw, 1.25rem) !important; }
+        /* Responsive images */
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        /* Ensure all containers have proper padding and prevent overflow */
+        [class*="card"], [class*="container"], [class*="box"], [style*="padding"] {
+            padding: 1rem !important;
+            overflow: hidden;
         }
     </style>
 </head>
