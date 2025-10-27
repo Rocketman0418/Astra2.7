@@ -14,7 +14,7 @@ export const CustomAuth: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const validateInviteCode = async (code: string): Promise<boolean> => {
+  const validateInviteCode = async (code: string, email: string): Promise<{ valid: boolean; inviteData?: any }> => {
     try {
       const { data, error } = await supabase
         .from('invite_codes')
@@ -25,29 +25,34 @@ export const CustomAuth: React.FC = () => {
 
       if (error) {
         console.error('Error validating invite code:', error);
-        return false;
+        return { valid: false };
       }
 
       if (!data) {
         setError('Invalid invite code');
-        return false;
+        return { valid: false };
+      }
+
+      if (data.invited_email && data.invited_email.toLowerCase() !== email.toLowerCase()) {
+        setError('This invite code is for a different email address');
+        return { valid: false };
       }
 
       if (data.current_uses >= data.max_uses) {
         setError('This invite code has reached its maximum uses');
-        return false;
+        return { valid: false };
       }
 
       if (data.expires_at && new Date(data.expires_at) < new Date()) {
         setError('This invite code has expired');
-        return false;
+        return { valid: false };
       }
 
-      return true;
+      return { valid: true, inviteData: data };
     } catch (err) {
       console.error('Error validating invite code:', err);
       setError('Failed to validate invite code');
-      return false;
+      return { valid: false };
     }
   };
 
@@ -55,6 +60,26 @@ export const CustomAuth: React.FC = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
+
+  React.useEffect(() => {
+    const checkInviteEmailMatch = async () => {
+      if (inviteCode && email && inviteCode.length >= 6) {
+        const { data } = await supabase
+          .from('invite_codes')
+          .select('invited_email')
+          .eq('code', inviteCode.toUpperCase())
+          .maybeSingle();
+
+        if (data?.invited_email && data.invited_email.toLowerCase() !== email.toLowerCase()) {
+          setError('Email does not match the invited email for this code');
+        } else if (error && error.includes('Email does not match')) {
+          setError('');
+        }
+      }
+    };
+
+    checkInviteEmailMatch();
+  }, [inviteCode, email]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,10 +117,30 @@ export const CustomAuth: React.FC = () => {
         return;
       }
 
-      const isValidCode = await validateInviteCode(inviteCode);
-      if (!isValidCode) {
+      const { valid, inviteData } = await validateInviteCode(inviteCode, email);
+      if (!valid || !inviteData) {
         setLoading(false);
         return;
+      }
+
+      const metadata: any = {
+        invite_code: inviteCode.toUpperCase()
+      };
+
+      if (inviteData.team_id) {
+        metadata.team_id = inviteData.team_id;
+        metadata.role = inviteData.assigned_role || 'member';
+        metadata.view_financial = inviteData.view_financial !== undefined ? inviteData.view_financial : true;
+
+        const { data: teamData } = await supabase
+          .from('teams')
+          .select('name')
+          .eq('id', inviteData.team_id)
+          .maybeSingle();
+
+        if (teamData) {
+          metadata.team_name = teamData.name;
+        }
       }
 
       const { data, error } = await supabase.auth.signUp({
@@ -103,15 +148,13 @@ export const CustomAuth: React.FC = () => {
         password,
         options: {
           emailRedirectTo: undefined,
-          data: {
-            invite_code: inviteCode.toUpperCase()
-          }
+          data: metadata
         }
       });
 
       if (error) throw error;
 
-      console.log('User created successfully with invite code:', inviteCode.toUpperCase());
+      console.log('User created successfully with team assignment:', metadata);
     } catch (err: any) {
       console.error('Signup error:', err);
       setError(err.message || 'Failed to create account');

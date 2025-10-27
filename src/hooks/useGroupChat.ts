@@ -275,17 +275,22 @@ export const useGroupChat = () => {
           console.log('🤖 useGroupChat: Extracted Astra prompt:', astraPrompt);
           console.log('🌐 useGroupChat: About to call webhook...');
           
+          const teamId = user.user_metadata?.team_id || '';
+          const viewFinancial = user.user_metadata?.view_financial !== false;
+
           const response = await fetch(WEBHOOK_URL, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
               chatInput: astraPrompt,
               user_id: user.id,
               user_email: user.email || '',
               user_name: userName,
               conversation_id: null,
+              team_id: teamId,
+              view_financial: viewFinancial,
               mode: 'team',
               original_message: content.trim(),
               mentions: mentions

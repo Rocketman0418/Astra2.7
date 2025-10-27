@@ -1,16 +1,49 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ReportsProvider } from './contexts/ReportsContext';
 import { AuthScreen } from './components/AuthScreen';
 import { MainContainer } from './components/MainContainer';
 import { GmailCallback } from './components/GmailCallback';
+import { OnboardingScreen } from './components/OnboardingScreen';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
+import { supabase } from './lib/supabase';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
 
   // Automatically refresh Gmail tokens in the background
   useGmailTokenRefresh();
+
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      if (!user) {
+        setCheckingOnboarding(false);
+        return;
+      }
+
+      const teamId = user.user_metadata?.team_id;
+      const fullName = user.user_metadata?.full_name;
+
+      if (!teamId || !fullName) {
+        setNeedsOnboarding(true);
+      } else {
+        setNeedsOnboarding(false);
+      }
+
+      setCheckingOnboarding(false);
+    };
+
+    checkOnboardingStatus();
+  }, [user]);
+
+  const handleOnboardingComplete = async () => {
+    const { data: { user: refreshedUser } } = await supabase.auth.getUser();
+    if (refreshedUser) {
+      setNeedsOnboarding(false);
+    }
+  };
 
   console.log('🔍 [App] Current pathname:', window.location.pathname);
   console.log('🔍 [App] Full URL:', window.location.href);
@@ -30,7 +63,7 @@ const AppContent: React.FC = () => {
     return <GmailCallback />;
   }
 
-  if (loading) {
+  if (loading || checkingOnboarding) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -44,6 +77,10 @@ const AppContent: React.FC = () => {
 
   if (!user) {
     return <AuthScreen />;
+  }
+
+  if (needsOnboarding) {
+    return <OnboardingScreen onComplete={handleOnboardingComplete} />;
   }
 
   return <MainContainer />;

@@ -169,7 +169,9 @@ export const useChat = () => {
     // Get user information
     const userId = user?.id || '';
     const userEmail = user?.email || '';
-    const userName = userProfile?.name || user?.email?.split('@')[0] || 'Unknown User';
+    const userName = userProfile?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Unknown User';
+    const teamId = user?.user_metadata?.team_id || '';
+    const viewFinancial = user?.user_metadata?.view_financial !== false;
 
     const messageId = uuidv4();
     const startTime = Date.now();
@@ -201,15 +203,17 @@ export const useChat = () => {
       const requestStartTime = Date.now();
       
       console.log('🌐 Sending request to webhook:', WEBHOOK_URL);
-      console.log('📤 Request payload:', { 
+      console.log('📤 Request payload:', {
         chatInput: messageToSend,
         user_id: userId,
         user_email: userEmail,
         user_name: userName,
         conversation_id: currentConversationId,
+        team_id: teamId,
+        view_financial: viewFinancial,
         mode: 'private'
       });
-      
+
       const response = await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: {
@@ -221,6 +225,8 @@ export const useChat = () => {
           user_email: userEmail,
           user_name: userName,
           conversation_id: currentConversationId,
+          team_id: teamId,
+          view_financial: viewFinancial,
           mode: 'private'
         })
       });
