@@ -23,8 +23,8 @@
     - Add `view_financial` column for permission preset
 
   4. Document Chunks Updates
-    - Add `team_id` to document_chunks_financial, document_chunks_slides, document_chunks_videos
-    - Keep user_id in document_chunks_emails (emails remain user-specific)
+    - Add `team_id` to document_chunks_financial, document_chunks_strategy, document_chunks_meetings
+    - Keep user_id in company_emails (emails remain user-specific)
 
   5. Security
     - Enable RLS on teams table
@@ -86,18 +86,18 @@ ALTER TABLE invite_codes ADD COLUMN IF NOT EXISTS invited_email text;
 ALTER TABLE invite_codes ADD COLUMN IF NOT EXISTS assigned_role text DEFAULT 'member' CHECK (assigned_role IN ('admin', 'member'));
 ALTER TABLE invite_codes ADD COLUMN IF NOT EXISTS view_financial boolean DEFAULT true;
 
--- Add team_id to document_chunks tables (except emails which remain user-specific)
+-- Add team_id to document_chunks tables (except company_emails which remain user-specific)
 ALTER TABLE document_chunks_financial ADD COLUMN IF NOT EXISTS team_id uuid REFERENCES teams(id) ON DELETE CASCADE;
-ALTER TABLE document_chunks_slides ADD COLUMN IF NOT EXISTS team_id uuid REFERENCES teams(id) ON DELETE CASCADE;
-ALTER TABLE document_chunks_videos ADD COLUMN IF NOT EXISTS team_id uuid REFERENCES teams(id) ON DELETE CASCADE;
+ALTER TABLE document_chunks_strategy ADD COLUMN IF NOT EXISTS team_id uuid REFERENCES teams(id) ON DELETE CASCADE;
+ALTER TABLE document_chunks_meetings ADD COLUMN IF NOT EXISTS team_id uuid REFERENCES teams(id) ON DELETE CASCADE;
 
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_teams_created_by ON teams(created_by);
 CREATE INDEX IF NOT EXISTS idx_invite_codes_team_id ON invite_codes(team_id);
 CREATE INDEX IF NOT EXISTS idx_invite_codes_invited_email ON invite_codes(invited_email);
 CREATE INDEX IF NOT EXISTS idx_document_chunks_financial_team_id ON document_chunks_financial(team_id);
-CREATE INDEX IF NOT EXISTS idx_document_chunks_slides_team_id ON document_chunks_slides(team_id);
-CREATE INDEX IF NOT EXISTS idx_document_chunks_videos_team_id ON document_chunks_videos(team_id);
+CREATE INDEX IF NOT EXISTS idx_document_chunks_strategy_team_id ON document_chunks_strategy(team_id);
+CREATE INDEX IF NOT EXISTS idx_document_chunks_meetings_team_id ON document_chunks_meetings(team_id);
 
 -- Update RLS policies for invite_codes to include team-based access
 DROP POLICY IF EXISTS "Super-admins can view all invite codes" ON invite_codes;
@@ -170,38 +170,38 @@ CREATE POLICY "Team members can insert team financial documents"
     team_id = (auth.jwt()->'user_metadata'->>'team_id')::uuid
   );
 
--- Slides documents
-DROP POLICY IF EXISTS "Users can view own slide documents" ON document_chunks_slides;
-CREATE POLICY "Team members can view team slide documents"
-  ON document_chunks_slides
+-- Strategy documents
+DROP POLICY IF EXISTS "Users can view own strategy documents" ON document_chunks_strategy;
+CREATE POLICY "Team members can view team strategy documents"
+  ON document_chunks_strategy
   FOR SELECT
   TO authenticated
   USING (
     team_id = (auth.jwt()->'user_metadata'->>'team_id')::uuid
   );
 
-DROP POLICY IF EXISTS "Users can insert own slide documents" ON document_chunks_slides;
-CREATE POLICY "Team members can insert team slide documents"
-  ON document_chunks_slides
+DROP POLICY IF EXISTS "Users can insert own strategy documents" ON document_chunks_strategy;
+CREATE POLICY "Team members can insert team strategy documents"
+  ON document_chunks_strategy
   FOR INSERT
   TO authenticated
   WITH CHECK (
     team_id = (auth.jwt()->'user_metadata'->>'team_id')::uuid
   );
 
--- Videos documents
-DROP POLICY IF EXISTS "Users can view own video documents" ON document_chunks_videos;
-CREATE POLICY "Team members can view team video documents"
-  ON document_chunks_videos
+-- Meetings documents
+DROP POLICY IF EXISTS "Users can view own meeting documents" ON document_chunks_meetings;
+CREATE POLICY "Team members can view team meeting documents"
+  ON document_chunks_meetings
   FOR SELECT
   TO authenticated
   USING (
     team_id = (auth.jwt()->'user_metadata'->>'team_id')::uuid
   );
 
-DROP POLICY IF EXISTS "Users can insert own video documents" ON document_chunks_videos;
-CREATE POLICY "Team members can insert team video documents"
-  ON document_chunks_videos
+DROP POLICY IF EXISTS "Users can insert own meeting documents" ON document_chunks_meetings;
+CREATE POLICY "Team members can insert team meeting documents"
+  ON document_chunks_meetings
   FOR INSERT
   TO authenticated
   WITH CHECK (
@@ -294,11 +294,11 @@ BEGIN
   SET team_id = rockethub_team_id
   WHERE team_id IS NULL;
 
-  UPDATE document_chunks_slides
+  UPDATE document_chunks_strategy
   SET team_id = rockethub_team_id
   WHERE team_id IS NULL;
 
-  UPDATE document_chunks_videos
+  UPDATE document_chunks_meetings
   SET team_id = rockethub_team_id
   WHERE team_id IS NULL;
 END $$;
