@@ -52,17 +52,12 @@ export const CustomAuth: React.FC = () => {
 
   const incrementInviteCodeUse = async (code: string) => {
     try {
-      const { data: inviteData } = await supabase
-        .from('invite_codes')
-        .select('current_uses')
-        .eq('code', code.toUpperCase())
-        .single();
+      const { error } = await supabase.rpc('increment_invite_code_usage', {
+        invite_code_param: code.toUpperCase()
+      });
 
-      if (inviteData) {
-        await supabase
-          .from('invite_codes')
-          .update({ current_uses: inviteData.current_uses + 1 })
-          .eq('code', code.toUpperCase());
+      if (error) {
+        console.error('Error incrementing invite code use:', error);
       }
     } catch (err) {
       console.error('Error incrementing invite code use:', err);
