@@ -274,7 +274,7 @@ export const ManageReportsModal: React.FC<ManageReportsModalProps> = ({
               {/* Create New Report Button */}
               <button
                 onClick={startCreate}
-                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-colors font-medium"
+                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-colors font-medium"
               >
                 <Plus className="w-5 h-5" />
                 <span>Create New Report</span>
@@ -575,7 +575,7 @@ export const ManageReportsModal: React.FC<ManageReportsModalProps> = ({
                     <button
                       onClick={handleSubmit}
                       disabled={!formData.title.trim() || !formData.prompt.trim() || loading || isSubmitting}
-                      className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center space-x-2"
+                      className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center space-x-2"
                     >
                       {isSubmitting ? (
                         <>

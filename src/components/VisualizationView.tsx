@@ -80,7 +80,7 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
 
   return (
     <div className="fixed inset-0 bg-gray-900 z-50 flex flex-col">
-      <header className="bg-gradient-to-r from-blue-600 to-purple-700 shadow-lg">
+      <header className="bg-gradient-to-r from-purple-600 to-blue-600 shadow-lg">
         <div className="flex items-center justify-between py-4 px-6">
           <div className="flex items-center">
             <button

@@ -65,7 +65,7 @@ export const VisualizationButton: React.FC<VisualizationButtonProps> = ({
           isGenerating
             ? 'bg-gradient-to-r from-purple-500 to-purple-600 animate-pulse cursor-not-allowed'
             : hasVisualization
-            ? 'bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 bg-[length:200%_100%] animate-[gradient_3s_ease-in-out_infinite] hover:scale-105 shadow-lg'
+            ? 'bg-gradient-to-r from-green-500 via-purple-500 to-blue-500 bg-[length:200%_100%] animate-[gradient_3s_ease-in-out_infinite] hover:scale-105 shadow-lg'
             : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 hover:scale-105'
         }`}
       >

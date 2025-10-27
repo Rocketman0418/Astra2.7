@@ -45,7 +45,7 @@ export const SavedVisualizationsList: React.FC<SavedVisualizationsListProps> = (
 
   return (
     <div className="flex flex-col h-full bg-gray-900">
-      <header className="bg-gradient-to-r from-blue-600 to-purple-700 shadow-lg">
+      <header className="bg-gradient-to-r from-purple-600 to-blue-600 shadow-lg">
         <div className="flex items-center py-4 px-6">
           <button
             onClick={onBack}

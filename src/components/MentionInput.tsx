@@ -444,7 +444,7 @@ export const MentionInput: React.FC<MentionInputProps> = ({
             >
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                 user.id === 'astra' 
-                  ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white'
+                  ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white'
                   : 'bg-gray-600 text-white'
               }`}>
                 {user.id === 'astra' ? '🚀' : user.name.charAt(0).toUpperCase()}

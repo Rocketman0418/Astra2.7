@@ -24,14 +24,14 @@ export const Header: React.FC<HeaderProps> = ({
   const [showSettings, setShowSettings] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 bg-[#1e293b] shadow-lg px-4 h-16">
+    <header className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-purple-600 to-blue-600 shadow-lg px-4 h-16">
       <div className="flex items-center justify-between h-full py-1">
         {/* Left side - Menu button and branding */}
         <div className="flex items-center space-x-3">
           {showSidebarToggle && (
             <button
               onClick={onToggleSidebar}
-              className="p-2 hover:bg-slate-700 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
+              className="p-2 hover:bg-purple-700 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
             >
               <Menu className="w-6 h-6 text-white" />
             </button>
@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
           {chatMode === 'team' && (
             <button
               onClick={onToggleTeamMenu}
-              className="p-2 hover:bg-slate-700 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
+              className="p-2 hover:bg-purple-700 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
             >
               <Menu className="w-6 h-6 text-white" />
             </button>
@@ -50,15 +50,15 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Logo and title */}
           <div className="flex items-center space-x-3">
             {/* AI Rocket Logo */}
-            <div className="flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full bg-blue-400 shadow-lg">
+            <div className="flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full bg-white shadow-lg">
               <span className="text-xl md:text-2xl">🚀</span>
             </div>
 
             {/* Brand Title */}
             <h1 className="text-xl md:text-2xl font-bold tracking-tight flex items-center gap-3">
-              <span className="text-blue-400">AI Rocket</span>
+              <span className="text-white">AI Rocket</span>
               <span className="text-white font-normal">+</span>
-              <span className="text-emerald-400">Astra Intelligence</span>
+              <span className="text-white">Astra Intelligence</span>
             </h1>
           </div>
         </div>

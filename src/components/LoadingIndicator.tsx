@@ -4,7 +4,7 @@ export const LoadingIndicator: React.FC = () => {
   return (
     <div className="flex justify-start mb-3 md:mb-4">
       <div className="flex-shrink-0 mr-2 md:mr-3 mt-1">
-        <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-sm md:text-lg">
+        <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-sm md:text-lg">
           🚀
         </div>
       </div>
