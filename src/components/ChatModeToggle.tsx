@@ -19,7 +19,7 @@ export const ChatModeToggle: React.FC<ChatModeToggleProps> = ({ mode, onModeChan
         onClick={() => onModeChange('reports')}
         className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-200 flex-1 justify-center ${
           mode === 'reports'
-            ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
+            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
             : 'text-gray-300 hover:text-white hover:bg-gray-700'
         }`}
       >
@@ -31,7 +31,7 @@ export const ChatModeToggle: React.FC<ChatModeToggleProps> = ({ mode, onModeChan
         onClick={() => onModeChange('private')}
         className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-200 flex-1 justify-center ${
           mode === 'private'
-            ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
+            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
             : 'text-gray-300 hover:text-white hover:bg-gray-700'
         }`}
       >
@@ -43,7 +43,7 @@ export const ChatModeToggle: React.FC<ChatModeToggleProps> = ({ mode, onModeChan
         onClick={() => onModeChange('team')}
         className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-200 flex-1 justify-center relative ${
           mode === 'team'
-            ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
+            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
             : 'text-gray-300 hover:text-white hover:bg-gray-700'
         }`}
       >

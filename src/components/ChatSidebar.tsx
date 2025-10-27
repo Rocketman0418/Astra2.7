@@ -158,7 +158,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
             {/* New Chat Button */}
             <button
               onClick={handleNewChat}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 min-h-[44px]"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 min-h-[44px]"
             >
               <Plus className="w-4 h-4" />
               <span>New Chat</span>
@@ -294,7 +294,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                    <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
                       <User className="w-4 h-4 text-white" />
                     </div>
                   )}

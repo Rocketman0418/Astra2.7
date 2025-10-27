@@ -844,7 +844,7 @@ ${finalSummary}
         <div className="p-4 space-y-3 max-h-80 overflow-y-auto">
           {/* Astra */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
               🚀
             </div>
             <div>
@@ -910,7 +910,7 @@ ${finalSummary}
             <div className="mb-4">
               <button
                 onClick={() => setShowMembersModal(true)}
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
               >
                 <Users className="w-4 h-4" />
                 <span>Team Members</span>
@@ -988,7 +988,7 @@ ${finalSummary}
             {summaryResult && (
               <div className="p-4 border-b border-gray-600">
                 <div className="flex items-start space-x-3 mb-4">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-sm">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-sm">
                     🚀
                   </div>
                   <div className="flex-1">
@@ -1039,7 +1039,7 @@ ${finalSummary}
                     <div className="flex items-start space-x-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                         message.message_type === 'astra' 
-                          ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white'
+                          ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white'
                           : 'bg-gray-600 text-white'
                       }`}>
                         {message.message_type === 'astra' ? '🚀' : message.user_name.charAt(0).toUpperCase()}
@@ -1145,7 +1145,7 @@ ${finalSummary}
                 {isAstraThinking && (
                   <div className="flex justify-start mb-4">
                     <div className="flex-shrink-0 mr-3">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-sm">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-sm">
                         🚀
                       </div>
                     </div>
@@ -1256,7 +1256,7 @@ ${finalSummary}
               {isAstraThinking && (
                 <div className="flex justify-start mb-4">
                   <div className="flex-shrink-0 mr-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-sm">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-sm">
                       🚀
                     </div>
                   </div>

@@ -140,7 +140,7 @@ const formatMessageContent = (content: string, mentions: string[], isAstraMessag
       return (
         <span 
           key={index} 
-          className="bg-gradient-to-r from-purple-500 to-blue-600 text-white font-bold px-2 py-1 rounded-md shadow-lg border border-blue-400/50 inline-block"
+          className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold px-2 py-1 rounded-md shadow-lg border border-blue-400/50 inline-block"
         >
           @{normalizedMention}
         </span>
@@ -278,7 +278,7 @@ export const GroupMessage: React.FC<GroupMessageProps> = ({
         <div className="flex-shrink-0 mr-3">
           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
             isAstraMessage 
-              ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white'
+              ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white'
               : 'bg-gray-600 text-white'
           }`}>
             {isAstraMessage ? '🚀' : message.user_name.charAt(0).toUpperCase()}
@@ -307,7 +307,7 @@ export const GroupMessage: React.FC<GroupMessageProps> = ({
           {/* Message bubble */}
           <div className={`rounded-2xl px-4 py-3 ${
             isOwnMessage && !isAstraMessage
-              ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white'
+              ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white'
               : isAstraMessage
               ? 'bg-gradient-to-br from-gray-700 to-gray-800 text-white border border-blue-500/20'
               : 'bg-gray-700 text-white'
@@ -415,7 +415,7 @@ export const GroupMessage: React.FC<GroupMessageProps> = ({
                     isGeneratingVisualization
                       ? 'bg-gradient-to-r from-purple-500 to-purple-600 animate-pulse cursor-not-allowed'
                       : (hasVisualization || visualizationState?.hasVisualization)
-                      ? 'bg-gradient-to-r from-green-500 via-purple-500 to-blue-500 bg-[length:200%_100%] animate-[gradient_3s_ease-in-out_infinite] hover:scale-105 shadow-lg'
+                      ? 'bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 bg-[length:200%_100%] animate-[gradient_3s_ease-in-out_infinite] hover:scale-105 shadow-lg'
                       : canCreateVisualization
                       ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 hover:scale-105'
                       : 'bg-gray-600 cursor-not-allowed opacity-50'

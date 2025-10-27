@@ -8,7 +8,7 @@ export const VisualizationLoadingView: React.FC = () => {
       <div className="mb-8">
         <div className="relative">
           <BarChart3 className="w-16 h-16 text-blue-500 animate-pulse" />
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 opacity-20 rounded-lg animate-ping"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-20 rounded-lg animate-ping"></div>
         </div>
       </div>
 

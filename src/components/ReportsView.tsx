@@ -120,7 +120,7 @@ export const ReportsView: React.FC = () => {
           <div className="flex space-x-2">
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-colors min-h-[44px]"
+              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-colors min-h-[44px]"
             >
               <Plus className="w-4 h-4" />
               <span>Create Report</span>
@@ -165,7 +165,7 @@ export const ReportsView: React.FC = () => {
                 {/* Header with title and timestamp */}
                 <div className="p-4 border-b border-gray-700">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center flex-shrink-0">
                       🚀
                     </div>
                     <div className="flex-1 min-w-0">
@@ -204,7 +204,7 @@ export const ReportsView: React.FC = () => {
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
                           </div>
-                          <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 opacity-20 rounded-lg animate-ping"></div>
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-20 rounded-lg animate-ping"></div>
                         </div>
                       </div>
                       <h3 className="text-xl font-semibold text-white mb-2">Generating Visualization</h3>
@@ -311,7 +311,7 @@ export const ReportsView: React.FC = () => {
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-colors min-h-[44px]"
+              className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-colors min-h-[44px]"
             >
               <Plus className="w-5 h-5" />
               <span>Create Your First Report</span>

@@ -147,7 +147,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       <div className="flex justify-center items-center min-h-[50vh]">
         <div className="flex justify-start">
           <div className="flex-shrink-0 mr-2 md:mr-3">
-            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-sm md:text-lg">
+            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-sm md:text-lg">
               🚀
             </div>
           </div>
@@ -173,7 +173,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     <div className={`flex mb-3 md:mb-4 ${message.isUser ? 'justify-end' : 'justify-start'}`}>
       {!message.isUser && (
         <div className="flex-shrink-0 mr-2 md:mr-3 mt-1">
-          <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-sm md:text-lg">
+          <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-sm md:text-lg">
             🚀
           </div>
         </div>
@@ -181,7 +181,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       
       <div className={`max-w-[280px] sm:max-w-md lg:max-w-lg xl:max-w-xl rounded-2xl px-3 py-2 md:px-4 md:py-3 shadow-sm ${
         message.isUser
-          ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white'
+          ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white'
           : 'bg-gradient-to-br from-gray-700 to-gray-800 text-white'
       }`}>
         <div className="break-words text-sm md:text-sm leading-relaxed">
