@@ -6,6 +6,7 @@ import { HourOnlyTimePicker } from './HourOnlyTimePicker';
 interface ManageReportsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  startInCreateMode?: boolean;
 }
 
 type ModalView = 'list' | 'create' | 'edit' | 'success';
@@ -13,7 +14,8 @@ type CreateStep = 'template' | 'configure' | 'review';
 
 export const ManageReportsModal: React.FC<ManageReportsModalProps> = ({
   isOpen,
-  onClose
+  onClose,
+  startInCreateMode = false
 }) => {
   const {
     templates,
@@ -28,7 +30,7 @@ export const ManageReportsModal: React.FC<ManageReportsModalProps> = ({
     runningReports
   } = useReportsContext();
 
-  const [currentView, setCurrentView] = useState<ModalView>('list');
+  const [currentView, setCurrentView] = useState<ModalView>(startInCreateMode ? 'create' : 'list');
   const [createStep, setCreateStep] = useState<CreateStep>('template');
   const [editingReport, setEditingReport] = useState<UserReport | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate | null>(null);
@@ -269,6 +271,15 @@ export const ManageReportsModal: React.FC<ManageReportsModalProps> = ({
           {/* List View */}
           {currentView === 'list' && (
             <div className="space-y-6">
+              {/* Create New Report Button */}
+              <button
+                onClick={startCreate}
+                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-colors font-medium"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Create New Report</span>
+              </button>
+
               {/* Reports List */}
               {userReports.length === 0 ? (
                 <div className="text-center py-8">

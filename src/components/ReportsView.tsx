@@ -20,6 +20,7 @@ export const ReportsView: React.FC = () => {
   const [selectedVisualization, setSelectedVisualization] = useState<{
     messageId: string;
     content: string;
+    title: string;
   } | null>(null);
   const [expandedTextId, setExpandedTextId] = useState<string | null>(null);
   const [retryingReportId, setRetryingReportId] = useState<string | null>(null);
@@ -30,10 +31,11 @@ export const ReportsView: React.FC = () => {
     }
   };
 
-  const handleViewVisualization = (messageId: string, visualizationData: string) => {
+  const handleViewVisualization = (messageId: string, visualizationData: string, reportTitle?: string) => {
     setSelectedVisualization({
       messageId,
-      content: visualizationData
+      content: visualizationData,
+      title: reportTitle || 'Report Visualization'
     });
   };
 
@@ -61,8 +63,10 @@ export const ReportsView: React.FC = () => {
   if (selectedVisualization) {
     return (
       <VisualizationView
-        visualizationHtml={selectedVisualization.content}
-        onClose={() => setSelectedVisualization(null)}
+        content={selectedVisualization.content}
+        onBack={() => setSelectedVisualization(null)}
+        title={selectedVisualization.title}
+        backButtonText="Go Back to Reports"
       />
     );
   }
@@ -191,7 +195,7 @@ export const ReportsView: React.FC = () => {
                 <div className="p-4 border-t border-gray-700 flex flex-wrap gap-2">
                   {message.visualization && message.visualization_data && (
                     <button
-                      onClick={() => handleViewVisualization(message.id, message.visualization_data!)}
+                      onClick={() => handleViewVisualization(message.id, message.visualization_data!, message.reportMetadata?.title)}
                       className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm min-h-[44px]"
                     >
                       <Maximize2 className="w-4 h-4" />
@@ -260,6 +264,7 @@ export const ReportsView: React.FC = () => {
         <ManageReportsModal
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
+          startInCreateMode={true}
         />
       )}
     </div>

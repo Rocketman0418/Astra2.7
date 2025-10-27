@@ -9,6 +9,7 @@ interface VisualizationViewProps {
   onSave?: () => Promise<void>;
   isSaved?: boolean;
   title?: string;
+  backButtonText?: string;
 }
 
 export const VisualizationView: React.FC<VisualizationViewProps> = ({
@@ -16,7 +17,8 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
   onBack,
   onSave,
   isSaved = false,
-  title = 'Visualization'
+  title = 'Visualization',
+  backButtonText = 'Go Back to Chat'
 }) => {
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -88,7 +90,7 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
               <ArrowLeft className="w-6 h-6 text-white" />
             </button>
             <h1 className="text-xl font-bold text-white">
-              Go Back to Chat
+              {backButtonText}
             </h1>
           </div>
 
