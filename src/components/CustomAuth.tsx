@@ -7,6 +7,7 @@ type AuthMode = 'signup' | 'login';
 export const CustomAuth: React.FC = () => {
   const [mode, setMode] = useState<AuthMode>('signup');
   const [email, setEmail] = useState('');
+  const [confirmEmail, setConfirmEmail] = useState('');
   const [password, setPassword] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -68,14 +69,31 @@ export const CustomAuth: React.FC = () => {
     }
   };
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      if (!email || !password || !inviteCode) {
+      if (!email || !confirmEmail || !password || !inviteCode) {
         setError('All fields are required');
+        setLoading(false);
+        return;
+      }
+
+      if (!validateEmail(email)) {
+        setError('Please enter a valid email address');
+        setLoading(false);
+        return;
+      }
+
+      if (email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase()) {
+        setError('Email addresses do not match');
         setLoading(false);
         return;
       }
@@ -93,9 +111,10 @@ export const CustomAuth: React.FC = () => {
       }
 
       const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         password,
         options: {
+          emailRedirectTo: undefined,
           data: {
             invite_code: inviteCode.toUpperCase()
           }
@@ -195,6 +214,24 @@ export const CustomAuth: React.FC = () => {
           </div>
         </div>
 
+        {mode === 'signup' && (
+          <div>
+            <label className="text-sm text-gray-400 mb-1 block">Confirm Email</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="email"
+                value={confirmEmail}
+                onChange={(e) => setConfirmEmail(e.target.value)}
+                placeholder="Confirm your email"
+                disabled={loading}
+                className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                required
+              />
+            </div>
+          </div>
+        )}
+
         <div>
           <label className="text-sm text-gray-400 mb-1 block">Password</label>
           <div className="relative">
@@ -252,10 +289,10 @@ export const CustomAuth: React.FC = () => {
         <div className="mt-6 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
           <p className="text-blue-400 text-sm font-medium mb-2">Welcome to AI Rocket + Astra Intelligence!</p>
           <ul className="text-gray-400 text-xs space-y-1">
-            <li>• Create your account with a valid invite code</li>
+            <li>• Create your account instantly with a valid invite code</li>
+            <li>• No email confirmation required - get started immediately</li>
             <li>• Access AI-powered insights for your business</li>
-            <li>• Connect your data sources for personalized intelligence</li>
-            <li>• Collaborate with your team in real-time</li>
+            <li>• Connect your data sources and collaborate with your team</li>
           </ul>
         </div>
       )}
