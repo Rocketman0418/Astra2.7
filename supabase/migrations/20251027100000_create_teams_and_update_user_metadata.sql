@@ -161,6 +161,7 @@ CREATE POLICY "Team admins can delete team invite codes"
 -- Update RLS policies for document_chunks to include team-based access
 -- Financial documents
 DROP POLICY IF EXISTS "Users can view own financial documents" ON document_chunks_financial;
+DROP POLICY IF EXISTS "Team members can view team financial documents" ON document_chunks_financial;
 CREATE POLICY "Team members can view team financial documents"
   ON document_chunks_financial
   FOR SELECT
@@ -171,6 +172,7 @@ CREATE POLICY "Team members can view team financial documents"
   );
 
 DROP POLICY IF EXISTS "Users can insert own financial documents" ON document_chunks_financial;
+DROP POLICY IF EXISTS "Team members can insert team financial documents" ON document_chunks_financial;
 CREATE POLICY "Team members can insert team financial documents"
   ON document_chunks_financial
   FOR INSERT
@@ -181,6 +183,7 @@ CREATE POLICY "Team members can insert team financial documents"
 
 -- Strategy documents
 DROP POLICY IF EXISTS "Users can view own strategy documents" ON document_chunks_strategy;
+DROP POLICY IF EXISTS "Team members can view team strategy documents" ON document_chunks_strategy;
 CREATE POLICY "Team members can view team strategy documents"
   ON document_chunks_strategy
   FOR SELECT
@@ -190,6 +193,7 @@ CREATE POLICY "Team members can view team strategy documents"
   );
 
 DROP POLICY IF EXISTS "Users can insert own strategy documents" ON document_chunks_strategy;
+DROP POLICY IF EXISTS "Team members can insert team strategy documents" ON document_chunks_strategy;
 CREATE POLICY "Team members can insert team strategy documents"
   ON document_chunks_strategy
   FOR INSERT
@@ -200,6 +204,7 @@ CREATE POLICY "Team members can insert team strategy documents"
 
 -- Meetings documents
 DROP POLICY IF EXISTS "Users can view own meeting documents" ON document_chunks_meetings;
+DROP POLICY IF EXISTS "Team members can view team meeting documents" ON document_chunks_meetings;
 CREATE POLICY "Team members can view team meeting documents"
   ON document_chunks_meetings
   FOR SELECT
@@ -209,6 +214,7 @@ CREATE POLICY "Team members can view team meeting documents"
   );
 
 DROP POLICY IF EXISTS "Users can insert own meeting documents" ON document_chunks_meetings;
+DROP POLICY IF EXISTS "Team members can insert team meeting documents" ON document_chunks_meetings;
 CREATE POLICY "Team members can insert team meeting documents"
   ON document_chunks_meetings
   FOR INSERT
