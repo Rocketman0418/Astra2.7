@@ -52,15 +52,20 @@ export const CustomAuth: React.FC = () => {
 
   const incrementInviteCodeUse = async (code: string) => {
     try {
-      const { error } = await supabase.rpc('increment_invite_code_usage', {
+      console.log('Calling increment_invite_code_usage function with code:', code.toUpperCase());
+
+      const { data, error } = await supabase.rpc('increment_invite_code_usage', {
         invite_code_param: code.toUpperCase()
       });
 
       if (error) {
-        console.error('Error incrementing invite code use:', error);
+        console.error('RPC Error incrementing invite code:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
+      } else {
+        console.log('RPC call successful, data:', data);
       }
     } catch (err) {
-      console.error('Error incrementing invite code use:', err);
+      console.error('Exception incrementing invite code use:', err);
     }
   };
 
@@ -119,7 +124,11 @@ export const CustomAuth: React.FC = () => {
       if (error) throw error;
 
       if (data.user) {
+        console.log('User created successfully, incrementing invite code:', inviteCode.toUpperCase());
         await incrementInviteCodeUse(inviteCode);
+        console.log('Invite code increment completed');
+      } else {
+        console.error('No user data returned from signup');
       }
     } catch (err: any) {
       console.error('Signup error:', err);
