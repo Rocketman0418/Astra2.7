@@ -50,6 +50,11 @@ CREATE TABLE IF NOT EXISTS teams (
 -- Enable RLS on teams
 ALTER TABLE teams ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Team members can view their team" ON teams;
+DROP POLICY IF EXISTS "Team admins can update their team" ON teams;
+DROP POLICY IF EXISTS "Authenticated users can create teams" ON teams;
+
 -- Policy: Team members can view their own team
 CREATE POLICY "Team members can view their team"
   ON teams
