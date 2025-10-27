@@ -39,6 +39,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
         return;
       }
 
+      // Create team
       const { data: teamData, error: teamError } = await supabase
         .from('teams')
         .insert({
@@ -50,6 +51,22 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
 
       if (teamError) throw teamError;
 
+      // Update public.users table with team and profile information
+      const { error: usersError } = await supabase
+        .from('users')
+        .upsert({
+          id: user.id,
+          email: user.email!,
+          name: fullName.trim(),
+          team_id: teamData.id,
+          role: 'admin',
+          view_financial: true
+        });
+
+      if (usersError) throw usersError;
+
+      // The trigger will automatically sync this to auth.users.raw_user_meta_data
+      // But we also update auth metadata directly for immediate JWT refresh
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
           full_name: fullName.trim(),
