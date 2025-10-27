@@ -233,6 +233,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create trigger for teams table
+DROP TRIGGER IF EXISTS update_teams_updated_at ON teams;
 CREATE TRIGGER update_teams_updated_at
   BEFORE UPDATE ON teams
   FOR EACH ROW
