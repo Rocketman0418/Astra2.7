@@ -17,6 +17,8 @@ export interface ReportMessage {
   timestamp: Date;
   isUser: boolean;
   reportMetadata?: {
+    reportId?: string;
+    title?: string;
     report_title?: string;
     report_schedule?: string;
     report_frequency?: string;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Settings, Trash2, Eye, FileText, Maximize2, RotateCcw } from 'lucide-react';
+import { Plus, Settings, Trash2, Eye, FileText, Maximize2, RotateCcw, Copy, Check } from 'lucide-react';
 import { useReportsContext } from '../contexts/ReportsContext';
 import { ManageReportsModal } from './ManageReportsModal';
 import { VisualizationView } from './VisualizationView';
@@ -24,6 +24,7 @@ export const ReportsView: React.FC = () => {
   } | null>(null);
   const [expandedTextId, setExpandedTextId] = useState<string | null>(null);
   const [retryingReportId, setRetryingReportId] = useState<string | null>(null);
+  const [copiedTextId, setCopiedTextId] = useState<string | null>(null);
 
   const handleDeleteMessage = async (messageId: string) => {
     if (confirm('Delete this report result?')) {
@@ -45,7 +46,7 @@ export const ReportsView: React.FC = () => {
 
   const handleRetry = async (messageId: string) => {
     const message = reportMessages.find(m => m.id === messageId);
-    if (!message || !message.reportMetadata?.reportId) {
+    if (!message?.reportMetadata?.reportId) {
       console.error('Cannot retry: missing report metadata');
       return;
     }
@@ -57,6 +58,16 @@ export const ReportsView: React.FC = () => {
       console.error('Failed to retry report:', err);
     } finally {
       setRetryingReportId(null);
+    }
+  };
+
+  const handleCopyText = async (messageId: string, text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedTextId(messageId);
+      setTimeout(() => setCopiedTextId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
     }
   };
 
@@ -122,50 +133,23 @@ export const ReportsView: React.FC = () => {
                 key={message.id}
                 className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden"
               >
-                {/* Header with timestamp and delete */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-700">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+                {/* Header with title and timestamp */}
+                <div className="p-4 border-b border-gray-700">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center flex-shrink-0">
                       🚀
                     </div>
-                    <div>
+                    <div className="flex-1 min-w-0">
+                      {message.reportMetadata?.title && (
+                        <h3 className="text-lg font-semibold text-white truncate">
+                          {message.reportMetadata.title}
+                        </h3>
+                      )}
                       <p className="text-xs text-gray-400">
                         {message.timestamp.toLocaleDateString()} at{' '}
                         {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
-                      {message.reportMetadata?.title && (
-                        <p className="text-sm text-white font-medium">
-                          {message.reportMetadata.title}
-                        </p>
-                      )}
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handleRetry(message.id)}
-                      disabled={retryingReportId === message.id || runningReports.has(message.reportMetadata?.reportId)}
-                      className="flex items-center space-x-1 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm min-h-[44px]"
-                      title="Retry visualization"
-                    >
-                      {(retryingReportId === message.id || runningReports.has(message.reportMetadata?.reportId)) ? (
-                        <>
-                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                          <span>Retrying...</span>
-                        </>
-                      ) : (
-                        <>
-                          <RotateCcw className="w-3 h-3" />
-                          <span>Retry</span>
-                        </>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => handleDeleteMessage(message.id)}
-                      className="p-2 text-gray-400 hover:text-red-400 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-                      title="Delete report"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </div>
                 </div>
 
@@ -208,6 +192,50 @@ export const ReportsView: React.FC = () => {
                   >
                     <FileText className="w-4 h-4" />
                     <span>{expandedTextId === message.id ? 'Hide Text' : 'View Text'}</span>
+                  </button>
+                  {expandedTextId === message.id && (
+                    <button
+                      onClick={() => handleCopyText(message.id, message.text)}
+                      className="flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm min-h-[44px]"
+                    >
+                      {copiedTextId === message.id ? (
+                        <>
+                          <Check className="w-4 h-4" />
+                          <span>Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4" />
+                          <span>Copy Text</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleRetry(message.id)}
+                    disabled={retryingReportId === message.id || runningReports.has(message.reportMetadata?.reportId)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm min-h-[44px]"
+                    title="Retry visualization"
+                  >
+                    {(retryingReportId === message.id || runningReports.has(message.reportMetadata?.reportId)) ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>Retrying...</span>
+                      </>
+                    ) : (
+                      <>
+                        <RotateCcw className="w-4 h-4" />
+                        <span>Retry</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteMessage(message.id)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm min-h-[44px]"
+                    title="Delete report"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Delete</span>
                   </button>
                 </div>
 

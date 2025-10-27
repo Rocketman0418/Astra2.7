@@ -137,41 +137,6 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
           className="w-full h-full"
           dangerouslySetInnerHTML={{ __html: content }}
         />
-
-        <div className="flex justify-center gap-3 mt-6 pb-6 flex-wrap">
-          <button
-            onClick={handleExport}
-            disabled={exporting}
-            className="flex items-center gap-2 px-6 py-3 rounded-lg transition-colors min-h-[44px] touch-manipulation bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 disabled:opacity-50"
-          >
-            <Download className="w-5 h-5" />
-            <span className="font-semibold">{exporting ? 'Exporting...' : 'Export PDF'}</span>
-          </button>
-
-          {onSave && (
-            <button
-              onClick={handleSave}
-              disabled={saving || isSaved}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors min-h-[44px] touch-manipulation ${
-                isSaved
-                  ? 'bg-green-600 text-white cursor-default'
-                  : 'bg-gradient-to-r from-blue-700 to-blue-800 text-white hover:from-blue-800 hover:to-blue-900'
-              } disabled:opacity-50`}
-            >
-              {isSaved ? (
-                <>
-                  <Check className="w-5 h-5" />
-                  <span className="font-semibold">Saved</span>
-                </>
-              ) : (
-                <>
-                  <Plus className="w-5 h-5" />
-                  <span className="font-semibold">{saving ? 'Saving...' : 'My Visualizations'}</span>
-                </>
-              )}
-            </button>
-          )}
-        </div>
       </div>
     </div>
   );
