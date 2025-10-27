@@ -8,8 +8,14 @@ export const AuthScreen: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <div className="text-6xl mb-4">🚀</div>
-          <h1 className="text-4xl font-bold text-white mb-2">Astra Intelligence</h1>
+          <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 rounded-full bg-blue-400 shadow-lg">
+            <span className="text-5xl">🚀</span>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center justify-center gap-3 flex-wrap">
+            <span className="text-blue-400">AI Rocket</span>
+            <span className="text-white font-normal">+</span>
+            <span className="text-emerald-400">Astra Intelligence</span>
+          </h1>
           <p className="text-gray-400">AI Connected to ALL Your Data</p>
         </div>
 
