@@ -1,7 +1,7 @@
 import React from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ReportsProvider } from './contexts/ReportsContext';
-import { AuthScreen } from './components/auth/AuthScreen';
+import { AuthScreen } from './components/AuthScreen';
 import { MainContainer } from './components/MainContainer';
 import { GmailCallback } from './components/GmailCallback';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';

@@ -3,7 +3,7 @@ import { Header } from './Header';
 import { ChatSidebar } from './ChatSidebar';
 import { ChatContainer } from './ChatContainer';
 import { GroupChat } from './GroupChat';
-import { ReportsView } from './Reports/ReportsView';
+import { ReportsView } from './ReportsView';
 import { ChatModeToggle } from './ChatModeToggle';
 import { SavedVisualizationsList } from './SavedVisualizationsList';
 import { UserSettingsModal } from './UserSettingsModal';
