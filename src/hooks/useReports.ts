@@ -504,13 +504,39 @@ export const useReports = () => {
         throw new Error('N8N webhook URL not configured');
       }
 
+      // Get user information for webhook
+      const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Unknown User';
+      const teamId = user.user_metadata?.team_id || '';
+      const role = user.user_metadata?.role || 'member';
+      const viewFinancial = user.user_metadata?.view_financial !== false;
+
+      // Fetch team name if team_id exists
+      let teamName = '';
+      if (teamId) {
+        try {
+          const { data: teamData } = await supabase
+            .from('teams')
+            .select('name')
+            .eq('id', teamId)
+            .single();
+
+          teamName = teamData?.name || '';
+        } catch (err) {
+          console.error('Error fetching team name:', err);
+        }
+      }
+
       console.log('🚀 Running report manually:', {
         reportId: id,
         reportTitle: report.title,
         reportPrompt: report.prompt,
         webhookUrl: webhookUrl ? 'configured' : 'missing',
         userId: user.id,
-        userEmail: user.email
+        userEmail: user.email,
+        teamId,
+        teamName,
+        role,
+        viewFinancial
       });
 
       const requestStartTime = Date.now();
@@ -523,6 +549,11 @@ export const useReports = () => {
           chatInput: report.prompt,
           user_id: user.id,
           user_email: user.email,
+          user_name: userName,
+          team_id: teamId,
+          team_name: teamName,
+          role: role,
+          view_financial: viewFinancial,
           mode: 'reports',
           metadata: {
             reportId: id,

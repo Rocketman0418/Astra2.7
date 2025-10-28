@@ -42,9 +42,31 @@ Deno.serve(async (req: Request) => {
 
     // Fetch user details
     const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
-    
+
     if (userError || !userData?.user?.email) {
       throw new Error('User not found or email unavailable');
+    }
+
+    // Extract user metadata for team context
+    const userName = userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || 'Unknown User';
+    const teamId = userData.user.user_metadata?.team_id || '';
+    const role = userData.user.user_metadata?.role || 'member';
+    const viewFinancial = userData.user.user_metadata?.view_financial !== false;
+
+    // Fetch team name if team_id exists
+    let teamName = '';
+    if (teamId) {
+      try {
+        const { data: teamData } = await supabase
+          .from('teams')
+          .select('name')
+          .eq('id', teamId)
+          .single();
+
+        teamName = teamData?.name || '';
+      } catch (err) {
+        console.error('Error fetching team name:', err);
+      }
     }
 
     // Fetch report configuration
@@ -65,6 +87,17 @@ Deno.serve(async (req: Request) => {
 
     // Call n8n webhook to generate report with accurate data
     console.log('🌐 Calling n8n webhook for report generation...');
+    console.log('📤 Webhook payload:', {
+      user_id: userId,
+      user_email: userData.user.email,
+      user_name: userName,
+      team_id: teamId,
+      team_name: teamName,
+      role: role,
+      view_financial: viewFinancial,
+      mode: 'reports'
+    });
+
     const webhookResponse = await fetch(n8nWebhookUrl, {
       method: 'POST',
       headers: {
@@ -74,8 +107,12 @@ Deno.serve(async (req: Request) => {
         chatInput: latestPrompt,
         user_id: userId,
         user_email: userData.user.email,
-        user_name: userData.user.user_metadata?.full_name || userData.user.email,
+        user_name: userName,
         conversation_id: null,
+        team_id: teamId,
+        team_name: teamName,
+        role: role,
+        view_financial: viewFinancial,
         mode: 'reports',
         original_message: latestPrompt,
         mentions: []
