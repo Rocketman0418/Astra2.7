@@ -36,19 +36,22 @@ export const TeamMembersPanel: React.FC = () => {
       setLoading(true);
       setError('');
 
-      const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
+      // Query the public.users table for team members
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('id, email, name, role, view_financial, avatar_url, team_id')
+        .eq('team_id', teamId);
 
       if (usersError) throw usersError;
 
-      const teamMembers = users
-        .filter((u) => u.user_metadata?.team_id === teamId)
+      const teamMembers = (usersData || [])
         .map((u) => ({
           id: u.id,
           email: u.email || '',
-          full_name: u.user_metadata?.full_name || null,
-          role: u.user_metadata?.role || 'member',
-          view_financial: u.user_metadata?.view_financial !== false,
-          avatar_url: u.user_metadata?.avatar_url || null,
+          full_name: u.name || null,
+          role: (u.role || 'member') as 'admin' | 'member',
+          view_financial: u.view_financial !== false,
+          avatar_url: u.avatar_url || null,
         }))
         .sort((a, b) => {
           if (a.role === 'admin' && b.role !== 'admin') return -1;
@@ -82,12 +85,15 @@ export const TeamMembersPanel: React.FC = () => {
       setSaving(true);
       setError('');
 
-      const { error: updateError } = await supabase.auth.admin.updateUserById(memberId, {
-        user_metadata: {
+      // Update the public.users table
+      // The trigger will automatically sync to auth.users.raw_user_meta_data
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
           role: editRole,
           view_financial: editViewFinancial,
-        },
-      });
+        })
+        .eq('id', memberId);
 
       if (updateError) throw updateError;
 
@@ -102,16 +108,25 @@ export const TeamMembersPanel: React.FC = () => {
   };
 
   const removeMember = async (memberId: string, memberEmail: string) => {
-    if (!confirm(`Are you sure you want to remove ${memberEmail} from the team?`)) {
+    if (!confirm(`Are you sure you want to remove ${memberEmail} from the team? They will lose access to all team data.`)) {
       return;
     }
 
     try {
       setError('');
 
-      const { error: deleteError } = await supabase.auth.admin.deleteUser(memberId);
+      // Remove user from team by setting team_id to null
+      // The trigger will sync this to auth metadata
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          team_id: null,
+          role: null,
+          view_financial: false,
+        })
+        .eq('id', memberId);
 
-      if (deleteError) throw deleteError;
+      if (updateError) throw updateError;
 
       await loadTeamMembers();
     } catch (err: any) {
