@@ -24,9 +24,9 @@ const AppContent: React.FC = () => {
       }
 
       const teamId = user.user_metadata?.team_id;
-      const fullName = user.user_metadata?.full_name;
 
-      if (!teamId || !fullName) {
+      // Only check for team_id - if user has a team, they're onboarded
+      if (!teamId) {
         setNeedsOnboarding(true);
       } else {
         setNeedsOnboarding(false);
