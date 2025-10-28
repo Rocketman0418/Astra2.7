@@ -21,9 +21,32 @@ export const TeamMembersPanel: React.FC = () => {
   const [editRole, setEditRole] = useState<'admin' | 'member'>('member');
   const [editViewFinancial, setEditViewFinancial] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [currentUserData, setCurrentUserData] = useState<{ role: string; team_id: string | null } | null>(null);
 
-  const isAdmin = user?.user_metadata?.role === 'admin';
-  const teamId = user?.user_metadata?.team_id;
+  const isAdmin = currentUserData?.role === 'admin';
+  const teamId = currentUserData?.team_id;
+
+  // Fetch current user's data from public.users table
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      if (!user?.id) return;
+
+      const { data, error } = await supabase
+        .from('users')
+        .select('role, team_id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching current user data:', error);
+        return;
+      }
+
+      setCurrentUserData(data);
+    };
+
+    fetchCurrentUser();
+  }, [user?.id]);
 
   useEffect(() => {
     if (isAdmin && teamId) {
