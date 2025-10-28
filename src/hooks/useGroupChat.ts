@@ -279,6 +279,22 @@ export const useGroupChat = () => {
           const role = user.user_metadata?.role || 'member';
           const viewFinancial = user.user_metadata?.view_financial !== false;
 
+          // Fetch team name if team_id exists
+          let teamName = '';
+          if (teamId) {
+            try {
+              const { data: teamData } = await supabase
+                .from('teams')
+                .select('name')
+                .eq('id', teamId)
+                .single();
+
+              teamName = teamData?.name || '';
+            } catch (err) {
+              console.error('Error fetching team name:', err);
+            }
+          }
+
           const response = await fetch(WEBHOOK_URL, {
             method: 'POST',
             headers: {
@@ -291,6 +307,7 @@ export const useGroupChat = () => {
               user_name: userName,
               conversation_id: null,
               team_id: teamId,
+              team_name: teamName,
               role: role,
               view_financial: viewFinancial,
               mode: 'team',

@@ -174,6 +174,22 @@ export const useChat = () => {
     const role = user?.user_metadata?.role || 'member';
     const viewFinancial = user?.user_metadata?.view_financial !== false;
 
+    // Fetch team name if team_id exists
+    let teamName = '';
+    if (teamId) {
+      try {
+        const { data: teamData } = await supabase
+          .from('teams')
+          .select('name')
+          .eq('id', teamId)
+          .single();
+
+        teamName = teamData?.name || '';
+      } catch (err) {
+        console.error('Error fetching team name:', err);
+      }
+    }
+
     const messageId = uuidv4();
     const startTime = Date.now();
     const userMessage: Message = {
@@ -211,6 +227,7 @@ export const useChat = () => {
         user_name: userName,
         conversation_id: currentConversationId,
         team_id: teamId,
+        team_name: teamName,
         role: role,
         view_financial: viewFinancial,
         mode: 'private'
@@ -228,6 +245,7 @@ export const useChat = () => {
           user_name: userName,
           conversation_id: currentConversationId,
           team_id: teamId,
+          team_name: teamName,
           role: role,
           view_financial: viewFinancial,
           mode: 'private'
