@@ -461,13 +461,13 @@ ${finalSummary}
         // Fetch current user data
         const { data: currentUser, error: currentUserError } = await supabase
           .from('users')
-          .select('id, name, email, is_admin')
+          .select('id, name, email, role')
           .eq('id', user?.id)
           .single();
 
         if (!currentUserError && currentUser) {
           setCurrentUserData(currentUser);
-          setIsCurrentUserAdmin(currentUser.is_admin || false);
+          setIsCurrentUserAdmin(currentUser.role === 'admin');
         }
 
         // Fetch other users

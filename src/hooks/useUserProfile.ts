@@ -7,7 +7,9 @@ export interface UserProfile {
   name: string | null;
   email: string | null;
   avatar_url: string | null;
-  is_admin: boolean;
+  role: string;
+  team_id: string | null;
+  view_financial: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -43,7 +45,8 @@ export const useUserProfile = () => {
           id: user.id,
           email: user.email || '',
           name: user.user_metadata?.full_name || user.email?.split('@')[0] || null,
-          is_admin: false
+          role: 'member',
+          view_financial: false
         };
 
         const { data: insertedUser, error: insertError } = await supabase
