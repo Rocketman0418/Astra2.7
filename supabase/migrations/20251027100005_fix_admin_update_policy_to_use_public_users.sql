@@ -27,20 +27,20 @@ CREATE POLICY "Admins can update team members"
   USING (
     -- Check if current user is an admin with matching team_id
     EXISTS (
-      SELECT 1 FROM public.users current_user
-      WHERE current_user.id = auth.uid()
-        AND current_user.role = 'admin'
-        AND current_user.team_id IS NOT NULL
-        AND current_user.team_id = public.users.team_id
+      SELECT 1 FROM public.users admin_user
+      WHERE admin_user.id = auth.uid()
+        AND admin_user.role = 'admin'
+        AND admin_user.team_id IS NOT NULL
+        AND admin_user.team_id = public.users.team_id
     )
   )
   WITH CHECK (
     -- Same check for WITH CHECK - ensure target user stays on same team
     EXISTS (
-      SELECT 1 FROM public.users current_user
-      WHERE current_user.id = auth.uid()
-        AND current_user.role = 'admin'
-        AND current_user.team_id IS NOT NULL
-        AND current_user.team_id = public.users.team_id
+      SELECT 1 FROM public.users admin_user
+      WHERE admin_user.id = auth.uid()
+        AND admin_user.role = 'admin'
+        AND admin_user.team_id IS NOT NULL
+        AND admin_user.team_id = public.users.team_id
     )
   );
