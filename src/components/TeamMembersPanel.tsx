@@ -263,19 +263,10 @@ Sign up here: ${window.location.origin}`;
 
   return (
     <div className="bg-gray-700/50 rounded-lg p-6 border border-gray-600">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-3">
-          <Users className="w-5 h-5 text-blue-400" />
-          <h3 className="text-lg font-semibold text-white">Team Members</h3>
-          <span className="text-sm text-gray-400">({members.length})</span>
-        </div>
-        <button
-          onClick={() => setShowAddMember(!showAddMember)}
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center space-x-2 text-sm"
-        >
-          <UserPlus className="w-4 h-4" />
-          <span>{showAddMember ? 'Cancel' : 'Add Member'}</span>
-        </button>
+      <div className="flex items-center space-x-3 mb-6">
+        <Users className="w-5 h-5 text-blue-400" />
+        <h3 className="text-lg font-semibold text-white">Team Members</h3>
+        <span className="text-sm text-gray-400">({members.length})</span>
       </div>
 
       <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
@@ -435,11 +426,19 @@ Sign up here: ${window.location.origin}`;
         })}
       </div>
 
-      {members.length === 0 && (
+      {members.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
           <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p>No team members found</p>
         </div>
+      ) : (
+        <button
+          onClick={() => setShowAddMember(!showAddMember)}
+          className="w-full mt-4 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-2"
+        >
+          <UserPlus className="w-4 h-4" />
+          <span>{showAddMember ? 'Cancel' : 'Add Member'}</span>
+        </button>
       )}
 
       {showAddMember && (
