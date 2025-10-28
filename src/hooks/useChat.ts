@@ -171,6 +171,7 @@ export const useChat = () => {
     const userEmail = user?.email || '';
     const userName = userProfile?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Unknown User';
     const teamId = user?.user_metadata?.team_id || '';
+    const role = user?.user_metadata?.role || 'member';
     const viewFinancial = user?.user_metadata?.view_financial !== false;
 
     const messageId = uuidv4();
@@ -210,6 +211,7 @@ export const useChat = () => {
         user_name: userName,
         conversation_id: currentConversationId,
         team_id: teamId,
+        role: role,
         view_financial: viewFinancial,
         mode: 'private'
       });
@@ -226,6 +228,7 @@ export const useChat = () => {
           user_name: userName,
           conversation_id: currentConversationId,
           team_id: teamId,
+          role: role,
           view_financial: viewFinancial,
           mode: 'private'
         })

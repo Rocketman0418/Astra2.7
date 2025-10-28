@@ -276,6 +276,7 @@ export const useGroupChat = () => {
           console.log('🌐 useGroupChat: About to call webhook...');
           
           const teamId = user.user_metadata?.team_id || '';
+          const role = user.user_metadata?.role || 'member';
           const viewFinancial = user.user_metadata?.view_financial !== false;
 
           const response = await fetch(WEBHOOK_URL, {
@@ -290,6 +291,7 @@ export const useGroupChat = () => {
               user_name: userName,
               conversation_id: null,
               team_id: teamId,
+              role: role,
               view_financial: viewFinancial,
               mode: 'team',
               original_message: content.trim(),
