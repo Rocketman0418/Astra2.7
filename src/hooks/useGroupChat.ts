@@ -282,33 +282,29 @@ export const useGroupChat = () => {
           let viewFinancial = true;
 
           try {
+            // Use database function to fetch user data with team name (bypasses RLS issues)
             const { data: userData, error: userError } = await supabase
-              .from('users')
-              .select('team_id, role, view_financial')
-              .eq('id', user.id)
-              .single();
+              .rpc('get_user_team_info', { p_user_id: user.id });
 
-            if (userError) {
-              console.error('Error fetching user data from public.users:', userError);
-              // Fallback to user_metadata if public.users query fails
+            if (userError || !userData || userData.length === 0) {
+              console.error('Error fetching user data from database function:', userError);
+              // Fallback to user_metadata if function call fails
               teamId = user.user_metadata?.team_id || '';
               role = user.user_metadata?.role || 'member';
               viewFinancial = user.user_metadata?.view_financial !== false;
             } else {
-              teamId = userData?.team_id || '';
-              role = userData?.role || 'member';
-              viewFinancial = userData?.view_financial !== false;
+              const userInfo = userData[0];
+              teamId = userInfo.team_id || '';
+              teamName = userInfo.team_name || '';
+              role = userInfo.role || 'member';
+              viewFinancial = userInfo.view_financial !== false;
 
-              // Fetch team name if team_id exists
-              if (teamId) {
-                const { data: teamData } = await supabase
-                  .from('teams')
-                  .select('name')
-                  .eq('id', teamId)
-                  .single();
-
-                teamName = teamData?.name || '';
-              }
+              console.log('✅ Fetched user data from database:', {
+                teamId,
+                teamName,
+                role,
+                viewFinancial
+              });
             }
           } catch (err) {
             console.error('Error in user data fetch:', err);
