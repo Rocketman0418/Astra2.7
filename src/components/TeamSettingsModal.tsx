@@ -187,7 +187,7 @@ export const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
             </h2>
             <p className="text-sm text-gray-400 mt-1">
               {isOnboarding
-                ? 'Configure your team preferences to help AI better assist you'
+                ? 'Configure your team preferences to help Astra better assist you'
                 : 'Manage your team preferences'}
             </p>
           </div>

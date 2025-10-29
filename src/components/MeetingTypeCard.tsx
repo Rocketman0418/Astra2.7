@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, Check, X } from 'lucide-react';
+import { Trash2, Check, X, Edit2 } from 'lucide-react';
 import { MeetingType } from '../types';
 
 interface MeetingTypeCardProps {
@@ -62,14 +62,22 @@ export const MeetingTypeCard: React.FC<MeetingTypeCardProps> = ({
               autoFocus
             />
           ) : (
-            <h3
-              className={`text-lg font-semibold cursor-pointer hover:text-blue-400 transition-colors ${
-                meetingType.enabled ? 'text-white' : 'text-gray-500'
-              }`}
-              onClick={() => setIsEditing(true)}
-            >
-              {meetingType.type}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3
+                className={`text-lg font-semibold ${
+                  meetingType.enabled ? 'text-white' : 'text-gray-500'
+                }`}
+              >
+                {meetingType.type}
+              </h3>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="p-1 hover:bg-blue-500/20 rounded transition-colors opacity-70 hover:opacity-100"
+                title="Edit meeting type"
+              >
+                <Edit2 className="w-4 h-4 text-blue-400" />
+              </button>
+            </div>
           )}
         </div>
 
@@ -125,7 +133,7 @@ export const MeetingTypeCard: React.FC<MeetingTypeCardProps> = ({
         />
       ) : (
         <p
-          className={`text-sm cursor-pointer ${
+          className={`text-sm cursor-pointer hover:text-gray-300 transition-colors ${
             meetingType.enabled ? 'text-gray-400' : 'text-gray-600'
           }`}
           onClick={() => setIsEditing(true)}

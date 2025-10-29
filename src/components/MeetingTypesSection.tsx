@@ -45,7 +45,7 @@ export const MeetingTypesSection: React.FC<MeetingTypesSectionProps> = ({
       <div className="border-b border-gray-700 pb-4">
         <h2 className="text-xl font-semibold text-white mb-2">Meeting Types</h2>
         <p className="text-sm text-gray-400">
-          Define the types of meetings your team has. The AI will use these to categorize and
+          Define the types of meetings your team has. Astra will use these to categorize and
           search your meeting transcripts.
         </p>
       </div>

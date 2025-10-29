@@ -61,7 +61,7 @@ export const NewsPreferencesSection: React.FC<NewsPreferencesSectionProps> = ({
           </label>
         </div>
         <p className="text-sm text-gray-400">
-          Configure what news and industry updates the AI should monitor for your team.
+          Configure what news and industry updates Astra should monitor for your team.
         </p>
       </div>
 
