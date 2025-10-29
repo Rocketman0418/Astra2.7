@@ -146,3 +146,24 @@ export interface ReportMessage extends Message {
     is_manual_run: boolean;
   };
 }
+
+export interface MeetingType {
+  type: string;
+  description: string;
+  enabled: boolean;
+}
+
+export interface NewsPreferences {
+  enabled: boolean;
+  industries: string[];
+  custom_topics: string;
+  max_results: number;
+}
+
+export interface TeamSettings {
+  team_id: string;
+  meeting_types: MeetingType[];
+  news_preferences: NewsPreferences;
+  created_at?: string;
+  updated_at?: string;
+}

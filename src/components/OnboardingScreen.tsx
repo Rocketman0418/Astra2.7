@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Users, UserCircle, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { TeamSettingsModal } from './TeamSettingsModal';
 
 interface OnboardingScreenProps {
   onComplete: () => void;
@@ -11,6 +12,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
   const [teamName, setTeamName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showTeamSettings, setShowTeamSettings] = useState(false);
+  const [createdTeamId, setCreatedTeamId] = useState<string | null>(null);
 
   const handleBackToLogin = async () => {
     try {
@@ -78,13 +81,20 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
 
       if (updateError) throw updateError;
 
-      onComplete();
+      // Show team settings modal for admins who created a new team
+      setCreatedTeamId(teamData.id);
+      setShowTeamSettings(true);
     } catch (err: any) {
       console.error('Onboarding error:', err);
       setError(err.message || 'Failed to complete onboarding');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleTeamSettingsClose = () => {
+    setShowTeamSettings(false);
+    onComplete();
   };
 
   return (
@@ -173,6 +183,15 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
           <p className="text-sm text-gray-500">Part of the RocketHub Ecosystem</p>
         </div>
       </div>
+
+      {createdTeamId && (
+        <TeamSettingsModal
+          isOpen={showTeamSettings}
+          onClose={handleTeamSettingsClose}
+          teamId={createdTeamId}
+          isOnboarding={true}
+        />
+      )}
     </div>
   );
 };

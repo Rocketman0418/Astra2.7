@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { X, User as UserIcon, Save, LogOut, Key, Camera, Trash2, Upload } from 'lucide-react';
+import { X, User as UserIcon, Save, LogOut, Key, Camera, Trash2, Upload, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { GmailSettings } from './GmailSettings';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { supabase } from '../lib/supabase';
 import { AdminInviteCodesPanel } from './AdminInviteCodesPanel';
 import { TeamMembersPanel } from './TeamMembersPanel';
+import { TeamSettingsModal } from './TeamSettingsModal';
 
 interface UserSettingsModalProps {
   isOpen: boolean;
@@ -27,8 +28,10 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [showTeamSettings, setShowTeamSettings] = useState(false);
 
   const isAdmin = user?.user_metadata?.role === 'admin';
+  const teamId = user?.user_metadata?.team_id;
 
   React.useEffect(() => {
     if (profile) {
@@ -406,6 +409,27 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
 
           <GmailSettings />
 
+          {isAdmin && teamId && (
+            <div className="bg-gray-700/50 rounded-lg p-6 border border-gray-600">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <Settings className="w-5 h-5 text-blue-400" />
+                  <h3 className="text-lg font-semibold text-white">Team Settings</h3>
+                </div>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">
+                Configure meeting types and news preferences for your team.
+              </p>
+              <button
+                onClick={() => setShowTeamSettings(true)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <Settings className="w-4 h-4" />
+                <span>Manage Team Settings</span>
+              </button>
+            </div>
+          )}
+
           {isAdmin && (
             <TeamMembersPanel />
           )}
@@ -415,6 +439,15 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
           )}
         </div>
       </div>
+
+      {isAdmin && teamId && (
+        <TeamSettingsModal
+          isOpen={showTeamSettings}
+          onClose={() => setShowTeamSettings(false)}
+          teamId={teamId}
+          isOnboarding={false}
+        />
+      )}
     </div>
   );
 };
