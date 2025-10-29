@@ -206,18 +206,6 @@ export const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
             </div>
           ) : (
             <>
-              {error && (
-                <div className="bg-red-500/10 border border-red-500/30 rounded p-4 text-red-400">
-                  {error}
-                </div>
-              )}
-
-              {successMessage && (
-                <div className="bg-green-500/10 border border-green-500/30 rounded p-4 text-green-400">
-                  {successMessage}
-                </div>
-              )}
-
               <MeetingTypesSection
                 meetingTypes={meetingTypes}
                 onChange={handleMeetingTypesChange}
@@ -233,33 +221,47 @@ export const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
           )}
         </div>
 
-        <div className="border-t border-gray-700 p-6 flex justify-end gap-3">
-          {isOnboarding && (
-            <button
-              onClick={handleSkip}
-              className="px-6 py-2 text-gray-400 hover:text-white transition-colors"
-              disabled={isSaving}
-            >
-              Skip For Now
-            </button>
+        <div className="border-t border-gray-700 p-6 space-y-3">
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded p-3 text-red-400 text-sm">
+              {error}
+            </div>
           )}
-          <button
-            onClick={handleSave}
-            disabled={isSaving || isLoading}
-            className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4" />
-                Save Settings
-              </>
+
+          {successMessage && (
+            <div className="bg-green-500/10 border border-green-500/30 rounded p-3 text-green-400 text-sm">
+              {successMessage}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3">
+            {isOnboarding && (
+              <button
+                onClick={handleSkip}
+                className="px-6 py-2 text-gray-400 hover:text-white transition-colors"
+                disabled={isSaving}
+              >
+                Skip For Now
+              </button>
             )}
-          </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving || isLoading}
+              className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  Save Settings
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
