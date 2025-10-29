@@ -100,7 +100,7 @@ Deno.serve(async (req: Request) => {
 
         try {
           const { data: userTeamData, error: teamError } = await supabase.rpc('get_user_team_info', {
-            input_user_id: report.user_id
+            p_user_id: report.user_id
           });
 
           if (teamError || !userTeamData || userTeamData.length === 0) {
