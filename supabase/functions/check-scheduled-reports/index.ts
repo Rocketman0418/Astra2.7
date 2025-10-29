@@ -91,8 +91,43 @@ Deno.serve(async (req: Request) => {
           continue;
         }
 
+        // Fetch team information from the public.users table
+        let teamId = '';
+        let teamName = '';
+        let role = 'member';
+        let viewFinancial = true;
+        let userName = userData.user.user_metadata?.full_name || userData.user.email || '';
+
+        try {
+          const { data: userTeamData, error: teamError } = await supabase.rpc('get_user_team_info', {
+            input_user_id: report.user_id
+          });
+
+          if (teamError || !userTeamData || userTeamData.length === 0) {
+            console.warn(`⚠️ Could not fetch team info for user ${report.user_id}, using fallback`);
+            // Fallback to user_metadata
+            teamId = userData.user.user_metadata?.team_id || '';
+            role = userData.user.user_metadata?.role || 'member';
+            viewFinancial = userData.user.user_metadata?.view_financial !== false;
+          } else {
+            const userInfo = userTeamData[0];
+            teamId = userInfo.team_id || '';
+            teamName = userInfo.team_name || '';
+            role = userInfo.role || 'member';
+            viewFinancial = userInfo.view_financial !== false;
+            userName = userInfo.user_name || userName;
+          }
+        } catch (err) {
+          console.error('⚠️ Error fetching team info:', err);
+          // Fallback to user_metadata
+          teamId = userData.user.user_metadata?.team_id || '';
+          role = userData.user.user_metadata?.role || 'member';
+          viewFinancial = userData.user.user_metadata?.view_financial !== false;
+        }
+
         // Call n8n webhook to generate report
         console.log('🌐 Calling n8n webhook...');
+        console.log(`📋 Payload: user=${userData.user.email}, team=${teamName} (${teamId}), role=${role}`);
         const webhookResponse = await fetch(n8nWebhookUrl, {
           method: 'POST',
           headers: {
@@ -102,11 +137,22 @@ Deno.serve(async (req: Request) => {
             chatInput: report.prompt,
             user_id: report.user_id,
             user_email: userData.user.email,
-            user_name: userData.user.user_metadata?.full_name || userData.user.email,
+            user_name: userName,
             conversation_id: null,
+            team_id: teamId,
+            team_name: teamName,
+            role: role,
+            view_financial: viewFinancial,
             mode: 'reports',
             original_message: report.prompt,
-            mentions: []
+            mentions: [],
+            metadata: {
+              report_title: report.title,
+              report_schedule: report.schedule_time,
+              report_frequency: report.schedule_frequency,
+              is_manual_run: false,
+              executed_at: new Date().toISOString()
+            }
           })
         });
 
