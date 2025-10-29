@@ -166,28 +166,53 @@ export const useChat = () => {
       return;
     }
 
-    // Get user information
+    // Get user information - FETCH FROM public.users (source of truth)
     const userId = user?.id || '';
     const userEmail = user?.email || '';
-    const userName = userProfile?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Unknown User';
-    const teamId = user?.user_metadata?.team_id || '';
-    const role = user?.user_metadata?.role || 'member';
-    const viewFinancial = user?.user_metadata?.view_financial !== false;
 
-    // Fetch team name if team_id exists
+    // Fetch user data from public.users table (source of truth)
+    let teamId = '';
     let teamName = '';
-    if (teamId) {
-      try {
-        const { data: teamData } = await supabase
-          .from('teams')
-          .select('name')
-          .eq('id', teamId)
-          .single();
+    let role = 'member';
+    let viewFinancial = true;
+    let userName = userProfile?.name || user?.email?.split('@')[0] || 'Unknown User';
 
-        teamName = teamData?.name || '';
-      } catch (err) {
-        console.error('Error fetching team name:', err);
+    try {
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('team_id, role, view_financial, name')
+        .eq('id', userId)
+        .single();
+
+      if (userError) {
+        console.error('Error fetching user data from public.users:', userError);
+        // Fallback to user_metadata if public.users query fails
+        teamId = user?.user_metadata?.team_id || '';
+        role = user?.user_metadata?.role || 'member';
+        viewFinancial = user?.user_metadata?.view_financial !== false;
+      } else {
+        teamId = userData?.team_id || '';
+        role = userData?.role || 'member';
+        viewFinancial = userData?.view_financial !== false;
+        userName = userData?.name || userName;
+
+        // Fetch team name if team_id exists
+        if (teamId) {
+          const { data: teamData } = await supabase
+            .from('teams')
+            .select('name')
+            .eq('id', teamId)
+            .single();
+
+          teamName = teamData?.name || '';
+        }
       }
+    } catch (err) {
+      console.error('Error in user data fetch:', err);
+      // Fallback to user_metadata
+      teamId = user?.user_metadata?.team_id || '';
+      role = user?.user_metadata?.role || 'member';
+      viewFinancial = user?.user_metadata?.view_financial !== false;
     }
 
     const messageId = uuidv4();

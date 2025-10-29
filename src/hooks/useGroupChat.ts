@@ -274,25 +274,48 @@ export const useGroupChat = () => {
           const astraPrompt = content.replace(/@astra\s*/gi, '').trim();
           console.log('🤖 useGroupChat: Extracted Astra prompt:', astraPrompt);
           console.log('🌐 useGroupChat: About to call webhook...');
-          
-          const teamId = user.user_metadata?.team_id || '';
-          const role = user.user_metadata?.role || 'member';
-          const viewFinancial = user.user_metadata?.view_financial !== false;
 
-          // Fetch team name if team_id exists
+          // Fetch user data from public.users table (source of truth)
+          let teamId = '';
           let teamName = '';
-          if (teamId) {
-            try {
-              const { data: teamData } = await supabase
-                .from('teams')
-                .select('name')
-                .eq('id', teamId)
-                .single();
+          let role = 'member';
+          let viewFinancial = true;
 
-              teamName = teamData?.name || '';
-            } catch (err) {
-              console.error('Error fetching team name:', err);
+          try {
+            const { data: userData, error: userError } = await supabase
+              .from('users')
+              .select('team_id, role, view_financial')
+              .eq('id', user.id)
+              .single();
+
+            if (userError) {
+              console.error('Error fetching user data from public.users:', userError);
+              // Fallback to user_metadata if public.users query fails
+              teamId = user.user_metadata?.team_id || '';
+              role = user.user_metadata?.role || 'member';
+              viewFinancial = user.user_metadata?.view_financial !== false;
+            } else {
+              teamId = userData?.team_id || '';
+              role = userData?.role || 'member';
+              viewFinancial = userData?.view_financial !== false;
+
+              // Fetch team name if team_id exists
+              if (teamId) {
+                const { data: teamData } = await supabase
+                  .from('teams')
+                  .select('name')
+                  .eq('id', teamId)
+                  .single();
+
+                teamName = teamData?.name || '';
+              }
             }
+          } catch (err) {
+            console.error('Error in user data fetch:', err);
+            // Fallback to user_metadata
+            teamId = user.user_metadata?.team_id || '';
+            role = user.user_metadata?.role || 'member';
+            viewFinancial = user.user_metadata?.view_financial !== false;
           }
 
           const response = await fetch(WEBHOOK_URL, {
