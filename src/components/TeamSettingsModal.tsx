@@ -161,8 +161,46 @@ export const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
     }
   };
 
-  const handleSkip = () => {
-    onClose();
+  const handleSkip = async () => {
+    if (!isOnboarding) {
+      onClose();
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const { error: saveError } = await supabase
+        .from('team_settings')
+        .upsert(
+          {
+            team_id: teamId,
+            meeting_types: DEFAULT_MEETING_TYPES,
+            news_preferences: DEFAULT_NEWS_PREFERENCES,
+            updated_at: new Date().toISOString(),
+          },
+          {
+            onConflict: 'team_id',
+          }
+        );
+
+      if (saveError) throw saveError;
+
+      setSuccessMessage(
+        'Default meeting types saved. News monitoring is disabled. You can customize these settings anytime in User Settings.'
+      );
+      setHasUnsavedChanges(false);
+
+      setTimeout(() => {
+        onClose();
+      }, 2500);
+    } catch (err: any) {
+      console.error('Error saving default settings:', err);
+      setError('Failed to save default settings. Please try again.');
+      setIsSaving(false);
+    }
   };
 
   const handleMeetingTypesChange = (types: MeetingType[]) => {
@@ -238,10 +276,10 @@ export const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
             {isOnboarding && (
               <button
                 onClick={handleSkip}
-                className="px-6 py-2 text-gray-400 hover:text-white transition-colors"
+                className="px-6 py-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isSaving}
               >
-                Skip For Now
+                Use Defaults & Continue
               </button>
             )}
             <button
