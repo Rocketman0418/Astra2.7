@@ -142,33 +142,38 @@ Deno.serve(async (req: Request) => {
 
         // Call n8n webhook to generate report
         console.log('🌐 Calling n8n webhook...');
-        console.log(`📋 Payload: user=${userData.user.email}, team=${teamName} (${teamId}), role=${role}`);
+        console.log(`📋 Payload preview: user=${userData.user.email}, team=${teamName} (${teamId}), role=${role}`);
+
+        const webhookPayload = {
+          chatInput: report.prompt,
+          user_id: report.user_id,
+          user_email: userData.user.email,
+          user_name: userName,
+          conversation_id: null,
+          team_id: teamId,
+          team_name: teamName,
+          role: role,
+          view_financial: viewFinancial,
+          mode: 'reports',
+          original_message: report.prompt,
+          mentions: [],
+          metadata: {
+            report_title: report.title,
+            report_schedule: report.schedule_time,
+            report_frequency: report.schedule_frequency,
+            is_manual_run: false,
+            executed_at: new Date().toISOString()
+          }
+        };
+
+        console.log('📦 Full webhook payload:', JSON.stringify(webhookPayload, null, 2));
+
         const webhookResponse = await fetch(n8nWebhookUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            chatInput: report.prompt,
-            user_id: report.user_id,
-            user_email: userData.user.email,
-            user_name: userName,
-            conversation_id: null,
-            team_id: teamId,
-            team_name: teamName,
-            role: role,
-            view_financial: viewFinancial,
-            mode: 'reports',
-            original_message: report.prompt,
-            mentions: [],
-            metadata: {
-              report_title: report.title,
-              report_schedule: report.schedule_time,
-              report_frequency: report.schedule_frequency,
-              is_manual_run: false,
-              executed_at: new Date().toISOString()
-            }
-          })
+          body: JSON.stringify(webhookPayload)
         });
 
         if (!webhookResponse.ok) {
