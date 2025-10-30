@@ -99,7 +99,7 @@ Deno.serve(async (req: Request) => {
         let userName = userData.user.user_metadata?.full_name || userData.user.email || '';
 
         try {
-          const { data: userTeamData, error: teamError } = await supabase.rpc('get_user_team_info', {
+          const { data: userTeamData, error: teamError } = await supabase.rpc('get_user_team_info_service', {
             p_user_id: report.user_id
           });
 
