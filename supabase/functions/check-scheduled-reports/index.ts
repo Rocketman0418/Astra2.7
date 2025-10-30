@@ -99,30 +99,45 @@ Deno.serve(async (req: Request) => {
         let userName = userData.user.user_metadata?.full_name || userData.user.email || '';
 
         try {
+          console.log(`🔍 Fetching team info for user ${report.user_id}...`);
           const { data: userTeamData, error: teamError } = await supabase.rpc('get_user_team_info_service', {
             p_user_id: report.user_id
           });
 
+          if (teamError) {
+            console.error(`❌ RPC error fetching team info:`, teamError);
+            console.error(`Error details:`, JSON.stringify(teamError, null, 2));
+          }
+
+          if (!userTeamData || userTeamData.length === 0) {
+            console.warn(`⚠️ No team data returned for user ${report.user_id}`);
+          }
+
           if (teamError || !userTeamData || userTeamData.length === 0) {
-            console.warn(`⚠️ Could not fetch team info for user ${report.user_id}, using fallback`);
+            console.warn(`⚠️ Using fallback to user_metadata`);
+            console.log(`User metadata:`, JSON.stringify(userData.user.user_metadata, null, 2));
             // Fallback to user_metadata
             teamId = userData.user.user_metadata?.team_id || '';
             role = userData.user.user_metadata?.role || 'member';
             viewFinancial = userData.user.user_metadata?.view_financial !== false;
           } else {
             const userInfo = userTeamData[0];
+            console.log(`✅ Team data fetched successfully:`, JSON.stringify(userInfo, null, 2));
             teamId = userInfo.team_id || '';
             teamName = userInfo.team_name || '';
             role = userInfo.role || 'member';
             viewFinancial = userInfo.view_financial !== false;
             userName = userInfo.user_name || userName;
+            console.log(`📋 Extracted values: teamId=${teamId}, teamName=${teamName}, role=${role}`);
           }
         } catch (err) {
-          console.error('⚠️ Error fetching team info:', err);
+          console.error('❌ Exception fetching team info:', err);
+          console.error('Exception details:', JSON.stringify(err, null, 2));
           // Fallback to user_metadata
           teamId = userData.user.user_metadata?.team_id || '';
           role = userData.user.user_metadata?.role || 'member';
           viewFinancial = userData.user.user_metadata?.view_financial !== false;
+          console.log(`⚠️ Using fallback after exception: teamId=${teamId}, role=${role}`);
         }
 
         // Call n8n webhook to generate report
