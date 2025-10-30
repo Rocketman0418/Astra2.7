@@ -47,26 +47,47 @@ Deno.serve(async (req: Request) => {
       throw new Error('User not found or email unavailable');
     }
 
-    // Extract user metadata for team context
-    const userName = userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || 'Unknown User';
-    const teamId = userData.user.user_metadata?.team_id || '';
-    const role = userData.user.user_metadata?.role || 'member';
-    const viewFinancial = userData.user.user_metadata?.view_financial !== false;
-
-    // Fetch team name if team_id exists
+    // Fetch team information from the public.users table using service function
+    let teamId = '';
     let teamName = '';
-    if (teamId) {
-      try {
-        const { data: teamData } = await supabase
-          .from('teams')
-          .select('name')
-          .eq('id', teamId)
-          .single();
+    let role = 'member';
+    let viewFinancial = true;
+    let userName = userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || 'Unknown User';
 
-        teamName = teamData?.name || '';
-      } catch (err) {
-        console.error('Error fetching team name:', err);
+    try {
+      console.log(`🔍 Fetching team info for user ${userId}...`);
+      const { data: userTeamData, error: teamError } = await supabase.rpc('get_user_team_info_service', {
+        p_user_id: userId
+      });
+
+      if (teamError) {
+        console.error(`❌ RPC error fetching team info:`, teamError);
+        // Fallback to user_metadata
+        teamId = userData.user.user_metadata?.team_id || '';
+        role = userData.user.user_metadata?.role || 'member';
+        viewFinancial = userData.user.user_metadata?.view_financial !== false;
+      } else if (!userTeamData || userTeamData.length === 0) {
+        console.warn(`⚠️ No team data returned for user ${userId}`);
+        // Fallback to user_metadata
+        teamId = userData.user.user_metadata?.team_id || '';
+        role = userData.user.user_metadata?.role || 'member';
+        viewFinancial = userData.user.user_metadata?.view_financial !== false;
+      } else {
+        const userInfo = userTeamData[0];
+        console.log(`✅ Team data fetched successfully:`, userInfo);
+        teamId = userInfo.team_id || '';
+        teamName = userInfo.team_name || '';
+        role = userInfo.role || 'member';
+        viewFinancial = userInfo.view_financial !== false;
+        userName = userInfo.user_name || userName;
+        console.log(`📋 Extracted values: teamId=${teamId}, teamName=${teamName}, role=${role}`);
       }
+    } catch (err) {
+      console.error('❌ Exception fetching team info:', err);
+      // Fallback to user_metadata
+      teamId = userData.user.user_metadata?.team_id || '';
+      role = userData.user.user_metadata?.role || 'member';
+      viewFinancial = userData.user.user_metadata?.view_financial !== false;
     }
 
     // Fetch report configuration
