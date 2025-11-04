@@ -5,7 +5,9 @@
 
 ## 📋 Overview
 
-This guide will help you set up Google OAuth for both Gmail and Google Drive integrations in your Astra Intelligence application. The **same OAuth client** is used for both services, so you only need to configure it once!
+This guide will help you set up Google OAuth for both Gmail and Google Drive integrations in your Astra Intelligence application.
+
+**✨ Key Feature:** The **same OAuth client and token** are used for both services! When a user connects Gmail, they automatically get Google Drive access too. One OAuth flow connects everything. 🎯
 
 ---
 

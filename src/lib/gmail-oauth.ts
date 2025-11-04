@@ -1,12 +1,19 @@
 import { supabase } from './supabase';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+// Combined scopes for both Gmail and Google Drive access
 const SCOPES = [
+  // User profile
   'https://www.googleapis.com/auth/userinfo.email',
+  // Gmail scopes
   'https://www.googleapis.com/auth/gmail.readonly',
   'https://www.googleapis.com/auth/gmail.compose',
   'https://www.googleapis.com/auth/gmail.send',
-  'https://www.googleapis.com/auth/gmail.modify'
+  'https://www.googleapis.com/auth/gmail.modify',
+  // Google Drive scopes
+  'https://www.googleapis.com/auth/drive.readonly',
+  'https://www.googleapis.com/auth/drive.metadata.readonly'
 ].join(' ');
 
 export interface GmailAuthData {

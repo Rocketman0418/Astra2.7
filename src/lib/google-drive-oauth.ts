@@ -2,11 +2,19 @@ import { supabase } from './supabase';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-// Google Drive scopes - read access to Drive files and folders
+// Combined scopes for both Gmail and Google Drive access
+// Note: Same scopes as gmail-oauth.ts for consistency
 const SCOPES = [
+  // User profile
   'https://www.googleapis.com/auth/userinfo.email',
-  'https://www.googleapis.com/auth/drive.readonly', // Read-only access to Drive
-  'https://www.googleapis.com/auth/drive.metadata.readonly' // Read metadata
+  // Gmail scopes
+  'https://www.googleapis.com/auth/gmail.readonly',
+  'https://www.googleapis.com/auth/gmail.compose',
+  'https://www.googleapis.com/auth/gmail.send',
+  'https://www.googleapis.com/auth/gmail.modify',
+  // Google Drive scopes
+  'https://www.googleapis.com/auth/drive.readonly',
+  'https://www.googleapis.com/auth/drive.metadata.readonly'
 ].join(' ');
 
 export interface GoogleDriveConnection {
