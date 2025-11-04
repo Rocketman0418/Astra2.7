@@ -409,29 +409,6 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
             </div>
           </div>
 
-          {FEATURES.GOOGLE_DRIVE_SYNC_ENABLED ? (
-            <GoogleDriveSettings />
-          ) : (
-            <div className="bg-gray-700/50 rounded-lg p-6 border border-gray-600">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <HardDrive className="w-5 h-5 text-gray-400" />
-                  <h3 className="text-lg font-semibold text-white">Google Drive Sync</h3>
-                  <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs font-semibold rounded-full border border-blue-500/30">
-                    Coming Soon
-                  </span>
-                </div>
-              </div>
-              <p className="text-sm text-gray-400 mb-4">
-                Connect your Google Drive to automatically sync and vectorize documents from your Meeting Recordings and Strategy Documents folders.
-              </p>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <Clock className="w-4 h-4" />
-                <span>This feature is currently being enhanced and will be available soon.</span>
-              </div>
-            </div>
-          )}
-
           {FEATURES.GMAIL_ENABLED ? (
             <GmailSettings />
           ) : (
@@ -447,6 +424,29 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
               </div>
               <p className="text-sm text-gray-400 mb-4">
                 Connect your Gmail account to enable AI-powered email insights and vectorization.
+              </p>
+              <div className="flex items-center space-x-2 text-sm text-gray-500">
+                <Clock className="w-4 h-4" />
+                <span>This feature is currently being enhanced and will be available soon.</span>
+              </div>
+            </div>
+          )}
+
+          {FEATURES.GOOGLE_DRIVE_SYNC_ENABLED ? (
+            <GoogleDriveSettings />
+          ) : (
+            <div className="bg-gray-700/50 rounded-lg p-6 border border-gray-600">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <HardDrive className="w-5 h-5 text-gray-400" />
+                  <h3 className="text-lg font-semibold text-white">Google Drive Sync</h3>
+                  <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs font-semibold rounded-full border border-blue-500/30">
+                    Coming Soon
+                  </span>
+                </div>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">
+                Connect your Google Drive to automatically sync and vectorize documents from your Meeting Recordings and Strategy Documents folders.
               </p>
               <div className="flex items-center space-x-2 text-sm text-gray-500">
                 <Clock className="w-4 h-4" />
