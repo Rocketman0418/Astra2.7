@@ -7,14 +7,15 @@ import { GmailCallback } from './components/GmailCallback';
 import { OnboardingScreen } from './components/OnboardingScreen';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
 import { supabase } from './lib/supabase';
+import { FEATURES } from './config/features';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [checkingOnboarding, setCheckingOnboarding] = useState(true);
 
-  // Automatically refresh Gmail tokens in the background
-  useGmailTokenRefresh();
+  // Automatically refresh Gmail tokens in the background (only if Gmail is enabled)
+  useGmailTokenRefresh(FEATURES.GMAIL_ENABLED);
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
@@ -45,22 +46,25 @@ const AppContent: React.FC = () => {
     }
   };
 
-  console.log('🔍 [App] Current pathname:', window.location.pathname);
-  console.log('🔍 [App] Full URL:', window.location.href);
-  console.log('🔍 [App] Search params:', window.location.search);
-  console.log('🔍 [App] Has code param:', new URLSearchParams(window.location.search).has('code'));
-  console.log('🔍 [App] Has state param:', new URLSearchParams(window.location.search).has('state'));
+  // Gmail OAuth callback handling (only if Gmail is enabled)
+  if (FEATURES.GMAIL_ENABLED) {
+    console.log('🔍 [App] Current pathname:', window.location.pathname);
+    console.log('🔍 [App] Full URL:', window.location.href);
+    console.log('🔍 [App] Search params:', window.location.search);
+    console.log('🔍 [App] Has code param:', new URLSearchParams(window.location.search).has('code'));
+    console.log('🔍 [App] Has state param:', new URLSearchParams(window.location.search).has('state'));
 
-  if (window.location.pathname === '/auth/gmail/callback') {
-    console.log('✅ [App] Rendering GmailCallback component');
-    return <GmailCallback />;
-  }
+    if (window.location.pathname === '/auth/gmail/callback') {
+      console.log('✅ [App] Rendering GmailCallback component');
+      return <GmailCallback />;
+    }
 
-  // Also check if we have OAuth params on root path (fallback)
-  const searchParams = new URLSearchParams(window.location.search);
-  if (searchParams.has('code') && searchParams.has('state') && window.location.pathname === '/') {
-    console.log('⚠️ [App] Found OAuth params on root path - rendering GmailCallback');
-    return <GmailCallback />;
+    // Also check if we have OAuth params on root path (fallback)
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.has('code') && searchParams.has('state') && window.location.pathname === '/') {
+      console.log('⚠️ [App] Found OAuth params on root path - rendering GmailCallback');
+      return <GmailCallback />;
+    }
   }
 
   if (loading || checkingOnboarding) {

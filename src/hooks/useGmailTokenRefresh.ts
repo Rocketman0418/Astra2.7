@@ -5,8 +5,10 @@ import { refreshGmailToken, isGmailTokenExpired } from '../lib/gmail-oauth';
 /**
  * Hook that automatically refreshes Gmail tokens in the background
  * This ensures n8n workflows always have valid tokens
+ *
+ * @param enabled - Whether the token refresh service should be active
  */
-export const useGmailTokenRefresh = () => {
+export const useGmailTokenRefresh = (enabled: boolean = true) => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const isRefreshingRef = useRef(false);
 
@@ -67,6 +69,12 @@ export const useGmailTokenRefresh = () => {
   };
 
   useEffect(() => {
+    // Skip if feature is disabled
+    if (!enabled) {
+      console.log('[useGmailTokenRefresh] Gmail feature is disabled, skipping token refresh service');
+      return;
+    }
+
     console.log('[useGmailTokenRefresh] Starting automatic token refresh service');
 
     // Check immediately on mount
@@ -85,7 +93,7 @@ export const useGmailTokenRefresh = () => {
         clearInterval(intervalRef.current);
       }
     };
-  }, []);
+  }, [enabled]);
 
   return { checkAndRefreshToken };
 };
