@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HardDrive, CheckCircle, XCircle, Trash2, FolderOpen, RefreshCw } from 'lucide-react';
+import { HardDrive, CheckCircle, XCircle, Trash2, FolderOpen, RefreshCw, Info, Video } from 'lucide-react';
 import {
   initiateGoogleDriveOAuth,
   disconnectGoogleDrive as disconnectDrive,
@@ -19,6 +19,7 @@ export const GoogleDriveSettings: React.FC = () => {
   const [loadingFolders, setLoadingFolders] = useState(false);
   const [showFolderPicker, setShowFolderPicker] = useState(false);
   const [savingFolders, setSavingFolders] = useState(false);
+  const [showTranscriptInfo, setShowTranscriptInfo] = useState(false);
 
   // Temporary state for folder selection
   const [selectedMeetingsFolder, setSelectedMeetingsFolder] = useState<FolderInfo | null>(null);
@@ -275,6 +276,50 @@ export const GoogleDriveSettings: React.FC = () => {
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* Google Meet Auto-Sync Note */}
+            <div className="mt-4 bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+              <div className="flex items-start space-x-2">
+                <Video className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-blue-300">
+                  <span className="font-semibold">Google Meet recordings</span> are automatically synced to your Meetings Data, even if not in your selected folder.
+                </div>
+              </div>
+            </div>
+
+            {/* Transcript Recommendation */}
+            <div className="mt-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+              <div className="flex items-start space-x-2">
+                <div className="flex items-center space-x-1 flex-shrink-0">
+                  <Info className="w-4 h-4 text-yellow-400" />
+                  <button
+                    onClick={() => setShowTranscriptInfo(!showTranscriptInfo)}
+                    className="text-yellow-400 hover:text-yellow-300 transition-colors"
+                  >
+                    <Info className="w-3 h-3" />
+                  </button>
+                </div>
+                <div className="text-xs text-yellow-300 flex-1">
+                  <span className="font-semibold">Highly Recommended:</span> Enable Meeting Transcripts in Google Meet for better AI insights.
+                </div>
+              </div>
+
+              {showTranscriptInfo && (
+                <div className="mt-3 ml-6 text-xs text-gray-300 bg-gray-800/50 rounded p-3 border border-yellow-500/20">
+                  <p className="font-semibold text-yellow-300 mb-2">How to Enable Transcripts:</p>
+                  <p>
+                    To enable transcripts for all meetings in Google Meet, a Google Workspace administrator must enable the feature in the Google Admin console by navigating to:
+                  </p>
+                  <ol className="list-decimal ml-4 mt-2 space-y-1">
+                    <li>Apps</li>
+                    <li>Google Workspace</li>
+                    <li>Google Meet</li>
+                    <li>Meet video settings</li>
+                    <li>Set "Meeting transcripts" or "Automatic transcription" to be on by default</li>
+                  </ol>
+                </div>
+              )}
             </div>
 
             {connection.connection_status === 'token_expired' && (
