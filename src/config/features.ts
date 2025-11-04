@@ -16,4 +16,14 @@ export const FEATURES = {
    * To re-enable: Set to true
    */
   GMAIL_ENABLED: false,
+
+  /**
+   * Google Drive Sync
+   *
+   * When enabled: Users can connect Google Drive, select folders, and auto-sync documents
+   * When disabled: Google Drive settings are hidden from UI with "Coming Soon" indicator
+   *
+   * To re-enable: Set to true
+   */
+  GOOGLE_DRIVE_SYNC_ENABLED: false,
 } as const;
