@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HardDrive, CheckCircle, XCircle, Trash2, FolderOpen, RefreshCw, Info, FileText, CreditCard as Edit } from 'lucide-react';
+import { HardDrive, CheckCircle, XCircle, Trash2, FolderOpen, RefreshCw, Info, FileText, CreditCard as Edit, Search } from 'lucide-react';
 import {
   initiateGoogleDriveOAuth,
   disconnectGoogleDrive as disconnectDrive,
@@ -27,6 +27,8 @@ export const GoogleDriveSettings: React.FC = () => {
   const [showAllDocumentsModal, setShowAllDocumentsModal] = useState(false);
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [strategySearchTerm, setStrategySearchTerm] = useState('');
+  const [meetingsSearchTerm, setMeetingsSearchTerm] = useState('');
 
   // Temporary state for folder selection
   const [selectedMeetingsFolder, setSelectedMeetingsFolder] = useState<FolderInfo | null>(null);
@@ -610,6 +612,16 @@ export const GoogleDriveSettings: React.FC = () => {
                   <label className="text-sm font-semibold text-white mb-2 block">
                     Strategy Documents Folder
                   </label>
+                  <div className="relative mb-2">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search folders..."
+                      value={strategySearchTerm}
+                      onChange={(e) => setStrategySearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                    />
+                  </div>
                   <select
                     value={selectedStrategyFolder?.id || ''}
                     onChange={(e) => {
@@ -617,13 +629,16 @@ export const GoogleDriveSettings: React.FC = () => {
                       setSelectedStrategyFolder(folder || null);
                     }}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-500 focus:outline-none"
+                    size={5}
                   >
                     <option value="">-- Select a folder --</option>
-                    {folders.map(folder => (
-                      <option key={folder.id} value={folder.id}>
-                        {folder.name}
-                      </option>
-                    ))}
+                    {folders
+                      .filter(folder => folder.name.toLowerCase().includes(strategySearchTerm.toLowerCase()))
+                      .map(folder => (
+                        <option key={folder.id} value={folder.id}>
+                          {folder.name}
+                        </option>
+                      ))}
                   </select>
                   <p className="text-xs text-gray-400 mt-1">
                     Folder containing your strategy documents and plans
@@ -634,6 +649,16 @@ export const GoogleDriveSettings: React.FC = () => {
                   <label className="text-sm font-semibold text-white mb-2 block">
                     Meetings Folder
                   </label>
+                  <div className="relative mb-2">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search folders..."
+                      value={meetingsSearchTerm}
+                      onChange={(e) => setMeetingsSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                    />
+                  </div>
                   <select
                     value={selectedMeetingsFolder?.id || ''}
                     onChange={(e) => {
@@ -641,13 +666,16 @@ export const GoogleDriveSettings: React.FC = () => {
                       setSelectedMeetingsFolder(folder || null);
                     }}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-500 focus:outline-none"
+                    size={5}
                   >
                     <option value="">-- Select a folder --</option>
-                    {folders.map(folder => (
-                      <option key={folder.id} value={folder.id}>
-                        {folder.name}
-                      </option>
-                    ))}
+                    {folders
+                      .filter(folder => folder.name.toLowerCase().includes(meetingsSearchTerm.toLowerCase()))
+                      .map(folder => (
+                        <option key={folder.id} value={folder.id}>
+                          {folder.name}
+                        </option>
+                      ))}
                   </select>
                   <p className="text-xs text-gray-400 mt-1">
                     Folder containing your meeting recordings and notes
