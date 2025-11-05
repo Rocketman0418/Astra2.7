@@ -186,6 +186,30 @@ export const GoogleDriveSettings: React.FC = () => {
       setDeletingDocId(docId);
       setError('');
 
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Find the document to get its title and folder_type
+      const doc = syncedDocuments.find(d => d.id === docId);
+      if (!doc) throw new Error('Document not found');
+
+      // Delete from the appropriate document_chunks table based on folder_type
+      const chunksTable = doc.folder_type === 'strategy'
+        ? 'document_chunks_strategy'
+        : 'document_chunks_meetings';
+
+      const { error: chunksError } = await supabase
+        .from(chunksTable)
+        .delete()
+        .eq('team_id', user.user_metadata?.team_id)
+        .eq('title', doc.title);
+
+      if (chunksError) {
+        console.error(`Failed to delete chunks from ${chunksTable}:`, chunksError);
+        throw new Error(`Failed to delete document chunks: ${chunksError.message}`);
+      }
+
+      // Delete from documents table
       const { error: deleteError } = await supabase
         .from('documents')
         .delete()
