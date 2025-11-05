@@ -4,6 +4,7 @@ import { ReportsProvider } from './contexts/ReportsContext';
 import { AuthScreen } from './components/AuthScreen';
 import { MainContainer } from './components/MainContainer';
 import { GmailCallback } from './components/GmailCallback';
+import { GoogleDriveCallback } from './components/GoogleDriveCallback';
 import { OnboardingScreen } from './components/OnboardingScreen';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
 import { supabase } from './lib/supabase';
@@ -64,6 +65,17 @@ const AppContent: React.FC = () => {
     if (searchParams.has('code') && searchParams.has('state') && window.location.pathname === '/') {
       console.log('⚠️ [App] Found OAuth params on root path - rendering GmailCallback');
       return <GmailCallback />;
+    }
+  }
+
+  // Google Drive OAuth callback handling (only if Google Drive is enabled)
+  if (FEATURES.GOOGLE_DRIVE_SYNC_ENABLED) {
+    console.log('🔍 [App] Checking Google Drive callback...');
+    console.log('🔍 [App] Current pathname:', window.location.pathname);
+
+    if (window.location.pathname === '/auth/google-drive/callback') {
+      console.log('✅ [App] Rendering GoogleDriveCallback component');
+      return <GoogleDriveCallback />;
     }
   }
 
