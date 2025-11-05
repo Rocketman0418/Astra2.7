@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HardDrive, CheckCircle, XCircle, Trash2, FolderOpen, RefreshCw, Info, Video } from 'lucide-react';
+import { HardDrive, CheckCircle, XCircle, Trash2, FolderOpen, RefreshCw, Info, FileText } from 'lucide-react';
 import {
   initiateGoogleDriveOAuth,
   disconnectGoogleDrive as disconnectDrive,
@@ -19,11 +19,36 @@ export const GoogleDriveSettings: React.FC = () => {
   const [loadingFolders, setLoadingFolders] = useState(false);
   const [showFolderPicker, setShowFolderPicker] = useState(false);
   const [savingFolders, setSavingFolders] = useState(false);
-  const [showTranscriptInfo, setShowTranscriptInfo] = useState(false);
+  const [showMeetingsBestPractices, setShowMeetingsBestPractices] = useState(false);
+  const [showStrategyBestPractices, setShowStrategyBestPractices] = useState(false);
+  const [syncedDocuments, setSyncedDocuments] = useState<any[]>([]);
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
 
   // Temporary state for folder selection
   const [selectedMeetingsFolder, setSelectedMeetingsFolder] = useState<FolderInfo | null>(null);
   const [selectedStrategyFolder, setSelectedStrategyFolder] = useState<FolderInfo | null>(null);
+
+  const loadSyncedDocuments = async () => {
+    try {
+      setLoadingDocuments(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: documents, error: docsError } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('team_id', user.user_metadata?.team_id)
+        .eq('source_type', 'google_drive')
+        .order('created_at', { ascending: false });
+
+      if (docsError) throw docsError;
+      setSyncedDocuments(documents || []);
+    } catch (err: any) {
+      console.error('Failed to load synced documents:', err);
+    } finally {
+      setLoadingDocuments(false);
+    }
+  };
 
   const loadConnection = async () => {
     try {
@@ -50,6 +75,11 @@ export const GoogleDriveSettings: React.FC = () => {
             id: conn.strategy_folder_id,
             name: conn.strategy_folder_name
           });
+        }
+
+        // Load synced documents if connected
+        if (conn.is_active) {
+          loadSyncedDocuments();
         }
       }
 
@@ -264,6 +294,31 @@ export const GoogleDriveSettings: React.FC = () => {
                     <span className="text-gray-500">Not configured</span>
                   )}
                 </div>
+
+                {/* Meetings Best Practices */}
+                <div className="mt-2">
+                  <button
+                    onClick={() => setShowMeetingsBestPractices(!showMeetingsBestPractices)}
+                    className="flex items-center space-x-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    <Info className="w-3 h-3" />
+                    <span>Meetings Folder Best Practices: How to optimize for Astra Intelligence</span>
+                  </button>
+
+                  {showMeetingsBestPractices && (
+                    <div className="mt-2 text-xs text-gray-300 bg-gray-800/50 rounded p-3 border border-blue-500/20">
+                      <p className="font-semibold text-blue-300 mb-2">Follow these best practices to get the best AI insights on your Meetings data:</p>
+                      <ol className="list-decimal ml-4 space-y-1.5">
+                        <li>
+                          <span className="font-medium">Ensure meeting documents are in Google Docs format</span> (PDF, txt or other files types are not yet supported). Note: You can setup your Google Drive to automatically convert uploaded files to Google Doc format in settings.
+                        </li>
+                        <li>
+                          <span className="font-medium">Summaries are good, Transcripts are much better.</span> For best results, include full meeting transcripts, not just summaries (both is also ok). If using Google Meet, you can enable auto transcriptions and syncing to your Google Drive in the user settings. Other programs may offer this as well.
+                        </li>
+                      </ol>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -275,52 +330,99 @@ export const GoogleDriveSettings: React.FC = () => {
                     <span className="text-gray-500">Not configured</span>
                   )}
                 </div>
-              </div>
-            </div>
 
-            {/* Google Meet Auto-Sync Note */}
-            <div className="mt-4 bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-              <div className="flex items-start space-x-2">
-                <Video className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-blue-300">
-                  <span className="font-semibold">Google Meet recordings</span> are automatically synced to your Meetings Data, even if not in your selected folder.
-                </div>
-              </div>
-            </div>
-
-            {/* Transcript Recommendation */}
-            <div className="mt-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
-              <div className="flex items-start space-x-2">
-                <div className="flex items-center space-x-1 flex-shrink-0">
-                  <Info className="w-4 h-4 text-yellow-400" />
+                {/* Strategy Best Practices */}
+                <div className="mt-2">
                   <button
-                    onClick={() => setShowTranscriptInfo(!showTranscriptInfo)}
-                    className="text-yellow-400 hover:text-yellow-300 transition-colors"
+                    onClick={() => setShowStrategyBestPractices(!showStrategyBestPractices)}
+                    className="flex items-center space-x-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
                   >
                     <Info className="w-3 h-3" />
+                    <span>Strategy Documents Best Practices: How to optimize for Astra Intelligence</span>
                   </button>
-                </div>
-                <div className="text-xs text-yellow-300 flex-1">
-                  <span className="font-semibold">Highly Recommended:</span> Enable Meeting Transcripts in Google Meet for better AI insights.
+
+                  {showStrategyBestPractices && (
+                    <div className="mt-2 text-xs text-gray-300 bg-gray-800/50 rounded p-3 border border-blue-500/20">
+                      <p className="font-semibold text-blue-300 mb-2">Follow these best practices to get the best AI insights on your Strategy data:</p>
+                      <ol className="list-decimal ml-4 space-y-1.5">
+                        <li>
+                          <span className="font-medium">Astra loves documents</span> such as your Mission, Core Values, Goals, EOS VTO, SWOT, etc. to help keep you aligned.
+                        </li>
+                        <li>
+                          <span className="font-medium">Evergreen documents:</span> If you update a Strategy document with the same name as an older document, Astra will treat the newest version as the source of truth, but still be able to reference the older version if needed.
+                        </li>
+                      </ol>
+                    </div>
+                  )}
                 </div>
               </div>
-
-              {showTranscriptInfo && (
-                <div className="mt-3 ml-6 text-xs text-gray-300 bg-gray-800/50 rounded p-3 border border-yellow-500/20">
-                  <p className="font-semibold text-yellow-300 mb-2">How to Enable Transcripts:</p>
-                  <p>
-                    To enable transcripts for all meetings in Google Meet, a Google Workspace administrator must enable the feature in the Google Admin console by navigating to:
-                  </p>
-                  <ol className="list-decimal ml-4 mt-2 space-y-1">
-                    <li>Apps</li>
-                    <li>Google Workspace</li>
-                    <li>Google Meet</li>
-                    <li>Meet video settings</li>
-                    <li>Set "Meeting transcripts" or "Automatic transcription" to be on by default</li>
-                  </ol>
-                </div>
-              )}
             </div>
+
+            {/* Synced Documents Summary */}
+            {connection.is_active && (
+              <div className="mt-4 border-t border-gray-600 pt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-semibold text-white flex items-center space-x-2">
+                    <FileText className="w-4 h-4 text-blue-400" />
+                    <span>Synced Documents</span>
+                  </h4>
+                  <button
+                    onClick={loadSyncedDocuments}
+                    disabled={loadingDocuments}
+                    className="text-blue-400 hover:text-blue-300 transition-colors"
+                    title="Refresh"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${loadingDocuments ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
+
+                {loadingDocuments ? (
+                  <div className="flex items-center space-x-2 text-gray-400 text-sm">
+                    <div className="w-3 h-3 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                    <span>Loading documents...</span>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="bg-gray-800/50 rounded p-3 border border-gray-700">
+                        <p className="text-gray-400 text-xs mb-1">Total Documents</p>
+                        <p className="text-white font-semibold text-lg">{syncedDocuments.length}</p>
+                      </div>
+                      <div className="bg-gray-800/50 rounded p-3 border border-gray-700">
+                        <p className="text-gray-400 text-xs mb-1">By Type</p>
+                        <div className="text-xs space-y-0.5">
+                          <p className="text-white">
+                            Meetings: <span className="font-semibold">{syncedDocuments.filter(d => d.folder_type === 'meetings').length}</span>
+                          </p>
+                          <p className="text-white">
+                            Strategy: <span className="font-semibold">{syncedDocuments.filter(d => d.folder_type === 'strategy').length}</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {syncedDocuments.length > 0 && (
+                      <div className="bg-gray-800/50 rounded p-3 border border-gray-700 max-h-40 overflow-y-auto">
+                        <p className="text-gray-400 text-xs mb-2">Recent Documents</p>
+                        <div className="space-y-1.5">
+                          {syncedDocuments.slice(0, 5).map((doc) => (
+                            <div key={doc.id} className="flex items-start space-x-2">
+                              <FileText className="w-3 h-3 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs text-white truncate">{doc.title}</p>
+                                <p className="text-xs text-gray-500">
+                                  {doc.folder_type} • {new Date(doc.created_at).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {connection.connection_status === 'token_expired' && (
               <div className="mt-4 bg-yellow-500/10 border border-yellow-500/50 rounded-lg p-3">
