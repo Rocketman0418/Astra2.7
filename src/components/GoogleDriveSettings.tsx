@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HardDrive, CheckCircle, XCircle, Trash2, FolderOpen, RefreshCw, Info, FileText } from 'lucide-react';
+import { HardDrive, CheckCircle, XCircle, Trash2, FolderOpen, RefreshCw, Info, FileText, Edit } from 'lucide-react';
 import {
   initiateGoogleDriveOAuth,
   disconnectGoogleDrive as disconnectDrive,
@@ -24,6 +24,9 @@ export const GoogleDriveSettings: React.FC = () => {
   const [syncedDocuments, setSyncedDocuments] = useState<any[]>([]);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [showSetupGuide, setShowSetupGuide] = useState(false);
+  const [showAllDocumentsModal, setShowAllDocumentsModal] = useState(false);
+  const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Temporary state for folder selection
   const [selectedMeetingsFolder, setSelectedMeetingsFolder] = useState<FolderInfo | null>(null);
@@ -58,6 +61,11 @@ export const GoogleDriveSettings: React.FC = () => {
       if (!session) {
         setLoading(false);
         return;
+      }
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setIsAdmin(user.user_metadata?.role === 'admin');
       }
 
       const conn = await getGoogleDriveConnection();
@@ -167,6 +175,30 @@ export const GoogleDriveSettings: React.FC = () => {
   const handleContinueFromGuide = () => {
     setShowSetupGuide(false);
     setShowFolderPicker(true);
+  };
+
+  const handleDeleteDocument = async (docId: string) => {
+    if (!confirm('Are you sure you want to delete this document? This will remove it from Astra Intelligence.')) {
+      return;
+    }
+
+    try {
+      setDeletingDocId(docId);
+      setError('');
+
+      const { error: deleteError } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', docId);
+
+      if (deleteError) throw deleteError;
+
+      await loadSyncedDocuments();
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete document');
+    } finally {
+      setDeletingDocId(null);
+    }
   };
 
   const handleSaveFolders = async () => {
@@ -364,8 +396,8 @@ export const GoogleDriveSettings: React.FC = () => {
               </div>
             </div>
 
-            {/* Synced Documents Summary */}
-            {connection.is_active && (
+            {/* Synced Documents Summary - Admin Only */}
+            {connection.is_active && isAdmin && (
               <div className="mt-4 border-t border-gray-600 pt-4">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm font-semibold text-white flex items-center space-x-2">
@@ -408,22 +440,31 @@ export const GoogleDriveSettings: React.FC = () => {
                     </div>
 
                     {syncedDocuments.length > 0 && (
-                      <div className="bg-gray-800/50 rounded p-3 border border-gray-700 max-h-40 overflow-y-auto">
-                        <p className="text-gray-400 text-xs mb-2">Recent Documents</p>
-                        <div className="space-y-1.5">
-                          {syncedDocuments.slice(0, 5).map((doc) => (
-                            <div key={doc.id} className="flex items-start space-x-2">
-                              <FileText className="w-3 h-3 text-gray-500 mt-0.5 flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs text-white truncate">{doc.title}</p>
-                                <p className="text-xs text-gray-500">
-                                  {doc.folder_type} • {new Date(doc.created_at).toLocaleDateString()}
-                                </p>
+                      <>
+                        <div className="bg-gray-800/50 rounded p-3 border border-gray-700 max-h-40 overflow-y-auto">
+                          <p className="text-gray-400 text-xs mb-2">Recent Documents</p>
+                          <div className="space-y-1.5">
+                            {syncedDocuments.slice(0, 5).map((doc) => (
+                              <div key={doc.id} className="flex items-start space-x-2">
+                                <FileText className="w-3 h-3 text-gray-500 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs text-white truncate">{doc.title}</p>
+                                  <p className="text-xs text-gray-500">
+                                    {doc.folder_type} • {new Date(doc.created_at).toLocaleDateString()}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                        <button
+                          onClick={() => setShowAllDocumentsModal(true)}
+                          className="w-full mt-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors flex items-center justify-center space-x-2"
+                        >
+                          <Edit className="w-3 h-3" />
+                          <span>View and Edit All Documents</span>
+                        </button>
+                      </>
                     )}
                   </div>
                 )}
@@ -614,6 +655,97 @@ export const GoogleDriveSettings: React.FC = () => {
                     <span>Save Configuration</span>
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* All Documents Modal */}
+      {showAllDocumentsModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-white">All Synced Documents</h3>
+              <button
+                onClick={() => setShowAllDocumentsModal(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1">
+              {loadingDocuments ? (
+                <div className="flex items-center justify-center space-x-2 text-gray-400 py-8">
+                  <div className="w-4 h-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                  <span>Loading documents...</span>
+                </div>
+              ) : syncedDocuments.length === 0 ? (
+                <div className="text-center py-8">
+                  <FileText className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-400">No synced documents found</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {syncedDocuments.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="flex items-start space-x-3 bg-gray-700/50 rounded-lg p-4 border border-gray-600 hover:border-gray-500 transition-colors"
+                    >
+                      <FileText className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-medium text-white truncate mb-1">
+                          {doc.title}
+                        </h4>
+                        <div className="flex items-center space-x-3 text-xs text-gray-400">
+                          <span className="capitalize">{doc.folder_type}</span>
+                          <span>•</span>
+                          <span>{new Date(doc.created_at).toLocaleString()}</span>
+                        </div>
+                        {doc.source_url && (
+                          <a
+                            href={doc.source_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-400 hover:text-blue-300 mt-1 inline-block"
+                          >
+                            View in Google Drive
+                          </a>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleDeleteDocument(doc.id)}
+                        disabled={deletingDocId === doc.id}
+                        className="px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs rounded transition-colors flex items-center space-x-1"
+                      >
+                        {deletingDocId === doc.id ? (
+                          <>
+                            <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            <span>Deleting...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Trash2 className="w-3 h-3" />
+                            <span>Delete</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-700 flex justify-between items-center">
+              <p className="text-sm text-gray-400">
+                Total: {syncedDocuments.length} document{syncedDocuments.length !== 1 ? 's' : ''}
+              </p>
+              <button
+                onClick={() => setShowAllDocumentsModal(false)}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors"
+              >
+                Close
               </button>
             </div>
           </div>
