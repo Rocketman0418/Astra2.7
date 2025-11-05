@@ -25,5 +25,5 @@ export const FEATURES = {
    *
    * To re-enable: Set to true
    */
-  GOOGLE_DRIVE_SYNC_ENABLED: false,
+  GOOGLE_DRIVE_SYNC_ENABLED: true,
 } as const;
