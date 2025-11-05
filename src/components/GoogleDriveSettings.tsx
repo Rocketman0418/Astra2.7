@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HardDrive, CheckCircle, XCircle, Trash2, FolderOpen, RefreshCw, Info, FileText, Edit } from 'lucide-react';
+import { HardDrive, CheckCircle, XCircle, Trash2, FolderOpen, RefreshCw, Info, FileText, CreditCard as Edit } from 'lucide-react';
 import {
   initiateGoogleDriveOAuth,
   disconnectGoogleDrive as disconnectDrive,
