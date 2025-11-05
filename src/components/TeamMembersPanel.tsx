@@ -22,6 +22,7 @@ export const TeamMembersPanel: React.FC = () => {
   const [editViewFinancial, setEditViewFinancial] = useState(true);
   const [saving, setSaving] = useState(false);
   const [currentUserData, setCurrentUserData] = useState<{ role: string; team_id: string | null } | null>(null);
+  const [teamName, setTeamName] = useState<string>('');
 
   // Add member states
   const [showAddMember, setShowAddMember] = useState(false);
@@ -62,8 +63,32 @@ export const TeamMembersPanel: React.FC = () => {
   useEffect(() => {
     if (isAdmin && teamId) {
       loadTeamMembers();
+      loadTeamName();
     }
   }, [isAdmin, teamId]);
+
+  const loadTeamName = async () => {
+    if (!teamId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('teams')
+        .select('name')
+        .eq('id', teamId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error loading team name:', error);
+        return;
+      }
+
+      if (data) {
+        setTeamName(data.name);
+      }
+    } catch (err) {
+      console.error('Error loading team name:', err);
+    }
+  };
 
   const loadTeamMembers = async () => {
     try {
@@ -225,7 +250,7 @@ export const TeamMembersPanel: React.FC = () => {
   };
 
   const copyInviteMessage = () => {
-    const message = `You've been invited to join ${user?.user_metadata?.team_name || 'our team'} on Astra Intelligence!
+    const message = `You've been invited to join ${teamName || 'our team'} on Astra Intelligence!
 
 Use this invite code to create your account: ${generatedCode}
 Email: ${inviteEmail}
@@ -263,10 +288,17 @@ Sign up here: ${window.location.origin}`;
 
   return (
     <div className="bg-gray-700/50 rounded-lg p-6 border border-gray-600">
-      <div className="flex items-center space-x-3 mb-6">
-        <Users className="w-5 h-5 text-blue-400" />
-        <h3 className="text-lg font-semibold text-white">Team Members</h3>
-        <span className="text-sm text-gray-400">({members.length})</span>
+      <div className="mb-6">
+        <div className="flex items-center space-x-3 mb-2">
+          <Users className="w-5 h-5 text-blue-400" />
+          <h3 className="text-lg font-semibold text-white">Team Members</h3>
+          <span className="text-sm text-gray-400">({members.length})</span>
+        </div>
+        {teamName && (
+          <p className="text-sm text-gray-400 ml-8">
+            Team: <span className="text-white font-medium">{teamName}</span>
+          </p>
+        )}
       </div>
 
       <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
@@ -533,7 +565,7 @@ Sign up here: ${window.location.origin}`;
                 <p className="text-green-400 text-sm font-medium mb-3">Invite Code Generated!</p>
                 <div className="bg-gray-800 rounded p-3 mb-3">
                   <p className="text-white text-xs mb-2 font-mono">
-                    You've been invited to join {user?.user_metadata?.team_name || 'our team'} on Astra Intelligence!
+                    You've been invited to join {teamName || 'our team'} on Astra Intelligence!
                   </p>
                   <p className="text-white text-xs mb-2">
                     Use this invite code to create your account: <span className="font-bold text-green-400">{generatedCode}</span>

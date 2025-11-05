@@ -31,6 +31,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [showTeamSettings, setShowTeamSettings] = useState(false);
+  const [teamName, setTeamName] = useState<string>('');
 
   const isAdmin = user?.user_metadata?.role === 'admin';
   const teamId = user?.user_metadata?.team_id;
@@ -40,6 +41,35 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
       setName(profile.name || '');
     }
   }, [profile]);
+
+  React.useEffect(() => {
+    if (teamId) {
+      loadTeamName();
+    }
+  }, [teamId]);
+
+  const loadTeamName = async () => {
+    if (!teamId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('teams')
+        .select('name')
+        .eq('id', teamId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error loading team name:', error);
+        return;
+      }
+
+      if (data) {
+        setTeamName(data.name);
+      }
+    } catch (err) {
+      console.error('Error loading team name:', err);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -303,6 +333,13 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
                     <label className="text-sm text-gray-400 mb-1 block">Email</label>
                     <p className="text-white">{user?.email}</p>
                   </div>
+
+                  {teamName && (
+                    <div>
+                      <label className="text-sm text-gray-400 mb-1 block">Team</label>
+                      <p className="text-white">{teamName}</p>
+                    </div>
+                  )}
 
                   <div className="pt-2 border-t border-gray-600">
                     {!isChangingPassword ? (
