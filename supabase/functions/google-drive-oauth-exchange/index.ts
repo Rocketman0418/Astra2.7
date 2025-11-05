@@ -61,7 +61,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Verify user exists and get team_id
+    // Verify user exists and get team_id from public.users table
     const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(userId);
 
     console.log('📁 Admin API getUserById result:');
@@ -84,9 +84,15 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Get team_id from user metadata
-    const teamId = user.user_metadata?.team_id;
-    console.log('📁 Team ID from metadata:', teamId);
+    // Get team_id from public.users table (more reliable than user metadata)
+    const { data: publicUserData, error: publicUserError } = await supabase
+      .from('users')
+      .select('team_id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const teamId = publicUserData?.team_id || null;
+    console.log('📁 Team ID from public.users table:', teamId);
 
     console.log('✅ User verified:', user.email);
 
