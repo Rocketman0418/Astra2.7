@@ -316,7 +316,7 @@ export const GoogleDriveSettings: React.FC = () => {
                       <p className="font-semibold text-blue-300 mb-2">Follow these best practices to get the best AI insights on your Strategy data:</p>
                       <ol className="list-decimal ml-4 space-y-1.5">
                         <li>
-                          <span className="font-medium">Astra loves documents</span> such as your Mission, Core Values, Goals, EOS VTO, SWOT, etc. to help keep you aligned.
+                          <span className="font-medium">Astra loves documents</span> such as your Mission, Core Values, Goals, EOS VTO, SWOT, etc. to help keep you aligned. Timely documents such as Marketing Plans, Market Research, Revenue Plan, etc. can also be added as you go.
                         </li>
                         <li>
                           <span className="font-medium">Evergreen documents:</span> If you update a Strategy document with the same name as an older document, Astra will treat the newest version as the source of truth, but still be able to reference the older version if needed.
@@ -474,7 +474,7 @@ export const GoogleDriveSettings: React.FC = () => {
                     <p className="font-semibold text-blue-300 text-sm mb-2">Best Practices:</p>
                     <ol className="list-decimal ml-4 space-y-2 text-sm text-gray-300">
                       <li>
-                        <span className="font-medium">Astra loves documents</span> such as your Mission, Core Values, Goals, EOS VTO, SWOT, etc. to help keep you aligned.
+                        <span className="font-medium">Astra loves documents</span> such as your Mission, Core Values, Goals, EOS VTO, SWOT, etc. to help keep you aligned. Timely documents such as Marketing Plans, Market Research, Revenue Plan, etc. can also be added as you go.
                       </li>
                       <li>
                         <span className="font-medium">Evergreen documents:</span> If you update a Strategy document with the same name as an older document, Astra will treat the newest version as the source of truth, but still be able to reference the older version if needed.
