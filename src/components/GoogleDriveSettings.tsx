@@ -23,6 +23,7 @@ export const GoogleDriveSettings: React.FC = () => {
   const [showStrategyBestPractices, setShowStrategyBestPractices] = useState(false);
   const [syncedDocuments, setSyncedDocuments] = useState<any[]>([]);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
+  const [showSetupGuide, setShowSetupGuide] = useState(false);
 
   // Temporary state for folder selection
   const [selectedMeetingsFolder, setSelectedMeetingsFolder] = useState<FolderInfo | null>(null);
@@ -155,12 +156,17 @@ export const GoogleDriveSettings: React.FC = () => {
       setError('');
       const folderList = await listGoogleDriveFolders();
       setFolders(folderList);
-      setShowFolderPicker(true);
+      setShowSetupGuide(true);
     } catch (err: any) {
       setError(err.message || 'Failed to load folders');
     } finally {
       setLoadingFolders(false);
     }
+  };
+
+  const handleContinueFromGuide = () => {
+    setShowSetupGuide(false);
+    setShowFolderPicker(true);
   };
 
   const handleSaveFolders = async () => {
@@ -286,42 +292,6 @@ export const GoogleDriveSettings: React.FC = () => {
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-gray-400 mb-1 block">Meetings Folder</label>
-                <div className="bg-gray-800 rounded px-3 py-2 text-sm">
-                  {selectedMeetingsFolder ? (
-                    <span className="text-white">{selectedMeetingsFolder.name}</span>
-                  ) : (
-                    <span className="text-gray-500">Not configured</span>
-                  )}
-                </div>
-
-                {/* Meetings Best Practices */}
-                <div className="mt-2">
-                  <button
-                    onClick={() => setShowMeetingsBestPractices(!showMeetingsBestPractices)}
-                    className="flex items-center space-x-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                  >
-                    <Info className="w-3 h-3" />
-                    <span>Meetings Folder Best Practices: How to optimize for Astra Intelligence</span>
-                  </button>
-
-                  {showMeetingsBestPractices && (
-                    <div className="mt-2 text-xs text-gray-300 bg-gray-800/50 rounded p-3 border border-blue-500/20">
-                      <p className="font-semibold text-blue-300 mb-2">Follow these best practices to get the best AI insights on your Meetings data:</p>
-                      <ol className="list-decimal ml-4 space-y-1.5">
-                        <li>
-                          <span className="font-medium">Ensure meeting documents are in Google Docs format</span> (PDF, txt or other files types are not yet supported). Note: You can setup your Google Drive to automatically convert uploaded files to Google Doc format in settings.
-                        </li>
-                        <li>
-                          <span className="font-medium">Summaries are good, Transcripts are much better.</span> For best results, include full meeting transcripts, not just summaries (both is also ok). If using Google Meet, you can enable auto transcriptions and syncing to your Google Drive in the user settings. Other programs may offer this as well.
-                        </li>
-                      </ol>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div>
                 <label className="text-xs text-gray-400 mb-1 block">Strategy Documents Folder</label>
                 <div className="bg-gray-800 rounded px-3 py-2 text-sm">
                   {selectedStrategyFolder ? (
@@ -350,6 +320,42 @@ export const GoogleDriveSettings: React.FC = () => {
                         </li>
                         <li>
                           <span className="font-medium">Evergreen documents:</span> If you update a Strategy document with the same name as an older document, Astra will treat the newest version as the source of truth, but still be able to reference the older version if needed.
+                        </li>
+                      </ol>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-gray-400 mb-1 block">Meetings Folder</label>
+                <div className="bg-gray-800 rounded px-3 py-2 text-sm">
+                  {selectedMeetingsFolder ? (
+                    <span className="text-white">{selectedMeetingsFolder.name}</span>
+                  ) : (
+                    <span className="text-gray-500">Not configured</span>
+                  )}
+                </div>
+
+                {/* Meetings Best Practices */}
+                <div className="mt-2">
+                  <button
+                    onClick={() => setShowMeetingsBestPractices(!showMeetingsBestPractices)}
+                    className="flex items-center space-x-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    <Info className="w-3 h-3" />
+                    <span>Meetings Folder Best Practices: How to optimize for Astra Intelligence</span>
+                  </button>
+
+                  {showMeetingsBestPractices && (
+                    <div className="mt-2 text-xs text-gray-300 bg-gray-800/50 rounded p-3 border border-blue-500/20">
+                      <p className="font-semibold text-blue-300 mb-2">Follow these best practices to get the best AI insights on your Meetings data:</p>
+                      <ol className="list-decimal ml-4 space-y-1.5">
+                        <li>
+                          <span className="font-medium">Ensure meeting documents are in Google Docs format</span> (PDF, txt or other files types are not yet supported). Note: You can setup your Google Drive to automatically convert uploaded files to Google Doc format in settings.
+                        </li>
+                        <li>
+                          <span className="font-medium">Summaries are good, Transcripts are much better.</span> For best results, include full meeting transcripts, not just summaries (both is also ok). If using Google Meet, you can enable auto transcriptions and syncing to your Google Drive in the user settings. Other programs may offer this as well.
                         </li>
                       </ol>
                     </div>
@@ -435,6 +441,90 @@ export const GoogleDriveSettings: React.FC = () => {
         </div>
       )}
 
+      {/* Setup Guide Modal */}
+      {showSetupGuide && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-white">Google Drive Folder Setup Guide</h3>
+              <button
+                onClick={() => setShowSetupGuide(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1">
+              <p className="text-sm text-gray-300 mb-6">
+                Before selecting your folders, review these best practices to optimize your AI experience with Astra Intelligence.
+              </p>
+
+              <div className="space-y-6">
+                {/* Strategy Documents Best Practices */}
+                <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Info className="w-5 h-5 text-blue-400" />
+                    <h4 className="text-md font-semibold text-white">Strategy Documents Folder</h4>
+                  </div>
+                  <p className="text-sm text-gray-300 mb-3">
+                    This folder should contain your key strategic documents that help Astra understand your business direction and goals.
+                  </p>
+                  <div className="bg-gray-800/50 rounded p-3 border border-blue-500/20">
+                    <p className="font-semibold text-blue-300 text-sm mb-2">Best Practices:</p>
+                    <ol className="list-decimal ml-4 space-y-2 text-sm text-gray-300">
+                      <li>
+                        <span className="font-medium">Astra loves documents</span> such as your Mission, Core Values, Goals, EOS VTO, SWOT, etc. to help keep you aligned.
+                      </li>
+                      <li>
+                        <span className="font-medium">Evergreen documents:</span> If you update a Strategy document with the same name as an older document, Astra will treat the newest version as the source of truth, but still be able to reference the older version if needed.
+                      </li>
+                    </ol>
+                  </div>
+                </div>
+
+                {/* Meetings Best Practices */}
+                <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Info className="w-5 h-5 text-blue-400" />
+                    <h4 className="text-md font-semibold text-white">Meetings Folder</h4>
+                  </div>
+                  <p className="text-sm text-gray-300 mb-3">
+                    This folder should contain your meeting notes, recordings, and transcripts for AI-powered insights.
+                  </p>
+                  <div className="bg-gray-800/50 rounded p-3 border border-blue-500/20">
+                    <p className="font-semibold text-blue-300 text-sm mb-2">Best Practices:</p>
+                    <ol className="list-decimal ml-4 space-y-2 text-sm text-gray-300">
+                      <li>
+                        <span className="font-medium">Ensure meeting documents are in Google Docs format</span> (PDF, txt or other files types are not yet supported). Note: You can setup your Google Drive to automatically convert uploaded files to Google Doc format in settings.
+                      </li>
+                      <li>
+                        <span className="font-medium">Summaries are good, Transcripts are much better.</span> For best results, include full meeting transcripts, not just summaries (both is also ok). If using Google Meet, you can enable auto transcriptions and syncing to your Google Drive in the user settings. Other programs may offer this as well.
+                      </li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-700 flex justify-end space-x-3">
+              <button
+                onClick={() => setShowSetupGuide(false)}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleContinueFromGuide}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors flex items-center space-x-2"
+              >
+                <span>Continue to Folder Selection</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Folder Picker Modal */}
       {showFolderPicker && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -451,30 +541,6 @@ export const GoogleDriveSettings: React.FC = () => {
 
             <div className="p-6 overflow-y-auto flex-1">
               <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-semibold text-white mb-2 block">
-                    Meetings Folder
-                  </label>
-                  <select
-                    value={selectedMeetingsFolder?.id || ''}
-                    onChange={(e) => {
-                      const folder = folders.find(f => f.id === e.target.value);
-                      setSelectedMeetingsFolder(folder || null);
-                    }}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-500 focus:outline-none"
-                  >
-                    <option value="">-- Select a folder --</option>
-                    {folders.map(folder => (
-                      <option key={folder.id} value={folder.id}>
-                        {folder.name}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Folder containing your meeting recordings and notes
-                  </p>
-                </div>
-
                 <div>
                   <label className="text-sm font-semibold text-white mb-2 block">
                     Strategy Documents Folder
@@ -496,6 +562,30 @@ export const GoogleDriveSettings: React.FC = () => {
                   </select>
                   <p className="text-xs text-gray-400 mt-1">
                     Folder containing your strategy documents and plans
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-white mb-2 block">
+                    Meetings Folder
+                  </label>
+                  <select
+                    value={selectedMeetingsFolder?.id || ''}
+                    onChange={(e) => {
+                      const folder = folders.find(f => f.id === e.target.value);
+                      setSelectedMeetingsFolder(folder || null);
+                    }}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="">-- Select a folder --</option>
+                    {folders.map(folder => (
+                      <option key={folder.id} value={folder.id}>
+                        {folder.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Folder containing your meeting recordings and notes
                   </p>
                 </div>
               </div>
