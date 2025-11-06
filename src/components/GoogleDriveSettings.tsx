@@ -29,6 +29,8 @@ export const GoogleDriveSettings: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [strategySearchTerm, setStrategySearchTerm] = useState('');
   const [meetingsSearchTerm, setMeetingsSearchTerm] = useState('');
+  const [teamConnection, setTeamConnection] = useState<GoogleDriveConnection | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
 
   // Temporary state for folder selection
   const [selectedMeetingsFolder, setSelectedMeetingsFolder] = useState<FolderInfo | null>(null);
@@ -68,6 +70,21 @@ export const GoogleDriveSettings: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setIsAdmin(user.user_metadata?.role === 'admin');
+        setCurrentUserId(user.id);
+
+        // Check if team already has a connection (from any user)
+        const teamId = user.user_metadata?.team_id;
+        if (teamId) {
+          const { data: existingTeamConnection, error: teamConnError } = await supabase
+            .from('user_drive_connections')
+            .select('*, users:user_id(id, raw_user_meta_data)')
+            .eq('team_id', teamId)
+            .maybeSingle();
+
+          if (!teamConnError && existingTeamConnection) {
+            setTeamConnection(existingTeamConnection as any);
+          }
+        }
       }
 
       const conn = await getGoogleDriveConnection();
@@ -123,8 +140,26 @@ export const GoogleDriveSettings: React.FC = () => {
       )
       .subscribe();
 
+    // Also subscribe to documents table for synced documents updates
+    const docsChannel = supabase
+      .channel('documents-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'documents'
+        },
+        (payload) => {
+          console.log('[GoogleDriveSettings] Documents changed, reloading...');
+          loadSyncedDocuments();
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(docsChannel);
     };
   }, []);
 
@@ -142,7 +177,7 @@ export const GoogleDriveSettings: React.FC = () => {
   };
 
   const handleDisconnect = async () => {
-    if (!confirm('Are you sure you want to disconnect Google Drive? Your data sync will stop.')) {
+    if (!confirm('Are you sure you want to disconnect Google Drive? Your data sync will stop. Any team admin will be able to reconnect.')) {
       return;
     }
 
@@ -150,6 +185,7 @@ export const GoogleDriveSettings: React.FC = () => {
       setLoading(true);
       await disconnectDrive();
       setConnection(null);
+      setTeamConnection(null);
       setSelectedMeetingsFolder(null);
       setSelectedStrategyFolder(null);
       setError('');
@@ -293,16 +329,53 @@ export const GoogleDriveSettings: React.FC = () => {
 
       {!connection ? (
         <div className="space-y-4">
-          <p className="text-sm text-gray-400">
-            Connect your Google Drive to automatically sync and vectorize documents from your Meeting Recordings and Strategy Documents folders.
-          </p>
-          <button
-            onClick={handleConnect}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
-          >
-            <HardDrive className="w-4 h-4" />
-            <span>Connect Google Drive</span>
-          </button>
+          {teamConnection && teamConnection.user_id !== currentUserId ? (
+            // Team already has a connection managed by another user
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <Info className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="text-white font-medium mb-1">Team Data Sync Already Configured</h4>
+                  <p className="text-sm text-gray-300 mb-2">
+                    Your team's Google Drive sync is already set up and being managed by{' '}
+                    <span className="font-semibold text-blue-300">
+                      {(teamConnection as any).users?.raw_user_meta_data?.full_name || 'another team member'}
+                    </span>.
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Only one team member can manage the Google Drive connection to avoid conflicts. If you need to change who manages this, the current manager must disconnect first.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : !isAdmin ? (
+            // User is not an admin and no connection exists
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <Info className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="text-white font-medium mb-1">Admin Access Required</h4>
+                  <p className="text-sm text-gray-300">
+                    Only team administrators can connect Google Drive. Please contact your team admin to set up data sync.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            // Admin user, no existing connection - show connect button
+            <>
+              <p className="text-sm text-gray-400">
+                Connect your Google Drive to automatically sync and vectorize documents from your Meeting Recordings and Strategy Documents folders.
+              </p>
+              <button
+                onClick={handleConnect}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <HardDrive className="w-4 h-4" />
+                <span>Connect Google Drive</span>
+              </button>
+            </>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
