@@ -31,6 +31,7 @@ export const GoogleDriveSettings: React.FC = () => {
   const [meetingsSearchTerm, setMeetingsSearchTerm] = useState('');
   const [teamConnection, setTeamConnection] = useState<GoogleDriveConnection | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [connectedAdminName, setConnectedAdminName] = useState<string>('');
 
   // Temporary state for folder selection
   const [selectedMeetingsFolder, setSelectedMeetingsFolder] = useState<FolderInfo | null>(null);
@@ -77,12 +78,23 @@ export const GoogleDriveSettings: React.FC = () => {
         if (teamId) {
           const { data: existingTeamConnection, error: teamConnError } = await supabase
             .from('user_drive_connections')
-            .select('*, users:user_id(id, raw_user_meta_data)')
+            .select(`
+              *,
+              users!user_drive_connections_user_id_fkey(
+                id,
+                name,
+                email
+              )
+            `)
             .eq('team_id', teamId)
             .maybeSingle();
 
           if (!teamConnError && existingTeamConnection) {
             setTeamConnection(existingTeamConnection as any);
+            // Get the connected admin's name
+            const adminUser = (existingTeamConnection as any).users;
+            const adminName = adminUser?.name || adminUser?.email?.split('@')[0] || 'Team Admin';
+            setConnectedAdminName(adminName);
           }
         }
       }
@@ -109,6 +121,9 @@ export const GoogleDriveSettings: React.FC = () => {
         if (conn.is_active) {
           loadSyncedDocuments();
         }
+      } else if (teamConnection && teamConnection.is_active) {
+        // Also load documents if team has a connection but user doesn't
+        loadSyncedDocuments();
       }
 
       setError('');
@@ -188,6 +203,7 @@ export const GoogleDriveSettings: React.FC = () => {
       setTeamConnection(null);
       setSelectedMeetingsFolder(null);
       setSelectedStrategyFolder(null);
+      setConnectedAdminName('');
       setError('');
     } catch (err: any) {
       setError(err.message);
@@ -329,25 +345,141 @@ export const GoogleDriveSettings: React.FC = () => {
 
       {!connection ? (
         <div className="space-y-4">
-          {teamConnection && teamConnection.user_id !== currentUserId ? (
-            // Team already has a connection managed by another user
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <Info className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="text-white font-medium mb-1">Team Data Sync Already Configured</h4>
-                  <p className="text-sm text-gray-300 mb-2">
-                    Your team's Google Drive sync is already set up and being managed by{' '}
-                    <span className="font-semibold text-blue-300">
-                      {(teamConnection as any).users?.raw_user_meta_data?.full_name || 'another team member'}
-                    </span>.
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Only one team member can manage the Google Drive connection to avoid conflicts. If you need to change who manages this, the current manager must disconnect first.
-                  </p>
+          {teamConnection ? (
+            // Team already has a connection
+            teamConnection.user_id !== currentUserId ? (
+              // Connection managed by another user
+              <>
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="text-white font-medium mb-1">
+                        {isAdmin ? 'Team Data Sync Already Configured' : 'Team Connected to Google Drive'}
+                      </h4>
+                      <p className="text-sm text-gray-300 mb-2">
+                        Your team's Google Drive sync is {isAdmin ? 'already set up and being' : ''} managed by{' '}
+                        <span className="font-semibold text-green-300">
+                          {connectedAdminName}
+                        </span>.
+                      </p>
+                      {isAdmin ? (
+                        <p className="text-xs text-gray-400">
+                          Only one team member can manage the Google Drive connection to avoid conflicts. If you need to change who manages this, {connectedAdminName} must disconnect first.
+                        </p>
+                      ) : (
+                        <p className="text-xs text-gray-400">
+                          Your team's documents are being synchronized automatically. Contact {connectedAdminName} if you have questions about the sync configuration.
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+
+                {/* Show folder configuration and sync info */}
+                <div className="border-t border-gray-600 pt-4">
+                  <h4 className="text-sm font-semibold text-white mb-3">Current Configuration</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">Connected Account</label>
+                      <div className="bg-gray-800 rounded px-3 py-2 text-sm">
+                        <span className="text-white">{teamConnection.google_account_email || 'Connected'}</span>
+                      </div>
+                    </div>
+                    {teamConnection.last_sync_at && (
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">Last Sync</label>
+                        <div className="bg-gray-800 rounded px-3 py-2 text-sm">
+                          <span className="text-white">{new Date(teamConnection.last_sync_at).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    )}
+                    {teamConnection.strategy_folder_name && (
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">Strategy Documents Folder</label>
+                        <div className="bg-gray-800 rounded px-3 py-2 text-sm">
+                          <span className="text-white">{teamConnection.strategy_folder_name}</span>
+                        </div>
+                      </div>
+                    )}
+                    {teamConnection.meetings_folder_name && (
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">Meetings Folder</label>
+                        <div className="bg-gray-800 rounded px-3 py-2 text-sm">
+                          <span className="text-white">{teamConnection.meetings_folder_name}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Synced Documents Summary */}
+                  {teamConnection.is_active && (
+                    <div className="mt-4 border-t border-gray-600 pt-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-sm font-semibold text-white flex items-center space-x-2">
+                          <FileText className="w-4 h-4 text-blue-400" />
+                          <span>Synced Documents</span>
+                        </h4>
+                        <button
+                          onClick={loadSyncedDocuments}
+                          disabled={loadingDocuments}
+                          className="text-blue-400 hover:text-blue-300 transition-colors"
+                          title="Refresh"
+                        >
+                          <RefreshCw className={`w-4 h-4 ${loadingDocuments ? 'animate-spin' : ''}`} />
+                        </button>
+                      </div>
+
+                      {loadingDocuments ? (
+                        <div className="flex items-center space-x-2 text-gray-400 text-sm">
+                          <div className="w-3 h-3 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                          <span>Loading documents...</span>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div className="bg-gray-800/50 rounded p-3 border border-gray-700">
+                              <p className="text-gray-400 text-xs mb-1">Total Documents</p>
+                              <p className="text-white font-semibold text-lg">{syncedDocuments.length}</p>
+                            </div>
+                            <div className="bg-gray-800/50 rounded p-3 border border-gray-700">
+                              <p className="text-gray-400 text-xs mb-1">By Type</p>
+                              <div className="text-xs space-y-0.5">
+                                <p className="text-white">
+                                  Meetings: <span className="font-semibold">{syncedDocuments.filter(d => d.folder_type === 'meetings').length}</span>
+                                </p>
+                                <p className="text-white">
+                                  Strategy: <span className="font-semibold">{syncedDocuments.filter(d => d.folder_type === 'strategy').length}</span>
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {syncedDocuments.length > 0 && (
+                            <div className="bg-gray-800/50 rounded p-3 border border-gray-700 max-h-40 overflow-y-auto">
+                              <p className="text-gray-400 text-xs mb-2">Recent Documents</p>
+                              <div className="space-y-1.5">
+                                {syncedDocuments.slice(0, 5).map((doc) => (
+                                  <div key={doc.id} className="flex items-start space-x-2">
+                                    <FileText className="w-3 h-3 text-gray-500 mt-0.5 flex-shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs text-white truncate">{doc.title}</p>
+                                      <p className="text-xs text-gray-500">
+                                        {doc.folder_type} • {new Date(doc.created_at).toLocaleDateString()}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : null
           ) : !isAdmin ? (
             // User is not an admin and no connection exists
             <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
