@@ -65,17 +65,21 @@ export const Header: React.FC<HeaderProps> = ({
           )}
 
           {/* Logo and title */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 md:space-x-3">
             {/* AI Rocket Logo */}
-            <div className="flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full bg-blue-400 shadow-lg">
-              <span className="text-xl md:text-2xl">🚀</span>
+            <div className="flex items-center justify-center w-9 h-9 md:w-11 md:h-11 rounded-full bg-blue-400 shadow-lg flex-shrink-0">
+              <span className="text-lg md:text-2xl">🚀</span>
             </div>
 
-            {/* Brand Title */}
-            <h1 className="text-xl md:text-2xl font-bold tracking-tight flex items-center gap-3">
-              <span className="text-blue-400">AI Rocket</span>
-              <span className="text-white font-normal">+</span>
-              <span className="text-emerald-400">Astra Intelligence</span>
+            {/* Brand Title - Responsive */}
+            <h1 className="text-base md:text-2xl font-bold tracking-tight flex items-center gap-1.5 md:gap-3">
+              {/* Mobile: Show only "Astra" */}
+              <span className="md:hidden text-emerald-400">Astra</span>
+
+              {/* Desktop: Show full title */}
+              <span className="hidden md:inline text-blue-400">AI Rocket</span>
+              <span className="hidden md:inline text-white font-normal">+</span>
+              <span className="hidden md:inline text-emerald-400">Astra Intelligence</span>
             </h1>
           </div>
         </div>

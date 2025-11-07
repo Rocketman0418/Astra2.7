@@ -6,6 +6,7 @@ import { MainContainer } from './components/MainContainer';
 import { GmailCallback } from './components/GmailCallback';
 import { GoogleDriveCallback } from './components/GoogleDriveCallback';
 import { OnboardingScreen } from './components/OnboardingScreen';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
 import { supabase } from './lib/supabase';
 import { FEATURES } from './config/features';
@@ -99,7 +100,12 @@ const AppContent: React.FC = () => {
     return <OnboardingScreen onComplete={handleOnboardingComplete} />;
   }
 
-  return <MainContainer />;
+  return (
+    <>
+      <MainContainer />
+      <PWAInstallPrompt />
+    </>
+  );
 };
 
 function App() {

@@ -52,36 +52,36 @@ export function HelpCenter({ isOpen, onClose, onStartTour, isAdmin }: HelpCenter
         <div className="flex border-b border-gray-800">
           <button
             onClick={() => setActiveTab('quick-start')}
-            className={`flex-1 py-3 px-4 font-medium transition-colors flex items-center justify-center gap-2 ${
+            className={`flex-1 py-3 px-2 sm:px-4 font-medium transition-colors flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-base min-h-[56px] sm:min-h-[44px] ${
               activeTab === 'quick-start'
                 ? 'text-purple-400 border-b-2 border-purple-400 bg-gray-800/50'
                 : 'text-gray-400 hover:text-gray-300'
             }`}
           >
-            <BookOpen className="w-4 h-4" />
-            <span className="hidden sm:inline">Quick Start</span>
+            <BookOpen className="w-4 h-4 sm:w-4 sm:h-4" />
+            <span>Quick Start</span>
           </button>
           <button
             onClick={() => setActiveTab('faq')}
-            className={`flex-1 py-3 px-4 font-medium transition-colors flex items-center justify-center gap-2 ${
+            className={`flex-1 py-3 px-2 sm:px-4 font-medium transition-colors flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-base min-h-[56px] sm:min-h-[44px] ${
               activeTab === 'faq'
                 ? 'text-purple-400 border-b-2 border-purple-400 bg-gray-800/50'
                 : 'text-gray-400 hover:text-gray-300'
             }`}
           >
-            <MessageCircleQuestion className="w-4 h-4" />
-            <span className="hidden sm:inline">FAQ</span>
+            <MessageCircleQuestion className="w-4 h-4 sm:w-4 sm:h-4" />
+            <span>FAQ</span>
           </button>
           <button
             onClick={() => setActiveTab('ask-astra')}
-            className={`flex-1 py-3 px-4 font-medium transition-colors flex items-center justify-center gap-2 ${
+            className={`flex-1 py-3 px-2 sm:px-4 font-medium transition-colors flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-base min-h-[56px] sm:min-h-[44px] ${
               activeTab === 'ask-astra'
                 ? 'text-purple-400 border-b-2 border-purple-400 bg-gray-800/50'
                 : 'text-gray-400 hover:text-gray-300'
             }`}
           >
-            <Sparkles className="w-4 h-4" />
-            <span className="hidden sm:inline">Ask Astra</span>
+            <Sparkles className="w-4 h-4 sm:w-4 sm:h-4" />
+            <span>Ask Astra</span>
           </button>
         </div>
 

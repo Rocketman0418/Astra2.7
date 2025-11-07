@@ -223,7 +223,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-full sm:max-w-2xl max-h-[95vh] overflow-y-auto">
         <div className="sticky top-0 bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="relative">
