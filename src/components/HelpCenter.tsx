@@ -37,7 +37,7 @@ export function HelpCenter({ isOpen, onClose, onStartTour, isAdmin }: HelpCenter
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">Astra Help Center</h2>
-              <p className="text-sm text-purple-100">Learn how to use Astra Intelligence</p>
+              <p className="text-sm text-purple-100">Learn how to use AI Rocket + Astra</p>
             </div>
           </div>
           <button

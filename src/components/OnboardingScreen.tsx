@@ -107,7 +107,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
           <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center justify-center gap-3 flex-wrap">
             <span className="text-blue-400">AI Rocket</span>
             <span className="text-white font-normal">+</span>
-            <span className="text-emerald-400">Astra Intelligence</span>
+            <span className="text-emerald-400">Astra</span>
           </h1>
           <p className="text-gray-400">Let's set up your account</p>
         </div>

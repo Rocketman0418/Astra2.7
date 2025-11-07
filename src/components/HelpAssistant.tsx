@@ -173,7 +173,7 @@ export function HelpAssistant() {
               Ask Astra for Help
             </h3>
             <p className="text-gray-400 text-sm max-w-sm mx-auto">
-              I can help you learn how to use Astra Intelligence. Ask me anything about features, settings, or how to get started!
+              I can help you learn how to use AI Rocket + Astra. Ask me anything about features, settings, or how to get started!
             </p>
             <div className="mt-6 space-y-2 text-left max-w-md mx-auto">
               <button

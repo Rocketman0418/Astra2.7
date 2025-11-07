@@ -1,7 +1,7 @@
 {
-  "name": "Astra Intelligence",
-  "short_name": "Astra",
-  "description": "RocketHub team chat tool for company information queries",
+  "name": "AI Rocket",
+  "short_name": "AI Rocket",
+  "description": "AI-powered platform connecting all your data for intelligent insights",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#111827",

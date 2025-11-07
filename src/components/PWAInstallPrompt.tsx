@@ -72,7 +72,7 @@ export function PWAInstallPrompt() {
               <span className="text-xl">🚀</span>
             </div>
             <div>
-              <h3 className="text-white font-bold text-sm">Install Astra Intelligence</h3>
+              <h3 className="text-white font-bold text-sm">Install AI Rocket</h3>
               <p className="text-blue-100 text-xs">Get quick access from your home screen</p>
             </div>
           </div>
