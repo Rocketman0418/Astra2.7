@@ -167,25 +167,19 @@ export const TeamMembersPanel: React.FC = () => {
   };
 
   const removeMember = async (memberId: string, memberEmail: string) => {
-    if (!confirm(`Are you sure you want to remove ${memberEmail} from the team? They will lose access to all team data.`)) {
+    if (!confirm(`Are you sure you want to remove ${memberEmail} from the team?\n\nWARNING: This will PERMANENTLY DELETE their account and all associated data. This action cannot be undone.\n\nUsers without a team cannot exist in the system.`)) {
       return;
     }
 
     try {
       setError('');
 
-      // Remove user from team by setting team_id to null
-      // The trigger will sync this to auth metadata
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({
-          team_id: null,
-          role: null,
-          view_financial: false,
-        })
-        .eq('id', memberId);
+      // Call the database function to completely delete the user
+      const { error: deleteError } = await supabase.rpc('delete_user_completely', {
+        target_user_id: memberId
+      });
 
-      if (updateError) throw updateError;
+      if (deleteError) throw deleteError;
 
       await loadTeamMembers();
     } catch (err: any) {
