@@ -61,11 +61,11 @@ export const TeamMembersPanel: React.FC = () => {
   }, [user?.id]);
 
   useEffect(() => {
-    if (isAdmin && teamId) {
+    if (teamId) {
       loadTeamMembers();
       loadTeamName();
     }
-  }, [isAdmin, teamId]);
+  }, [teamId]);
 
   const loadTeamName = async () => {
     if (!teamId) return;
@@ -272,7 +272,8 @@ Sign up here: ${window.location.origin}`;
     setShowAddMember(false);
   };
 
-  if (!isAdmin) {
+  // Show panel for all team members, just hide admin controls for non-admins
+  if (!teamId) {
     return null;
   }
 
@@ -386,7 +387,7 @@ Sign up here: ${window.location.origin}`;
                       )}
                     </div>
 
-                    {!isCurrentUser && (
+                    {isAdmin && !isCurrentUser && (
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => startEditing(member)}
@@ -464,16 +465,18 @@ Sign up here: ${window.location.origin}`;
           <p>No team members found</p>
         </div>
       ) : (
-        <button
-          onClick={() => setShowAddMember(!showAddMember)}
-          className="w-full mt-4 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-2"
-        >
-          <UserPlus className="w-4 h-4" />
-          <span>{showAddMember ? 'Cancel' : 'Add Member'}</span>
-        </button>
+        isAdmin && (
+          <button
+            onClick={() => setShowAddMember(!showAddMember)}
+            className="w-full mt-4 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-2"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>{showAddMember ? 'Cancel' : 'Add Member'}</span>
+          </button>
+        )
       )}
 
-      {showAddMember && (
+      {isAdmin && showAddMember && (
         <div className="mt-6 bg-gray-900 rounded-lg p-6 border border-gray-700">
           <div className="flex items-center space-x-3 mb-4">
             <UserPlus className="w-5 h-5 text-green-400" />
