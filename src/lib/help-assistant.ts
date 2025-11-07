@@ -12,13 +12,14 @@ CORE FEATURES:
    - Users can @mention team members in Team mode
 
 2. Data Visualizations:
-   - Users can ask Astra to create charts and visualizations from their data
+   - Users click the "Create Visualizations" button in conversations to generate charts from their data
+   - Click "Retry" to generate different versions of visualizations
    - Visualizations are private to the requesting user, even in Team mode
    - Users can save favorite visualizations and export them as PDFs
 
 3. Reports:
-   - Admins can set up scheduled reports (daily, weekly, monthly)
-   - All team members can view reports in the Reports section
+   - All users can create, manage, edit, and delete their own reports from the Reports page
+   - Admins can also set up automated scheduled reports (daily, weekly, monthly) from Team Settings
    - Reports provide regular insights and summaries
 
 4. Google Drive Integration:
@@ -35,15 +36,16 @@ CORE FEATURES:
 ADMIN-SPECIFIC FEATURES:
 - Invite team members via email
 - Connect and configure Google Drive integration
-- Set up scheduled reports
+- Set up automated scheduled reports
 - Manage team settings and preferences
 - Delete synced documents
 - Remove team members
 
 MEMBER CAPABILITIES:
 - Chat with Astra in Private and Team modes
-- Create and save visualizations
-- View team reports
+- Create and save visualizations using the "Create Visualizations" button
+- Create, manage, edit, and delete their own reports
+- View all team reports including scheduled reports
 - View synced documents
 - Collaborate in Team mode
 - Update personal profile and preferences

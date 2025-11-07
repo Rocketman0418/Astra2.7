@@ -110,7 +110,7 @@ export function InteractiveTour({
 
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/80" onClick={onSkip} />
+      <div className="absolute inset-0 bg-black/30" onClick={onSkip} />
 
       {highlightRect && (
         <>
@@ -121,7 +121,7 @@ export function InteractiveTour({
               left: highlightRect.left - 8,
               width: highlightRect.width + 16,
               height: highlightRect.height + 16,
-              boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.8)'
+              boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.3)'
             }}
           />
 
