@@ -83,9 +83,12 @@ export function HelpAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleCloseThread = () => {
     setMessages([]);
+    // Scroll back to top when closing thread
+    containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -160,7 +163,7 @@ export function HelpAssistant() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div ref={containerRef} className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.length === 0 && !isLoading && (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-purple-900/50 rounded-full flex items-center justify-center mx-auto mb-4">

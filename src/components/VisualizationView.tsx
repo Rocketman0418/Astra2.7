@@ -81,34 +81,35 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
   return (
     <div className="fixed inset-0 bg-gray-900 z-50 flex flex-col">
       <header className="bg-gradient-to-r from-blue-600 to-purple-700 shadow-lg">
-        <div className="flex items-center justify-between py-4 px-6">
-          <div className="flex items-center">
+        <div className="flex items-center justify-between py-3 px-3 md:py-4 md:px-6">
+          <div className="flex items-center min-w-0">
             <button
               onClick={onBack}
-              className="mr-4 p-2 hover:bg-blue-700 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
+              className="mr-2 md:mr-4 p-2 hover:bg-blue-700 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation flex-shrink-0"
             >
-              <ArrowLeft className="w-6 h-6 text-white" />
+              <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </button>
-            <h1 className="text-xl font-bold text-white">
+            <h1 className="text-sm md:text-xl font-bold text-white truncate">
               {backButtonText}
             </h1>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
             <button
               onClick={handleExport}
               disabled={exporting}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors min-h-[44px] touch-manipulation bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 disabled:opacity-50"
+              className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-2 rounded-lg transition-colors min-h-[44px] touch-manipulation bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 disabled:opacity-50"
             >
-              <Download className="w-5 h-5" />
-              <span className="font-semibold">{exporting ? 'Exporting...' : 'Export PDF'}</span>
+              <Download className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="text-xs md:text-base font-semibold hidden sm:inline">{exporting ? 'Exporting...' : 'Export PDF'}</span>
+              <span className="text-xs font-semibold sm:hidden">Export</span>
             </button>
 
             {onSave && (
               <button
                 onClick={handleSave}
                 disabled={saving || isSaved}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors min-h-[44px] touch-manipulation ${
+                className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-2 rounded-lg transition-colors min-h-[44px] touch-manipulation ${
                   isSaved
                     ? 'bg-green-600 text-white cursor-default'
                     : 'bg-gradient-to-r from-blue-700 to-blue-800 text-white hover:from-blue-800 hover:to-blue-900'
@@ -116,13 +117,15 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
               >
                 {isSaved ? (
                   <>
-                    <Check className="w-5 h-5" />
-                    <span className="font-semibold">Saved</span>
+                    <Check className="w-4 h-4 md:w-5 md:h-5" />
+                    <span className="text-xs md:text-base font-semibold hidden sm:inline">Saved</span>
+                    <span className="text-xs font-semibold sm:hidden">Saved</span>
                   </>
                 ) : (
                   <>
-                    <Plus className="w-5 h-5" />
-                    <span className="font-semibold">{saving ? 'Saving...' : 'My Visualizations'}</span>
+                    <Plus className="w-4 h-4 md:w-5 md:h-5" />
+                    <span className="text-xs md:text-base font-semibold hidden sm:inline">{saving ? 'Saving...' : 'My Visualizations'}</span>
+                    <span className="text-xs font-semibold sm:hidden">{saving ? 'Saving...' : 'My Vis'}</span>
                   </>
                 )}
               </button>

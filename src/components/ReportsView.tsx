@@ -161,9 +161,9 @@ export const ReportsView: React.FC = () => {
       )}
 
       {/* Content - Single Column Stack */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4 overflow-x-hidden">
         {reportMessages.length > 0 ? (
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className="max-w-4xl mx-auto space-y-6 w-full">
             {reportMessages.map((message) => (
               <div
                 key={message.id}
@@ -189,13 +189,13 @@ export const ReportsView: React.FC = () => {
 
                 {/* Visualization Preview (scrollable) */}
                 {message.visualization && message.visualization_data ? (
-                  <div className="relative">
-                    <div className="h-96 overflow-y-auto bg-gray-900">
+                  <div className="relative overflow-hidden">
+                    <div className="h-96 overflow-y-auto overflow-x-hidden bg-gray-900">
                       <iframe
                         srcDoc={message.visualization_data}
                         className="w-full min-h-full"
                         sandbox="allow-scripts"
-                        style={{ border: 'none' }}
+                        style={{ border: 'none', display: 'block' }}
                       />
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none"></div>
