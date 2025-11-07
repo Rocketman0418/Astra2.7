@@ -65,7 +65,7 @@ export async function getHelpResponse(question: string): Promise<string> {
       throw new Error('Gemini API key is not configured. Please check your environment variables.');
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const result = await model.generateContent([
       { text: APP_HELP_CONTEXT },
