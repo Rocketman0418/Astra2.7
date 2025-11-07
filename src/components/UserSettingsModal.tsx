@@ -16,7 +16,7 @@ interface UserSettingsModalProps {
 }
 
 export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, onClose }) => {
-  const { user } = useAuth();
+  const { user, refreshSession } = useAuth();
   const { profile, loading, updateProfile, uploadAvatar, deleteAvatar } = useUserProfile();
   const [name, setName] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
@@ -32,6 +32,9 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [showTeamSettings, setShowTeamSettings] = useState(false);
   const [teamName, setTeamName] = useState<string>('');
+  const [needsSessionRefresh, setNeedsSessionRefresh] = useState(false);
+  const [refreshingSession, setRefreshingSession] = useState(false);
+  const [dbTeamId, setDbTeamId] = useState<string | null>(null);
 
   const isAdmin = user?.user_metadata?.role === 'admin';
   const teamId = user?.user_metadata?.team_id;
@@ -48,14 +51,53 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
     }
   }, [teamId]);
 
+  React.useEffect(() => {
+    checkSessionSync();
+  }, [user?.id]);
+
+  const checkSessionSync = async () => {
+    if (!user?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('team_id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (!error && data) {
+        setDbTeamId(data.team_id);
+        const sessionTeamId = user.user_metadata?.team_id;
+        if (data.team_id !== sessionTeamId) {
+          setNeedsSessionRefresh(true);
+        }
+      }
+    } catch (err) {
+      console.error('Error checking session sync:', err);
+    }
+  };
+
+  const handleRefreshSession = async () => {
+    setRefreshingSession(true);
+    try {
+      await refreshSession();
+      setNeedsSessionRefresh(false);
+      window.location.reload();
+    } catch (err) {
+      console.error('Error refreshing session:', err);
+    } finally {
+      setRefreshingSession(false);
+    }
+  };
+
   const loadTeamName = async () => {
-    if (!teamId) return;
+    if (!teamId && !dbTeamId) return;
 
     try {
       const { data, error } = await supabase
         .from('teams')
         .select('name')
-        .eq('id', teamId)
+        .eq('id', teamId || dbTeamId)
         .maybeSingle();
 
       if (error) {
@@ -212,6 +254,33 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
           {error && (
             <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
               <p className="text-red-400 text-sm">{error}</p>
+            </div>
+          )}
+
+          {needsSessionRefresh && (
+            <div className="bg-blue-500/10 border border-blue-500/50 rounded-lg p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <p className="text-blue-300 font-medium text-sm mb-1">Session Update Required</p>
+                  <p className="text-blue-200/80 text-xs">
+                    Your account information has been updated. Please refresh your session to see the latest changes.
+                  </p>
+                </div>
+                <button
+                  onClick={handleRefreshSession}
+                  disabled={refreshingSession}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded transition-colors flex items-center space-x-2 flex-shrink-0"
+                >
+                  {refreshingSession ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Refreshing...</span>
+                    </>
+                  ) : (
+                    <span>Refresh Now</span>
+                  )}
+                </button>
+              </div>
             </div>
           )}
 
