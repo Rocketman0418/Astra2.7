@@ -63,11 +63,14 @@ export function InteractiveTour({
       }
     };
 
-    updatePosition();
+    // Add a small delay to ensure DOM is ready after navigation
+    const timeoutId = setTimeout(updatePosition, 100);
+
     window.addEventListener('resize', updatePosition);
     window.addEventListener('scroll', updatePosition);
 
     return () => {
+      clearTimeout(timeoutId);
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition);
     };
