@@ -340,39 +340,39 @@ Sign up here: ${window.location.origin}`;
               key={member.id}
               className="bg-gray-900 rounded-lg p-4 border border-gray-700"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3 flex-1">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center space-x-3 flex-1 min-w-0">
                   {member.avatar_url ? (
                     <img
                       src={member.avatar_url}
                       alt={member.full_name || member.email}
-                      className="w-10 h-10 rounded-full object-cover"
+                      className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                     />
                   ) : (
-                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-white text-sm font-medium">
                         {(member.full_name || member.email).charAt(0).toUpperCase()}
                       </span>
                     </div>
                   )}
 
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <p className="text-white font-medium">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 flex-wrap">
+                      <p className="text-white font-medium truncate">
                         {member.full_name || 'No name set'}
                       </p>
                       {isCurrentUser && (
-                        <span className="text-xs text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded">
+                        <span className="text-xs text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded flex-shrink-0">
                           You
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-400">{member.email}</p>
+                    <p className="text-sm text-gray-400 truncate">{member.email}</p>
                   </div>
                 </div>
 
                 {!isEditing ? (
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
                     <div className="text-right">
                       <div className="flex items-center space-x-1">
                         <Shield
@@ -381,7 +381,7 @@ Sign up here: ${window.location.origin}`;
                           }`}
                         />
                         <span
-                          className={`text-sm font-medium ${
+                          className={`text-xs sm:text-sm font-medium whitespace-nowrap ${
                             member.role === 'admin' ? 'text-yellow-400' : 'text-gray-400'
                           }`}
                         >
@@ -389,7 +389,7 @@ Sign up here: ${window.location.origin}`;
                         </span>
                       </div>
                       {member.role === 'member' && (
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 whitespace-nowrap">
                           {member.view_financial ? 'Financial: Yes' : 'Financial: No'}
                         </p>
                       )}

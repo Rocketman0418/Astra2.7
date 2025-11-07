@@ -414,14 +414,14 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
 
                   <div className="pt-2 border-t border-gray-600">
                     {!isChangingPassword ? (
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <button
                           onClick={() => {
                             setIsChangingPassword(true);
                             setPasswordError('');
                             setPasswordSuccess('');
                           }}
-                          className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+                          className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-2 min-h-[44px]"
                         >
                           <Key className="w-4 h-4" />
                           <span>Change Password</span>
@@ -433,7 +433,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
                               onClose();
                             }
                           }}
-                          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+                          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-2 min-h-[44px]"
                         >
                           <LogOut className="w-4 h-4" />
                           <span>Logout</span>

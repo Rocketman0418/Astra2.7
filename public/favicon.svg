@@ -1,0 +1,7 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Blue circular background -->
+  <circle cx="256" cy="256" r="256" fill="#60A5FA"/>
+
+  <!-- Rocket emoji as text -->
+  <text x="256" y="370" font-size="320" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif">🚀</text>
+</svg>
