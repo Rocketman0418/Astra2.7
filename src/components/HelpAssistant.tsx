@@ -10,6 +10,72 @@ interface Message {
   created_at: string;
 }
 
+const formatMessageText = (text: string): JSX.Element => {
+  // Split text into lines and process each line
+  const lines = text.split('\n');
+  const elements: JSX.Element[] = [];
+
+  lines.forEach((line, index) => {
+    const trimmedLine = line.trim();
+
+    // Skip empty lines but add spacing
+    if (!trimmedLine) {
+      elements.push(<br key={`br-${index}`} />);
+      return;
+    }
+
+    // Handle numbered lists (1. 2. 3. etc.)
+    const numberedListMatch = trimmedLine.match(/^(\d+)\.\s*\*\*(.*?)\*\*:\s*(.*)$/);
+    if (numberedListMatch) {
+      const [, number, title, content] = numberedListMatch;
+      elements.push(
+        <div key={index} className="mb-4">
+          <div className="flex items-start space-x-2">
+            <span className="flex-shrink-0 w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+              {number}
+            </span>
+            <div className="flex-1">
+              <div className="font-bold text-purple-300 mb-1">{title}</div>
+              <div className="text-gray-300 leading-relaxed">{content}</div>
+            </div>
+          </div>
+        </div>
+      );
+      return;
+    }
+
+    // Handle regular bold text
+    const boldRegex = /\*\*(.*?)\*\*/g;
+    if (boldRegex.test(trimmedLine)) {
+      const parts = trimmedLine.split(boldRegex);
+      const formattedParts = parts.map((part, partIndex) => {
+        if (partIndex % 2 === 1) {
+          return <strong key={partIndex} className="font-bold text-purple-300">{part}</strong>;
+        }
+        return part;
+      });
+      elements.push(<div key={index} className="mb-2">{formattedParts}</div>);
+      return;
+    }
+
+    // Handle bullet points
+    if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-')) {
+      elements.push(
+        <div key={index} className="flex items-start space-x-2 mb-2 ml-4">
+          <span className="text-purple-400 mt-1">•</span>
+          <span className="text-gray-300">{trimmedLine.substring(1).trim()}</span>
+        </div>
+      );
+      return;
+    }
+
+    // Regular text
+    elements.push(<div key={index} className="mb-2 text-gray-300">{trimmedLine}</div>);
+  });
+
+  return <div>{elements}</div>;
+};
+
 export function HelpAssistant() {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -149,7 +215,9 @@ export function HelpAssistant() {
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               <div className="bg-gray-800 text-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.response}</p>
+                <div className="text-sm leading-relaxed">
+                  {formatMessageText(message.response)}
+                </div>
               </div>
             </div>
           </div>
