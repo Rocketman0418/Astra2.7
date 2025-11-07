@@ -456,22 +456,31 @@ export const GoogleDriveSettings: React.FC = () => {
                           </div>
 
                           {syncedDocuments.length > 0 && (
-                            <div className="bg-gray-800/50 rounded p-3 border border-gray-700 max-h-40 overflow-y-auto">
-                              <p className="text-gray-400 text-xs mb-2">Recent Documents</p>
-                              <div className="space-y-1.5">
-                                {syncedDocuments.slice(0, 5).map((doc) => (
-                                  <div key={doc.id} className="flex items-start space-x-2">
-                                    <FileText className="w-3 h-3 text-gray-500 mt-0.5 flex-shrink-0" />
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-xs text-white truncate">{doc.title}</p>
-                                      <p className="text-xs text-gray-500">
-                                        {doc.folder_type} • {new Date(doc.created_at).toLocaleDateString()}
-                                      </p>
+                            <>
+                              <div className="bg-gray-800/50 rounded p-3 border border-gray-700 max-h-40 overflow-y-auto">
+                                <p className="text-gray-400 text-xs mb-2">Recent Documents</p>
+                                <div className="space-y-1.5">
+                                  {syncedDocuments.slice(0, 5).map((doc) => (
+                                    <div key={doc.id} className="flex items-start space-x-2">
+                                      <FileText className="w-3 h-3 text-gray-500 mt-0.5 flex-shrink-0" />
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-xs text-white truncate">{doc.title}</p>
+                                        <p className="text-xs text-gray-500">
+                                          {doc.folder_type} • {new Date(doc.created_at).toLocaleDateString()}
+                                        </p>
+                                      </div>
                                     </div>
-                                  </div>
-                                ))}
+                                  ))}
+                                </div>
                               </div>
-                            </div>
+                              <button
+                                onClick={() => setShowAllDocumentsModal(true)}
+                                className="w-full mt-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors flex items-center justify-center space-x-2"
+                              >
+                                <Edit className="w-3 h-3" />
+                                <span>View All Documents</span>
+                              </button>
+                            </>
                           )}
                         </div>
                       )}
@@ -643,8 +652,8 @@ export const GoogleDriveSettings: React.FC = () => {
               </div>
             )}
 
-            {/* Synced Documents Summary - Admin Only */}
-            {connection.is_active && isAdmin && (
+            {/* Synced Documents Summary - All Team Members */}
+            {connection.is_active && (
               <div className="mt-4 border-t border-gray-600 pt-4">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm font-semibold text-white flex items-center space-x-2">
@@ -709,7 +718,7 @@ export const GoogleDriveSettings: React.FC = () => {
                           className="w-full mt-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors flex items-center justify-center space-x-2"
                         >
                           <Edit className="w-3 h-3" />
-                          <span>View and Edit All Documents</span>
+                          <span>{isAdmin ? 'View and Edit All Documents' : 'View All Documents'}</span>
                         </button>
                       </>
                     )}
@@ -949,6 +958,17 @@ export const GoogleDriveSettings: React.FC = () => {
             </div>
 
             <div className="p-6 overflow-y-auto flex-1">
+              {!isAdmin && (
+                <div className="mb-4 bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                  <div className="flex items-start space-x-2">
+                    <Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                    <p className="text-blue-300 text-xs">
+                      You can view all synced documents here. Only team administrators can delete documents from Astra Intelligence.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {loadingDocuments ? (
                 <div className="flex items-center justify-center space-x-2 text-gray-400 py-8">
                   <div className="w-4 h-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
@@ -987,23 +1007,25 @@ export const GoogleDriveSettings: React.FC = () => {
                           </a>
                         )}
                       </div>
-                      <button
-                        onClick={() => handleDeleteDocument(doc.id)}
-                        disabled={deletingDocId === doc.id}
-                        className="px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs rounded transition-colors flex items-center space-x-1"
-                      >
-                        {deletingDocId === doc.id ? (
-                          <>
-                            <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            <span>Deleting...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Trash2 className="w-3 h-3" />
-                            <span>Delete</span>
-                          </>
-                        )}
-                      </button>
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleDeleteDocument(doc.id)}
+                          disabled={deletingDocId === doc.id}
+                          className="px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs rounded transition-colors flex items-center space-x-1"
+                        >
+                          {deletingDocId === doc.id ? (
+                            <>
+                              <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              <span>Deleting...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 className="w-3 h-3" />
+                              <span>Delete</span>
+                            </>
+                          )}
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
