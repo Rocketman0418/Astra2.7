@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { ArrowLeft, ArrowRight, X, Sparkles } from 'lucide-react';
+import { TourNavigation } from '../data/tourSteps';
 
 export interface TourStep {
   id: string;
@@ -7,6 +8,7 @@ export interface TourStep {
   description: string;
   targetSelector: string;
   position?: 'top' | 'bottom' | 'left' | 'right';
+  navigation?: TourNavigation;
 }
 
 interface InteractiveTourProps {
@@ -16,6 +18,7 @@ interface InteractiveTourProps {
   onPrevious: () => void;
   onSkip: () => void;
   onComplete: () => void;
+  onNavigate?: (navigation: TourNavigation) => void;
 }
 
 export function InteractiveTour({
@@ -24,7 +27,8 @@ export function InteractiveTour({
   onNext,
   onPrevious,
   onSkip,
-  onComplete
+  onComplete,
+  onNavigate
 }: InteractiveTourProps) {
   const [highlightRect, setHighlightRect] = useState<DOMRect | null>(null);
   const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
@@ -33,6 +37,13 @@ export function InteractiveTour({
   const step = steps[currentStep];
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === steps.length - 1;
+
+  // Handle navigation when step changes
+  useEffect(() => {
+    if (step.navigation && onNavigate) {
+      onNavigate(step.navigation);
+    }
+  }, [currentStep, step.navigation, onNavigate]);
 
   useEffect(() => {
     const updatePosition = () => {

@@ -156,6 +156,18 @@ export const MainContainer: React.FC = () => {
     setShowTour(true);
   };
 
+  const handleTourNavigate = (navigation: { mode?: ChatMode; openUserSettings?: boolean; closeUserSettings?: boolean }) => {
+    if (navigation.mode) {
+      setChatMode(navigation.mode);
+    }
+    if (navigation.openUserSettings) {
+      setShowUserSettings(true);
+    }
+    if (navigation.closeUserSettings) {
+      setShowUserSettings(false);
+    }
+  };
+
   if (showSavedVisualizations) {
     return (
       <SavedVisualizationsList
@@ -250,6 +262,7 @@ export const MainContainer: React.FC = () => {
           onPrevious={() => setTourStep(prev => prev - 1)}
           onSkip={handleTourSkip}
           onComplete={handleTourComplete}
+          onNavigate={handleTourNavigate}
         />
       )}
 
