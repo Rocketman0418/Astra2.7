@@ -1,5 +1,5 @@
 import React, { KeyboardEvent } from 'react';
-import { Send, Bookmark, X, Reply, Mail } from 'lucide-react';
+import { Send, Bookmark, X, Reply } from 'lucide-react';
 import { FavoritesDropdown } from './FavoritesDropdown';
 import { FavoriteMessage, ReplyState } from '../types';
 
@@ -12,7 +12,6 @@ interface ChatInputProps {
   onRemoveFavorite?: (messageId: string) => void;
   replyState?: ReplyState;
   onCancelReply?: () => void;
-  onOpenEmailSettings?: () => void;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -23,8 +22,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   favorites = [],
   onRemoveFavorite,
   replyState,
-  onCancelReply,
-  onOpenEmailSettings
+  onCancelReply
 }) => {
   const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -70,17 +68,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       )}
       
       <div className="flex items-end space-x-2 md:space-x-3 max-w-4xl mx-auto">
-        {/* Email and Bookmark buttons */}
+        {/* Bookmark button */}
         <div className="flex-shrink-0 mb-2 flex flex-col space-y-2">
-          {onOpenEmailSettings && (
-            <button
-              onClick={onOpenEmailSettings}
-              className="p-2 hover:bg-gray-700 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-              title="Email Settings"
-            >
-              <Mail className="w-5 h-5 text-gray-400" />
-            </button>
-          )}
           {onRemoveFavorite && (
             <FavoritesDropdown
               favorites={favorites}
