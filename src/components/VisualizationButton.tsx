@@ -57,7 +57,7 @@ export const VisualizationButton: React.FC<VisualizationButtonProps> = ({
   console.log('🔍 VisualizationButton: Button state - isGenerating:', isGenerating, 'hasVisualization:', hasVisualization, 'buttonText:', buttonText);
   
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center space-x-2" data-tour="visualization-button">
       <button
         onClick={handleClick}
         disabled={isGenerating}
