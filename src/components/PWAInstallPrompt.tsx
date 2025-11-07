@@ -11,26 +11,33 @@ export function PWAInstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    // Only run in production and if not already installed
+    if (!import.meta.env.PROD) return;
 
-      // Check if user has previously dismissed the prompt
-      const dismissed = localStorage.getItem('pwa-install-dismissed');
-      if (!dismissed) {
-        // Wait a few seconds before showing the prompt
-        setTimeout(() => setShowPrompt(true), 3000);
+    try {
+      // Check if already installed
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        return;
       }
-    };
 
-    window.addEventListener('beforeinstallprompt', handler);
+      const handler = (e: Event) => {
+        e.preventDefault();
+        setDeferredPrompt(e as BeforeInstallPromptEvent);
 
-    // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setShowPrompt(false);
+        // Check if user has previously dismissed the prompt
+        const dismissed = localStorage.getItem('pwa-install-dismissed');
+        if (!dismissed) {
+          // Wait a few seconds before showing the prompt
+          setTimeout(() => setShowPrompt(true), 5000);
+        }
+      };
+
+      window.addEventListener('beforeinstallprompt', handler);
+
+      return () => window.removeEventListener('beforeinstallprompt', handler);
+    } catch (error) {
+      console.warn('PWA Install Prompt setup failed:', error);
     }
-
-    return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
   const handleInstall = async () => {

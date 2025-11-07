@@ -205,7 +205,7 @@ export const MainContainer: React.FC = () => {
         }}
       />
       
-      <div className="flex flex-col h-screen">
+      <div className="flex flex-col h-screen overflow-hidden">
         <Header
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           showSidebarToggle={chatMode === 'private'}
@@ -215,13 +215,13 @@ export const MainContainer: React.FC = () => {
           onStartTour={handleRestartTour}
         />
 
-        {/* Chat Mode Toggle */}
-        <div className="pt-16" data-tour="mode-toggle">
+        {/* Chat Mode Toggle - Fixed below header */}
+        <div className="pt-16 flex-shrink-0" data-tour="mode-toggle">
           <ChatModeToggle mode={chatMode} onModeChange={setChatMode} />
         </div>
 
-        {/* Chat Content */}
-        <div className="flex-1 overflow-hidden">
+        {/* Chat Content - Scrollable area */}
+        <div className="flex-1 overflow-y-auto">
           {chatMode === 'reports' ? (
             <ReportsView />
           ) : chatMode === 'private' ? (
@@ -236,7 +236,7 @@ export const MainContainer: React.FC = () => {
               onOpenEmailSettings={handleOpenUserSettings}
             />
           ) : (
-            <GroupChat 
+            <GroupChat
               showTeamMenu={showTeamMenu}
               onCloseTeamMenu={() => setShowTeamMenu(false)}
               onSwitchToPrivateChat={handleSwitchToPrivateChat}
