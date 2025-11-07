@@ -72,8 +72,10 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* Brand Title - Responsive */}
-            <h1 className="text-base md:text-2xl font-bold tracking-tight flex items-center gap-1.5 md:gap-3">
-              {/* Mobile: Show only "Astra" */}
+            <h1 className="text-sm md:text-2xl font-bold tracking-tight flex items-center gap-1 md:gap-3">
+              {/* Mobile: Show shortened version */}
+              <span className="md:hidden text-blue-400">AI Rocket</span>
+              <span className="md:hidden text-white font-normal">+</span>
               <span className="md:hidden text-emerald-400">Astra</span>
 
               {/* Desktop: Show full title */}
