@@ -522,35 +522,39 @@ export const GoogleDriveSettings: React.FC = () => {
                 </p>
               )}
             </div>
-            <button
-              onClick={handleDisconnect}
-              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors flex items-center space-x-1"
-            >
-              <Trash2 className="w-3 h-3" />
-              <span>Disconnect</span>
-            </button>
+            {isAdmin && (
+              <button
+                onClick={handleDisconnect}
+                className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors flex items-center space-x-1"
+              >
+                <Trash2 className="w-3 h-3" />
+                <span>Disconnect</span>
+              </button>
+            )}
           </div>
 
           <div className="border-t border-gray-600 pt-4">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-semibold text-white">Folder Configuration</h4>
-              <button
-                onClick={handleLoadFolders}
-                disabled={loadingFolders}
-                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-sm rounded transition-colors flex items-center space-x-1"
-              >
-                {loadingFolders ? (
-                  <>
-                    <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Loading...</span>
-                  </>
-                ) : (
-                  <>
-                    <FolderOpen className="w-3 h-3" />
-                    <span>Select Folders</span>
-                  </>
-                )}
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={handleLoadFolders}
+                  disabled={loadingFolders}
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-sm rounded transition-colors flex items-center space-x-1"
+                >
+                  {loadingFolders ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Loading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FolderOpen className="w-3 h-3" />
+                      <span>Select Folders</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
 
             <div className="space-y-3">
@@ -626,6 +630,18 @@ export const GoogleDriveSettings: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Admin Controls Info for Members */}
+            {!isAdmin && (
+              <div className="mt-4 bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                <div className="flex items-start space-x-2">
+                  <Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-blue-300 text-xs">
+                    Only team administrators can connect, disconnect, or modify folder settings. Contact an admin if changes are needed.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Synced Documents Summary - Admin Only */}
             {connection.is_active && isAdmin && (

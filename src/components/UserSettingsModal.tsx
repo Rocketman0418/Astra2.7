@@ -582,7 +582,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
             </div>
           )}
 
-          {isAdmin && (
+          {teamId && (
             <TeamMembersPanel />
           )}
 

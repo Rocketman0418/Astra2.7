@@ -296,19 +296,33 @@ Sign up here: ${window.location.origin}`;
         )}
       </div>
 
-      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
-        <div className="flex items-start space-x-3">
-          <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-200 space-y-2">
-            <p className="font-medium">Understanding Roles & Permissions</p>
-            <ul className="space-y-1 text-xs text-blue-300">
-              <li><strong>Admin:</strong> Can invite team members, manage roles, and access all features including financial data.</li>
-              <li><strong>Member:</strong> Standard access with optional financial data viewing permissions.</li>
-              <li><strong>View Financials:</strong> When enabled for members, allows access to financial documents and data.</li>
-            </ul>
+      {isAdmin ? (
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+          <div className="flex items-start space-x-3">
+            <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-200 space-y-2">
+              <p className="font-medium">Understanding Roles & Permissions</p>
+              <ul className="space-y-1 text-xs text-blue-300">
+                <li><strong>Admin:</strong> Can invite team members, manage roles, and access all features including financial data.</li>
+                <li><strong>Member:</strong> Standard access with optional financial data viewing permissions.</li>
+                <li><strong>View Financials:</strong> When enabled for members, allows access to financial documents and data.</li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+          <div className="flex items-start space-x-3">
+            <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-200">
+              <p className="font-medium mb-1">Team Member View</p>
+              <p className="text-xs text-blue-300">
+                You can view your team members here. Only team administrators can invite new members or modify roles and permissions.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 bg-red-500/10 border border-red-500/50 rounded-lg p-4">
