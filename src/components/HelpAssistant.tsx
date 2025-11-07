@@ -100,12 +100,12 @@ export function HelpAssistant() {
             <p className="text-gray-400 text-sm max-w-sm mx-auto">
               I can help you learn how to use Astra Intelligence. Ask me anything about features, settings, or how to get started!
             </p>
-            <div className="mt-6 space-y-2 text-left max-w-sm mx-auto">
+            <div className="mt-6 space-y-2 text-left max-w-md mx-auto">
               <button
-                onClick={() => setInput('How do I create a visualization?')}
+                onClick={() => setInput('What kind of questions can I ask Astra to get the best responses?')}
                 className="w-full text-left px-4 py-2 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors text-sm"
               >
-                How do I create a visualization?
+                What kind of questions can I ask Astra to get the best responses?
               </button>
               <button
                 onClick={() => setInput('What\'s the difference between Private and Team chat?')}
@@ -114,10 +114,22 @@ export function HelpAssistant() {
                 What's the difference between Private and Team chat?
               </button>
               <button
-                onClick={() => setInput('How do I invite team members?')}
+                onClick={() => setInput('What are Reports and how can I use them?')}
                 className="w-full text-left px-4 py-2 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors text-sm"
               >
-                How do I invite team members?
+                What are Reports and how can I use them?
+              </button>
+              <button
+                onClick={() => setInput('How do I create, save and export visualizations?')}
+                className="w-full text-left px-4 py-2 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors text-sm"
+              >
+                How do I create, save and export visualizations?
+              </button>
+              <button
+                onClick={() => setInput('How does Astra understand me, our team, and our data?')}
+                className="w-full text-left px-4 py-2 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors text-sm"
+              >
+                How does Astra understand me, our team, and our data?
               </button>
             </div>
           </div>
