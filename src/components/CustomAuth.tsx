@@ -216,7 +216,7 @@ export const CustomAuth: React.FC = () => {
               : 'text-gray-400 hover:text-gray-300'
           }`}
         >
-          Login
+          Existing Users
         </button>
       </div>
 
