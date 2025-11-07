@@ -84,6 +84,10 @@ export function HelpAssistant() {
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const handleCloseThread = () => {
+    setMessages([]);
+  };
+
   useEffect(() => {
     if (user) {
       loadConversationHistory();
@@ -203,7 +207,7 @@ export function HelpAssistant() {
           </div>
         )}
 
-        {messages.map((message) => (
+        {messages.map((message, index) => (
           <div key={message.id} className="space-y-3">
             <div className="flex justify-end">
               <div className="bg-blue-600 text-white rounded-2xl rounded-tr-sm px-4 py-2 max-w-[85%]">
@@ -214,10 +218,20 @@ export function HelpAssistant() {
               <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
-              <div className="bg-gray-800 text-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
-                <div className="text-sm leading-relaxed">
-                  {formatMessageText(message.response)}
+              <div className="flex-1">
+                <div className="bg-gray-800 text-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
+                  <div className="text-sm leading-relaxed">
+                    {formatMessageText(message.response)}
+                  </div>
                 </div>
+                {index === messages.length - 1 && !isLoading && (
+                  <button
+                    onClick={handleCloseThread}
+                    className="mt-2 ml-1 text-xs text-gray-400 hover:text-purple-400 transition-colors underline"
+                  >
+                    Close this thread
+                  </button>
+                )}
               </div>
             </div>
           </div>
