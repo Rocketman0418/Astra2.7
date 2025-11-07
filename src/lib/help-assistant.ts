@@ -60,15 +60,33 @@ IMPORTANT GUIDELINES:
 Answer the user's question clearly and helpfully.`;
 
 export async function getHelpResponse(question: string): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  try {
+    if (!import.meta.env.VITE_GEMINI_API_KEY) {
+      throw new Error('Gemini API key is not configured. Please check your environment variables.');
+    }
 
-  const result = await model.generateContent([
-    { text: APP_HELP_CONTEXT },
-    { text: `User question: ${question}` }
-  ]);
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-  const response = await result.response;
-  return response.text();
+    const result = await model.generateContent([
+      { text: APP_HELP_CONTEXT },
+      { text: `User question: ${question}` }
+    ]);
+
+    const response = await result.response;
+    return response.text();
+  } catch (error: any) {
+    console.error('Error getting help response:', error);
+
+    if (error?.message?.includes('API key')) {
+      throw new Error('API configuration error. Please contact support.');
+    }
+
+    if (error?.message?.includes('quota') || error?.message?.includes('rate limit')) {
+      throw new Error('Service is currently busy. Please try again in a moment.');
+    }
+
+    throw new Error('Unable to get response. Please check your connection and try again.');
+  }
 }
 
 export async function saveHelpConversation(

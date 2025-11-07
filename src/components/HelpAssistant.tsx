@@ -65,12 +65,14 @@ export function HelpAssistant() {
         response,
         created_at: new Date().toISOString()
       }]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting help response:', error);
+      const errorMessage = error?.message || 'Sorry, I encountered an error. Please try again or check the FAQ section for common questions.';
+
       setMessages(prev => [...prev, {
         id: crypto.randomUUID(),
         question,
-        response: 'Sorry, I encountered an error. Please try again or check the FAQ section for common questions.',
+        response: errorMessage,
         created_at: new Date().toISOString()
       }]);
     } finally {
@@ -138,7 +140,7 @@ export function HelpAssistant() {
         {messages.map((message) => (
           <div key={message.id} className="space-y-3">
             <div className="flex justify-end">
-              <div className="bg-gradient-to-r from-orange-500 to-blue-500 text-white rounded-2xl rounded-tr-sm px-4 py-2 max-w-[85%]">
+              <div className="bg-blue-600 text-white rounded-2xl rounded-tr-sm px-4 py-2 max-w-[85%]">
                 <p className="text-sm">{message.question}</p>
               </div>
             </div>
