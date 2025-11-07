@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from './Header';
 import { ChatSidebar } from './ChatSidebar';
 import { ChatContainer } from './ChatContainer';
@@ -7,9 +7,14 @@ import { ReportsView } from './ReportsView';
 import { ChatModeToggle } from './ChatModeToggle';
 import { SavedVisualizationsList } from './SavedVisualizationsList';
 import { UserSettingsModal } from './UserSettingsModal';
+import { WelcomeModal } from './WelcomeModal';
+import { InteractiveTour } from './InteractiveTour';
+import { HelpCenter } from './HelpCenter';
 import { ChatMode } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useSavedVisualizations } from '../hooks/useSavedVisualizations';
+import { getTourStepsForRole } from '../data/tourSteps';
+import { supabase } from '../lib/supabase';
 
 export const MainContainer: React.FC = () => {
   const { user } = useAuth();
@@ -22,11 +27,34 @@ export const MainContainer: React.FC = () => {
   const [showSavedVisualizations, setShowSavedVisualizations] = useState(false);
   const [showUserSettings, setShowUserSettings] = useState(false);
 
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showTour, setShowTour] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+  const [showHelpCenter, setShowHelpCenter] = useState(false);
+
+  const isAdmin = user?.user_metadata?.role === 'admin';
+  const tourSteps = getTourStepsForRole(isAdmin);
+
   const {
     savedVisualizations,
     loading: savedVisualizationsLoading,
     deleteVisualization
   } = useSavedVisualizations(user?.id);
+
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      if (!user) return;
+
+      const onboardingCompleted = user.user_metadata?.onboarding_completed;
+      const onboardingDismissed = user.user_metadata?.onboarding_dismissed;
+
+      if (!onboardingCompleted && !onboardingDismissed) {
+        setShowWelcomeModal(true);
+      }
+    };
+
+    checkOnboardingStatus();
+  }, [user]);
 
   // Close sidebar when switching away from private chat mode
   React.useEffect(() => {
@@ -90,6 +118,44 @@ export const MainContainer: React.FC = () => {
     }
   };
 
+  const handleStartTour = () => {
+    setShowWelcomeModal(false);
+    setTourStep(0);
+    setShowTour(true);
+  };
+
+  const handleDismissWelcome = async () => {
+    setShowWelcomeModal(false);
+    if (user) {
+      await supabase.auth.updateUser({
+        data: { onboarding_dismissed: true }
+      });
+    }
+  };
+
+  const handleTourComplete = async () => {
+    setShowTour(false);
+    if (user) {
+      await supabase.auth.updateUser({
+        data: { onboarding_completed: true }
+      });
+    }
+  };
+
+  const handleTourSkip = async () => {
+    setShowTour(false);
+    if (user) {
+      await supabase.auth.updateUser({
+        data: { onboarding_dismissed: true }
+      });
+    }
+  };
+
+  const handleRestartTour = () => {
+    setTourStep(0);
+    setShowTour(true);
+  };
+
   if (showSavedVisualizations) {
     return (
       <SavedVisualizationsList
@@ -120,18 +186,25 @@ export const MainContainer: React.FC = () => {
       <UserSettingsModal
         isOpen={showUserSettings}
         onClose={() => setShowUserSettings(false)}
+        onStartTour={handleRestartTour}
+        onOpenHelpCenter={() => {
+          setShowUserSettings(false);
+          setShowHelpCenter(true);
+        }}
       />
       
       <div className="flex flex-col h-screen">
-        <Header 
+        <Header
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           showSidebarToggle={chatMode === 'private'}
           chatMode={chatMode}
           onToggleTeamMenu={handleToggleTeamMenu}
+          onOpenHelpCenter={() => setShowHelpCenter(true)}
+          onStartTour={handleRestartTour}
         />
-        
+
         {/* Chat Mode Toggle */}
-        <div className="pt-16">
+        <div className="pt-16" data-tour="mode-toggle">
           <ChatModeToggle mode={chatMode} onModeChange={setChatMode} />
         </div>
 
@@ -159,6 +232,34 @@ export const MainContainer: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Onboarding Modals */}
+      {showWelcomeModal && (
+        <WelcomeModal
+          userName={user?.user_metadata?.full_name || 'there'}
+          onStartTour={handleStartTour}
+          onDismiss={handleDismissWelcome}
+        />
+      )}
+
+      {showTour && (
+        <InteractiveTour
+          steps={tourSteps}
+          currentStep={tourStep}
+          onNext={() => setTourStep(prev => prev + 1)}
+          onPrevious={() => setTourStep(prev => prev - 1)}
+          onSkip={handleTourSkip}
+          onComplete={handleTourComplete}
+        />
+      )}
+
+      {/* Help Center */}
+      <HelpCenter
+        isOpen={showHelpCenter}
+        onClose={() => setShowHelpCenter(false)}
+        onStartTour={handleRestartTour}
+        isAdmin={isAdmin}
+      />
     </div>
   );
 };

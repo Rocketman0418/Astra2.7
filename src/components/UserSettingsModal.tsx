@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, User as UserIcon, Save, LogOut, Key, Camera, Trash2, Upload, Settings, Mail, Clock, HardDrive } from 'lucide-react';
+import { X, User as UserIcon, Save, LogOut, Key, Camera, Trash2, Upload, Settings, Mail, Clock, HardDrive, HelpCircle, Sparkles, BookOpen } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { GmailSettings } from './GmailSettings';
 import { GoogleDriveSettings } from './GoogleDriveSettings';
@@ -13,9 +13,11 @@ import { FEATURES } from '../config/features';
 interface UserSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onStartTour?: () => void;
+  onOpenHelpCenter?: () => void;
 }
 
-export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, onClose }) => {
+export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, onClose, onStartTour, onOpenHelpCenter }) => {
   const { user, refreshSession } = useAuth();
   const { profile, loading, updateProfile, uploadAvatar, deleteAvatar } = useUserProfile();
   const [name, setName] = useState('');
@@ -583,12 +585,50 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
           )}
 
           {teamId && (
-            <TeamMembersPanel />
+            <div data-tour="team-panel">
+              <TeamMembersPanel />
+            </div>
           )}
 
           {isAdmin && (
             <AdminInviteCodesPanel />
           )}
+
+          <div className="bg-gray-700/50 rounded-lg p-6 border border-gray-600">
+            <div className="flex items-center space-x-3 mb-4">
+              <HelpCircle className="w-5 h-5 text-purple-400" />
+              <h3 className="text-lg font-semibold text-white">Help & Onboarding</h3>
+            </div>
+            <p className="text-sm text-gray-400 mb-4">
+              Get help learning how to use Astra Intelligence or restart the interactive tour.
+            </p>
+            <div className="space-y-2">
+              {onStartTour && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    onStartTour();
+                  }}
+                  className="w-full px-4 py-3 bg-gradient-to-r from-orange-500 to-blue-500 hover:opacity-90 text-white rounded-lg transition-opacity flex items-center space-x-3"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Take Interactive Tour</span>
+                </button>
+              )}
+              {onOpenHelpCenter && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    onOpenHelpCenter();
+                  }}
+                  className="w-full px-4 py-3 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors flex items-center space-x-3"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  <span>Open Help Center</span>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Menu, User, MessageSquare, Users, Search } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Menu, User, HelpCircle, BookOpen, MessageCircleQuestion, Sparkles } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { ChatMode } from '../types';
 import { NotificationBell } from './NotificationBell';
@@ -11,17 +11,34 @@ interface HeaderProps {
   showSidebarToggle?: boolean;
   chatMode?: ChatMode;
   onToggleTeamMenu?: () => void;
+  onOpenHelpCenter?: () => void;
+  onStartTour?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onToggleSidebar,
   showSidebarToggle = true,
   chatMode = 'private',
-  onToggleTeamMenu
+  onToggleTeamMenu,
+  onOpenHelpCenter,
+  onStartTour
 }) => {
   const { user } = useAuth();
   const { profile } = useUserProfile();
   const [showSettings, setShowSettings] = useState(false);
+  const [showHelpMenu, setShowHelpMenu] = useState(false);
+  const helpMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (helpMenuRef.current && !helpMenuRef.current.contains(event.target as Node)) {
+        setShowHelpMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-[#1e293b] shadow-lg px-4 h-16">
@@ -66,6 +83,53 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Right side - User info */}
         <div className="flex items-center space-x-2">
           <NotificationBell onOpenSettings={() => setShowSettings(true)} />
+
+          {/* Help Menu */}
+          <div className="relative" ref={helpMenuRef}>
+            <button
+              onClick={() => setShowHelpMenu(!showHelpMenu)}
+              className="p-2 hover:bg-slate-700 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
+              aria-label="Help"
+            >
+              <HelpCircle className="w-5 h-5 text-white" />
+            </button>
+
+            {showHelpMenu && (
+              <div className="absolute right-0 mt-2 w-56 bg-gray-800 rounded-lg shadow-xl border border-gray-700 py-2 z-50">
+                <button
+                  onClick={() => {
+                    setShowHelpMenu(false);
+                    onStartTour?.();
+                  }}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 transition-colors flex items-center gap-3"
+                >
+                  <Sparkles className="w-4 h-4 text-orange-400" />
+                  <span>Take Tour Again</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setShowHelpMenu(false);
+                    onOpenHelpCenter?.();
+                  }}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 transition-colors flex items-center gap-3"
+                >
+                  <BookOpen className="w-4 h-4 text-blue-400" />
+                  <span>Quick Start Guide</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setShowHelpMenu(false);
+                    onOpenHelpCenter?.();
+                  }}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 transition-colors flex items-center gap-3"
+                >
+                  <MessageCircleQuestion className="w-4 h-4 text-green-400" />
+                  <span>FAQ & Ask Astra</span>
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="hidden sm:block text-right">
             <p className="text-white text-sm font-medium">
               {profile?.full_name || user?.user_metadata?.full_name || 'User'}
@@ -75,6 +139,7 @@ export const Header: React.FC<HeaderProps> = ({
             </p>
           </div>
           <button
+            data-tour="user-menu"
             onClick={() => setShowSettings(true)}
             className="w-8 h-8 rounded-full flex items-center justify-center hover:ring-2 hover:ring-white/30 transition-all cursor-pointer overflow-hidden"
           >

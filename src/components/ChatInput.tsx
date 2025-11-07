@@ -90,7 +90,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           )}
         </div>
         
-        <div className="flex-1 relative">
+        <div className="flex-1 relative" data-tour="chat-input">
           <textarea
             value={value}
             onChange={(e) => onChange(e.target.value)}
@@ -99,7 +99,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             disabled={disabled}
             className="w-full resize-none rounded-2xl border border-gray-600 bg-gray-800 text-white px-3 py-2 md:px-4 md:py-3 pr-12 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:bg-gray-700 disabled:cursor-not-allowed max-h-32 min-h-[72px] md:min-h-[72px] text-sm md:text-base leading-relaxed placeholder-gray-400"
             rows={3}
-            style={{ 
+            style={{
               scrollbarWidth: 'thin',
               scrollbarColor: '#3b82f6 #374151'
             }}

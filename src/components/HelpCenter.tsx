@@ -1,0 +1,98 @@
+import { useState } from 'react';
+import { X, BookOpen, MessageCircleQuestion, Sparkles } from 'lucide-react';
+import { FAQSection } from './FAQSection';
+import { HelpAssistant } from './HelpAssistant';
+import { QuickStartGuide } from './QuickStartGuide';
+
+interface HelpCenterProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onStartTour: () => void;
+  isAdmin: boolean;
+}
+
+type TabType = 'quick-start' | 'faq' | 'ask-astra';
+
+export function HelpCenter({ isOpen, onClose, onStartTour, isAdmin }: HelpCenterProps) {
+  const [activeTab, setActiveTab] = useState<TabType>('quick-start');
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      <div
+        className="fixed inset-0 bg-black/20 z-40 md:hidden"
+        onClick={onClose}
+      />
+
+      <div
+        className={`fixed top-0 right-0 h-full w-full md:w-[480px] bg-gray-900 shadow-2xl z-50 transform transition-transform duration-300 ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        } flex flex-col`}
+      >
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white">Astra Help Center</h2>
+              <p className="text-sm text-purple-100">Learn how to use Astra Intelligence</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-white/80 hover:text-white transition-colors"
+            aria-label="Close help center"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="flex border-b border-gray-800">
+          <button
+            onClick={() => setActiveTab('quick-start')}
+            className={`flex-1 py-3 px-4 font-medium transition-colors flex items-center justify-center gap-2 ${
+              activeTab === 'quick-start'
+                ? 'text-purple-400 border-b-2 border-purple-400 bg-gray-800/50'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span className="hidden sm:inline">Quick Start</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('faq')}
+            className={`flex-1 py-3 px-4 font-medium transition-colors flex items-center justify-center gap-2 ${
+              activeTab === 'faq'
+                ? 'text-purple-400 border-b-2 border-purple-400 bg-gray-800/50'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <MessageCircleQuestion className="w-4 h-4" />
+            <span className="hidden sm:inline">FAQ</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('ask-astra')}
+            className={`flex-1 py-3 px-4 font-medium transition-colors flex items-center justify-center gap-2 ${
+              activeTab === 'ask-astra'
+                ? 'text-purple-400 border-b-2 border-purple-400 bg-gray-800/50'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <Sparkles className="w-4 h-4" />
+            <span className="hidden sm:inline">Ask Astra</span>
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {activeTab === 'quick-start' && (
+            <QuickStartGuide onStartTour={onStartTour} isAdmin={isAdmin} />
+          )}
+          {activeTab === 'faq' && <FAQSection isAdmin={isAdmin} />}
+          {activeTab === 'ask-astra' && <HelpAssistant />}
+        </div>
+      </div>
+    </>
+  );
+}
