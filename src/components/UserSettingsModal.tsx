@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import { AdminInviteCodesPanel } from './AdminInviteCodesPanel';
 import { TeamMembersPanel } from './TeamMembersPanel';
 import { TeamSettingsModal } from './TeamSettingsModal';
+import { FeedbackAnalyticsPanel } from './FeedbackAnalyticsPanel';
 import { FEATURES } from '../config/features';
 
 interface UserSettingsModalProps {
@@ -591,7 +592,10 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
           )}
 
           {isAdmin && (
-            <AdminInviteCodesPanel />
+            <>
+              <FeedbackAnalyticsPanel />
+              <AdminInviteCodesPanel />
+            </>
           )}
 
           <div className="bg-gray-700/50 rounded-lg p-6 border border-gray-600">

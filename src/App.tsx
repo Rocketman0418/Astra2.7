@@ -7,7 +7,9 @@ import { GmailCallback } from './components/GmailCallback';
 import { GoogleDriveCallback } from './components/GoogleDriveCallback';
 import { OnboardingScreen } from './components/OnboardingScreen';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
+import { FeedbackModal } from './components/FeedbackModal';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
+import { useFeedbackPrompt } from './hooks/useFeedbackPrompt';
 import { supabase } from './lib/supabase';
 import { FEATURES } from './config/features';
 
@@ -15,6 +17,7 @@ const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [checkingOnboarding, setCheckingOnboarding] = useState(true);
+  const { shouldShowFeedback, questions, submitFeedback } = useFeedbackPrompt();
 
   // Automatically refresh Gmail tokens in the background (only if Gmail is enabled)
   useGmailTokenRefresh(FEATURES.GMAIL_ENABLED);
@@ -104,6 +107,9 @@ const AppContent: React.FC = () => {
     <>
       <MainContainer />
       <PWAInstallPrompt />
+      {shouldShowFeedback && questions.length > 0 && (
+        <FeedbackModal questions={questions} onSubmit={submitFeedback} />
+      )}
     </>
   );
 };
