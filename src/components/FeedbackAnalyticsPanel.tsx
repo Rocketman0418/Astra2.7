@@ -65,7 +65,14 @@ export function FeedbackAnalyticsPanel() {
 
       const { data: submissions, error: submissionsError } = await query;
 
-      if (submissionsError) throw submissionsError;
+      if (submissionsError) {
+        if (submissionsError.code === '42P01') {
+          console.warn('Feedback tables not yet created');
+          setLoading(false);
+          return;
+        }
+        throw submissionsError;
+      }
 
       let answersQuery = supabase
         .from('user_feedback_answers')
@@ -85,7 +92,14 @@ export function FeedbackAnalyticsPanel() {
 
       const { data: answers, error: answersError } = await answersQuery;
 
-      if (answersError) throw answersError;
+      if (answersError) {
+        if (answersError.code === '42P01') {
+          console.warn('Feedback tables not yet created');
+          setLoading(false);
+          return;
+        }
+        throw answersError;
+      }
 
       const questionStats: Record<string, { total: number; sum: number }> = {};
       answers?.forEach(answer => {

@@ -32,7 +32,12 @@ export function useFeedbackPrompt() {
 
   useEffect(() => {
     if (user?.id) {
-      checkFeedbackStatus();
+      checkFeedbackStatus().catch(err => {
+        console.error('Error in feedback status check:', err);
+        setLoading(false);
+      });
+    } else {
+      setLoading(false);
     }
   }, [user?.id]);
 
@@ -48,10 +53,17 @@ export function useFeedbackPrompt() {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (statusError && statusError.code !== 'PGRST116') {
-        console.error('Error fetching feedback status:', statusError);
-        setLoading(false);
-        return;
+      if (statusError) {
+        if (statusError.code === '42P01') {
+          console.warn('Feedback system tables not yet created - skipping feedback prompt');
+          setLoading(false);
+          return;
+        }
+        if (statusError.code !== 'PGRST116') {
+          console.error('Error fetching feedback status:', statusError);
+          setLoading(false);
+          return;
+        }
       }
 
       if (!status) {
@@ -105,7 +117,13 @@ export function useFeedbackPrompt() {
         .eq('is_active', true)
         .order('sort_order', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '42P01') {
+          console.warn('Feedback questions table not yet created');
+          return [];
+        }
+        throw error;
+      }
       if (!allQuestions || allQuestions.length === 0) return [];
 
       const availableQuestions = allQuestions.filter(
