@@ -31,6 +31,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
 }) => {
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isCreatingVisualization, setIsCreatingVisualization] = useState(false);
   const savingVisualizationRef = useRef<string | null>(null);
   const hasScrolledInitiallyRef = useRef(false);
@@ -141,6 +142,11 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   }, [getVisualizationState, messages]);
 
   // Register service worker for PWA
+  // Reset scroll flag on mount (when tab becomes visible)
+  useEffect(() => {
+    hasScrolledInitiallyRef.current = false;
+  }, []);
+
   // Handle conversation loading from sidebar
   useEffect(() => {
     if (conversationToLoad) {
@@ -279,10 +285,16 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   useEffect(() => {
     // Only auto-scroll to bottom if we're not highlighting a specific message
     if (!messageToHighlight && !isCreatingVisualization) {
-      // Use instant scroll for initial load, smooth for subsequent updates
-      const scrollBehavior = hasScrolledInitiallyRef.current ? 'smooth' : 'instant';
-      messagesEndRef.current?.scrollIntoView({ behavior: scrollBehavior });
-      hasScrolledInitiallyRef.current = true;
+      if (!hasScrolledInitiallyRef.current) {
+        // First scroll: jump to bottom immediately without any animation
+        if (containerRef.current) {
+          containerRef.current.scrollTop = containerRef.current.scrollHeight;
+        }
+        hasScrolledInitiallyRef.current = true;
+      } else {
+        // Subsequent scrolls: use smooth animation
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }
     }
 
     const handleResize = () => {
@@ -378,7 +390,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto px-3 md:px-4 chat-messages-container" style={{ paddingBottom: '120px' }}>
+      <div ref={containerRef} className="flex-1 overflow-y-auto px-3 md:px-4 chat-messages-container" style={{ paddingBottom: '120px' }}>
         <div className="max-w-4xl mx-auto space-y-3 md:space-y-4 pt-4">
           {messages.map((message) => (
             <div key={message.id} id={`message-${message.id}`}>

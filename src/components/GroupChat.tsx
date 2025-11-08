@@ -36,6 +36,7 @@ export const GroupChat: React.FC<GroupChatProps> = ({ showTeamMenu = false, onCl
   const { logChatMessage } = useChats();
   const { notifications, markAsSeen, clearMentions, requestNotificationPermission, isTabActive } = useNotifications();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState('');
   const [users, setUsers] = useState<UserWithCurrentFlag[]>([]);
   const [currentUserData, setCurrentUserData] = useState<User | null>(null);
@@ -497,12 +498,18 @@ ${finalSummary}
   useEffect(() => {
     // Only auto-scroll if user is near bottom, not highlighting a message, and not creating visualization
     if (!messageToHighlight && !isCreatingVisualization && shouldAutoScroll) {
-      // Use instant scroll for initial load, smooth for subsequent updates
-      const scrollBehavior = hasScrolledInitiallyRef.current ? 'smooth' : 'instant';
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: scrollBehavior });
+      if (!hasScrolledInitiallyRef.current) {
+        // First scroll: jump to bottom immediately without any animation
+        if (containerRef.current) {
+          containerRef.current.scrollTop = containerRef.current.scrollHeight;
+        }
         hasScrolledInitiallyRef.current = true;
-      }, hasScrolledInitiallyRef.current ? 100 : 0);
+      } else {
+        // Subsequent scrolls: use smooth animation
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
     }
   }, [isAstraThinking, visualizationStates, messageToHighlight, isCreatingVisualization, shouldAutoScroll]);
 
@@ -1108,7 +1115,7 @@ ${finalSummary}
 
         <div className="flex-1 flex flex-col lg:ml-0">
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-1 chat-messages-container">
+          <div ref={containerRef} className="flex-1 overflow-y-auto p-4 space-y-1 chat-messages-container">
             {loading ? (
               <div className="flex items-center justify-center h-32">
                 <div className="text-center">
@@ -1195,7 +1202,7 @@ ${finalSummary}
       
       <div className="flex flex-col h-full">
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-1 chat-messages-container">
+        <div ref={containerRef} className="flex-1 overflow-y-auto p-4 space-y-1 chat-messages-container">
           {loading ? (
             <div className="flex items-center justify-center h-32">
               <div className="text-center">
