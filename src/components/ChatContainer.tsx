@@ -33,6 +33,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isCreatingVisualization, setIsCreatingVisualization] = useState(false);
   const savingVisualizationRef = useRef<string | null>(null);
+  const hasScrolledInitiallyRef = useRef(false);
 
   const {
     saveVisualization,
@@ -144,6 +145,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   useEffect(() => {
     if (conversationToLoad) {
       console.log('ChatContainer: Loading conversation from sidebar:', conversationToLoad);
+      hasScrolledInitiallyRef.current = false; // Reset scroll flag for new conversation
       loadConversation(conversationToLoad);
       onConversationLoaded();
     }
@@ -153,6 +155,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   useEffect(() => {
     if (shouldStartNewChat) {
       console.log('ChatContainer: Starting new chat from sidebar');
+      hasScrolledInitiallyRef.current = false; // Reset scroll flag for new chat
       startNewConversation();
       onNewChatStarted();
     }
@@ -259,9 +262,6 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   }, [messages, getLocalVisualizationState, getHookVisualization, setVisualizationContent, showVisualization]);
 
   useEffect(() => {
-    // Initial scroll to bottom on component mount - instant, no animation
-    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
-
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
@@ -279,9 +279,12 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   useEffect(() => {
     // Only auto-scroll to bottom if we're not highlighting a specific message
     if (!messageToHighlight && !isCreatingVisualization) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      // Use instant scroll for initial load, smooth for subsequent updates
+      const scrollBehavior = hasScrolledInitiallyRef.current ? 'smooth' : 'instant';
+      messagesEndRef.current?.scrollIntoView({ behavior: scrollBehavior });
+      hasScrolledInitiallyRef.current = true;
     }
-    
+
     const handleResize = () => {
       // Force scroll to bottom when keyboard appears/disappears
       if (!messageToHighlight && !isCreatingVisualization) {

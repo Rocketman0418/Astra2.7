@@ -52,6 +52,7 @@ export const GroupChat: React.FC<GroupChatProps> = ({ showTeamMenu = false, onCl
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const [lastMessageCount, setLastMessageCount] = useState(0);
   const [showMentionAlert, setShowMentionAlert] = useState(false);
+  const hasScrolledInitiallyRef = useRef(false);
   const [replyState, setReplyState] = useState<{
     isReplying: boolean;
     originalMessage: {
@@ -496,16 +497,17 @@ ${finalSummary}
   useEffect(() => {
     // Only auto-scroll if user is near bottom, not highlighting a message, and not creating visualization
     if (!messageToHighlight && !isCreatingVisualization && shouldAutoScroll) {
+      // Use instant scroll for initial load, smooth for subsequent updates
+      const scrollBehavior = hasScrolledInitiallyRef.current ? 'smooth' : 'instant';
       setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+        messagesEndRef.current?.scrollIntoView({ behavior: scrollBehavior });
+        hasScrolledInitiallyRef.current = true;
+      }, hasScrolledInitiallyRef.current ? 100 : 0);
     }
   }, [isAstraThinking, visualizationStates, messageToHighlight, isCreatingVisualization, shouldAutoScroll]);
 
-  // Also scroll to bottom when component mounts
+  // Initialize auto-scroll on mount
   useEffect(() => {
-    // Instant scroll on mount - no animation
-    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
     setShouldAutoScroll(true); // Start with auto-scroll enabled
   }, []);
 
