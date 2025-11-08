@@ -145,22 +145,22 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   if (message.isCentered) {
     return (
       <div className="flex justify-center items-center min-h-[50vh]">
-        <div className="flex justify-start">
-          <div className="flex-shrink-0 mr-2 md:mr-3">
+        <div className="flex items-start w-full max-w-3xl">
+          <div className="flex-shrink-0 mr-2 md:mr-3 mt-1">
             <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-sm md:text-lg">
               🚀
             </div>
           </div>
-          
-          <div className="bg-gradient-to-br from-gray-700 to-gray-800 text-white rounded-2xl px-3 py-2 md:px-4 md:py-3 shadow-sm max-w-[280px] sm:max-w-md lg:max-w-lg xl:max-w-xl">
+
+          <div className="flex-1 bg-gradient-to-br from-gray-700 to-gray-800 text-white rounded-2xl px-3 py-2 md:px-4 md:py-3 shadow-sm">
             <div className="break-words text-sm md:text-sm leading-relaxed">
               <div className="whitespace-pre-wrap text-gray-300">{finalText}</div>
             </div>
-            
+
             <div className="text-xs opacity-70 mt-1 md:mt-2">
-              {message.timestamp.toLocaleTimeString([], { 
-                hour: '2-digit', 
-                minute: '2-digit' 
+              {message.timestamp.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
               })}
             </div>
           </div>
@@ -170,20 +170,25 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   }
 
   return (
-    <div className={`flex mb-3 md:mb-4 ${message.isUser ? 'justify-end' : 'justify-start'}`}>
-      {!message.isUser && (
-        <div className="flex-shrink-0 mr-2 md:mr-3 mt-1">
-          <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-sm md:text-lg">
-            🚀
+    <div className="flex justify-center mb-3 md:mb-4">
+      <div className="flex items-start w-full max-w-3xl">
+        {!message.isUser && (
+          <div className="flex-shrink-0 mr-2 md:mr-3 mt-1">
+            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-sm md:text-lg">
+              🚀
+            </div>
           </div>
-        </div>
-      )}
-      
-      <div className={`max-w-[280px] sm:max-w-md lg:max-w-lg xl:max-w-xl rounded-2xl px-3 py-2 md:px-4 md:py-3 shadow-sm ${
-        message.isUser
-          ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white'
-          : 'bg-gradient-to-br from-gray-700 to-gray-800 text-white'
-      }`}>
+        )}
+
+        {message.isUser && (
+          <div className="flex-shrink-0 w-6 md:w-8 mr-2 md:mr-3"></div>
+        )}
+
+        <div className={`flex-1 rounded-2xl px-3 py-2 md:px-4 md:py-3 shadow-sm ${
+          message.isUser
+            ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white'
+            : 'bg-gradient-to-br from-gray-700 to-gray-800 text-white'
+        }`}>
         <div className="break-words text-sm md:text-sm leading-relaxed">
           {message.isUser ? (
             <>
@@ -276,6 +281,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             />
           </div>
         )}
+        </div>
       </div>
     </div>
   );
