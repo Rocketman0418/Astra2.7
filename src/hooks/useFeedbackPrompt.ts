@@ -148,7 +148,7 @@ export function useFeedbackPrompt() {
     }
   };
 
-  const submitFeedback = async (answers: FeedbackAnswer[]) => {
+  const submitFeedback = async (answers: FeedbackAnswer[], generalFeedback?: string) => {
     if (!user?.id) throw new Error('User not authenticated');
     if (answers.some(a => a.rating === null)) {
       throw new Error('All ratings are required');
@@ -164,7 +164,8 @@ export function useFeedbackPrompt() {
         .insert({
           user_id: user.id,
           team_id: teamId,
-          submitted_at: new Date().toISOString()
+          submitted_at: new Date().toISOString(),
+          general_feedback: generalFeedback || null
         })
         .select()
         .single();

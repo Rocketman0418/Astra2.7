@@ -14,6 +14,12 @@ interface FeedbackStats {
     rating: number;
     comment: string;
   }>;
+  generalFeedback: Array<{
+    id: string;
+    user_name: string;
+    submitted_at: string;
+    general_feedback: string;
+  }>;
 }
 
 export function FeedbackAnalyticsPanel() {
@@ -55,6 +61,7 @@ export function FeedbackAnalyticsPanel() {
         .select(`
           id,
           submitted_at,
+          general_feedback,
           users!inner(id, raw_user_meta_data)
         `)
         .eq('team_id', teamId);
@@ -128,10 +135,21 @@ export function FeedbackAnalyticsPanel() {
           comment: a.comment || ''
         })) || [];
 
+      // Get general feedback from submissions
+      const generalFeedback = submissions
+        ?.filter(s => s.general_feedback && s.general_feedback.trim() !== '')
+        .map(s => ({
+          id: s.id,
+          user_name: s.users?.raw_user_meta_data?.name || 'Anonymous',
+          submitted_at: s.submitted_at,
+          general_feedback: s.general_feedback
+        })) || [];
+
       setStats({
         totalSubmissions: submissions?.length || 0,
         avgRatings,
-        recentSuggestions
+        recentSuggestions,
+        generalFeedback
       });
 
       setLoading(false);
@@ -227,7 +245,7 @@ export function FeedbackAnalyticsPanel() {
 
       {!loading && stats && (
         <>
-          <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
               <div className="flex items-center space-x-2 mb-2">
                 <Users className="w-4 h-4 text-gray-400" />
@@ -238,8 +256,16 @@ export function FeedbackAnalyticsPanel() {
 
             <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
               <div className="flex items-center space-x-2 mb-2">
+                <MessageSquare className="w-4 h-4 text-orange-400" />
+                <p className="text-sm text-gray-400">Feature Requests</p>
+              </div>
+              <p className="text-3xl font-bold text-white">{stats.generalFeedback.length}</p>
+            </div>
+
+            <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+              <div className="flex items-center space-x-2 mb-2">
                 <MessageSquare className="w-4 h-4 text-gray-400" />
-                <p className="text-sm text-gray-400">Comments Received</p>
+                <p className="text-sm text-gray-400">Comments</p>
               </div>
               <p className="text-3xl font-bold text-white">{stats.recentSuggestions.length}</p>
             </div>
@@ -272,9 +298,32 @@ export function FeedbackAnalyticsPanel() {
             </div>
           </div>
 
+          {stats.generalFeedback.length > 0 && (
+            <div className="mb-6">
+              <h4 className="text-white font-semibold mb-3">General Suggestions & Feature Requests</h4>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {stats.generalFeedback.map((feedback) => (
+                  <div
+                    key={feedback.id}
+                    className="bg-gradient-to-r from-orange-500/10 to-blue-500/10 rounded-lg p-4 border border-orange-500/30"
+                  >
+                    <div className="flex items-center space-x-2 mb-2">
+                      <p className="text-sm font-medium text-white">{feedback.user_name}</p>
+                      <span className="text-xs text-gray-500">•</span>
+                      <p className="text-xs text-gray-500">
+                        {new Date(feedback.submitted_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <p className="text-sm text-gray-300">{feedback.general_feedback}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {stats.recentSuggestions.length > 0 && (
             <div>
-              <h4 className="text-white font-semibold mb-3">Recent Comments & Suggestions</h4>
+              <h4 className="text-white font-semibold mb-3">Question-Specific Comments</h4>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {stats.recentSuggestions.map((suggestion) => (
                   <div

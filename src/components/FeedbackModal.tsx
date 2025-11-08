@@ -22,6 +22,7 @@ export function FeedbackModal({ questions, onSubmit }: FeedbackModalProps) {
   const [answers, setAnswers] = useState<FeedbackAnswer[]>(
     questions.map(q => ({ question_id: q.id, rating: null, comment: '' }))
   );
+  const [generalFeedback, setGeneralFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -50,7 +51,7 @@ export function FeedbackModal({ questions, onSubmit }: FeedbackModalProps) {
     setError('');
 
     try {
-      await onSubmit(answers);
+      await onSubmit(answers, generalFeedback);
     } catch (err: any) {
       setError(err.message || 'Failed to submit feedback. Please try again.');
       setIsSubmitting(false);
@@ -165,6 +166,31 @@ export function FeedbackModal({ questions, onSubmit }: FeedbackModalProps) {
                 </div>
               );
             })}
+          </div>
+
+          {/* Final open-ended feedback */}
+          <div className="mt-8 bg-gray-800 rounded-lg p-5 border border-gray-700">
+            <div className="mb-4">
+              <p className="text-white font-medium leading-relaxed mb-1">
+                What is the one suggestion, issue, or feature request you have for Astra AI today?
+              </p>
+              <p className="text-xs text-gray-500">
+                Optional - This helps us prioritize what matters most to you
+              </p>
+            </div>
+            <textarea
+              value={generalFeedback}
+              onChange={(e) => setGeneralFeedback(e.target.value)}
+              placeholder="Share your most important feedback, idea, or concern..."
+              maxLength={2000}
+              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none resize-none"
+              rows={4}
+            />
+            {generalFeedback && (
+              <p className="text-xs text-gray-500 mt-1 text-right">
+                {generalFeedback.length} / 2000
+              </p>
+            )}
           </div>
 
           <div className="mt-8">
