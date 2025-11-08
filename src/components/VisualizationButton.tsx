@@ -47,21 +47,27 @@ export const VisualizationButton: React.FC<VisualizationButtonProps> = ({
 
   const isGenerating = visualizationState?.isGenerating;
   const hasVisualization = visualizationState?.content || visualizationState?.hasVisualization;
-  
-  const buttonText = isGenerating
+
+  const buttonTextFull = isGenerating
     ? 'Generating...'
     : hasVisualization
     ? 'View Visualization'
     : 'Create Visualization';
 
-  console.log('🔍 VisualizationButton: Button state - isGenerating:', isGenerating, 'hasVisualization:', hasVisualization, 'buttonText:', buttonText);
-  
+  const buttonTextShort = isGenerating
+    ? 'Generating...'
+    : hasVisualization
+    ? 'Visualization'
+    : 'Visualization';
+
+  console.log('🔍 VisualizationButton: Button state - isGenerating:', isGenerating, 'hasVisualization:', hasVisualization, 'buttonText:', buttonTextFull);
+
   return (
     <div className="flex items-center space-x-2" data-tour="visualization-button">
       <button
         onClick={handleClick}
         disabled={isGenerating}
-        className={`flex items-center space-x-2 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform disabled:scale-100 disabled:cursor-not-allowed min-h-[44px] touch-manipulation ${
+        className={`flex items-center justify-center space-x-1 md:space-x-2 text-white px-3 md:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform disabled:scale-100 disabled:cursor-not-allowed min-h-[44px] touch-manipulation ${
           isGenerating
             ? 'bg-gradient-to-r from-purple-500 to-purple-600 animate-pulse cursor-not-allowed'
             : hasVisualization
@@ -74,7 +80,8 @@ export const VisualizationButton: React.FC<VisualizationButtonProps> = ({
         ) : (
           <BarChart3 className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
         )}
-        <span>{buttonText}</span>
+        <span className="hidden sm:inline">{buttonTextFull}</span>
+        <span className="sm:hidden">{buttonTextShort}</span>
         {isGenerating && (
           <div className="flex space-x-1 ml-1">
             <div className="w-1 h-1 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>

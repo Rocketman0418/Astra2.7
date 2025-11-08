@@ -91,19 +91,19 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
  onReply
 }) => {
   const [copied, setCopied] = useState(false);
-  const isLongMessage = message.text.length > 300;
+  const isLongMessage = message.text.length > 800;
   const shouldTruncate = isLongMessage && !message.isExpanded;
 
   // Check if message has visualization data stored in database
   const hasStoredVisualization = message.visualization || message.hasStoredVisualization;
   const hasVisualization = hasStoredVisualization || visualizationState?.hasVisualization;
-  
+
   // Check if this is an Astra message (can be replied to)
   const isAstraMessage = message.messageType === 'astra' || (!message.isUser && !message.isCentered);
-  
+
   // Check if this is a reply message
   const isReplyMessage = message.isReply || message.text.startsWith('@reply ');
-  
+
   // Extract reply content if this is a reply message
   const getReplyContent = () => {
     if (isReplyMessage && message.text.startsWith('@reply ')) {
@@ -114,20 +114,20 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     }
     return message.text;
   };
-  
+
   // Get the base text content (handle reply messages)
   const baseText = isReplyMessage ? getReplyContent() : message.text;
 
   // Apply truncation if needed
   const truncatedText = shouldTruncate
-    ? baseText.substring(0, 300) + '...'
+    ? baseText.substring(0, 800) + '...'
     : baseText;
 
   // Check for line-based truncation
   const lines = truncatedText.split('\n');
-  const shouldShowMore = lines.length > 5 && !message.isExpanded;
+  const shouldShowMore = lines.length > 15 && !message.isExpanded;
   const finalText = shouldShowMore
-    ? lines.slice(0, 5).join('\n') + '...'
+    ? lines.slice(0, 15).join('\n') + '...'
     : truncatedText;
 
   // Handle copy text
@@ -237,48 +237,58 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             </button>
           </div>
         )}
-        
-        {/* Reply button for Astra messages */}
-        {isAstraMessage && !message.isCentered && onReply && message.chatId && (
-          <div className="mt-2 md:mt-3">
-            <button
-              onClick={() => onReply(message.chatId || message.id, message.text)}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 min-h-[44px] touch-manipulation bg-gray-600/50 text-gray-300 hover:bg-blue-600/50 hover:text-blue-300"
-              title="Reply to this message"
-            >
-              <Reply className="w-4 h-4" />
-              <span>Reply</span>
-            </button>
-          </div>
-        )}
-        
-        {!message.isUser && message.chatId && onCreateVisualization && onViewVisualization && (
-          <div className="mt-2 md:mt-3 flex flex-col sm:flex-row gap-2">
-            {console.log('🔍 MessageBubble: Rendering visualization button for chatId:', message.chatId, 'visualizationState:', visualizationState)}
-            <button
-              onClick={handleCopyText}
-              className="flex items-center justify-center space-x-2 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 min-h-[44px] touch-manipulation"
-              title="Copy message text"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-4 h-4" />
-                  <span>Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-4 h-4" />
-                  <span>Copy Text</span>
-                </>
-              )}
-            </button>
-            <VisualizationButton
-              messageId={message.chatId}
-              messageText={message.text}
-              onCreateVisualization={onCreateVisualization}
-              onViewVisualization={onViewVisualization}
-              visualizationState={visualizationState}
-            />
+
+        {/* Action buttons for Astra messages: Reply, Copy, Visualization */}
+        {!message.isUser && message.chatId && (
+          <div className="mt-2 md:mt-3 flex flex-wrap gap-2">
+            {console.log('🔍 MessageBubble: Rendering action buttons for chatId:', message.chatId, 'visualizationState:', visualizationState)}
+
+            {/* Reply button */}
+            {isAstraMessage && !message.isCentered && onReply && (
+              <button
+                onClick={() => onReply(message.chatId || message.id, message.text)}
+                className="flex items-center justify-center space-x-1 md:space-x-2 bg-gray-600/50 hover:bg-blue-600/50 hover:text-blue-300 text-white px-3 md:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 min-h-[44px] touch-manipulation"
+                title="Reply to this message"
+              >
+                <Reply className="w-4 h-4" />
+                <span className="hidden sm:inline">Reply</span>
+                <span className="sm:hidden">Reply</span>
+              </button>
+            )}
+
+            {/* Copy button */}
+            {onCreateVisualization && onViewVisualization && (
+              <button
+                onClick={handleCopyText}
+                className="flex items-center justify-center space-x-1 md:space-x-2 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-3 md:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 min-h-[44px] touch-manipulation"
+                title="Copy message text"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span className="hidden sm:inline">Copied!</span>
+                    <span className="sm:hidden">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    <span className="hidden sm:inline">Copy Text</span>
+                    <span className="sm:hidden">Copy</span>
+                  </>
+                )}
+              </button>
+            )}
+
+            {/* Visualization button */}
+            {onCreateVisualization && onViewVisualization && (
+              <VisualizationButton
+                messageId={message.chatId}
+                messageText={message.text}
+                onCreateVisualization={onCreateVisualization}
+                onViewVisualization={onViewVisualization}
+                visualizationState={visualizationState}
+              />
+            )}
           </div>
         )}
         </div>
