@@ -259,10 +259,8 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   }, [messages, getLocalVisualizationState, getHookVisualization, setVisualizationContent, showVisualization]);
 
   useEffect(() => {
-    // Initial scroll to bottom on component mount
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-    }, 100);
+    // Initial scroll to bottom on component mount - instant, no animation
+    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

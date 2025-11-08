@@ -504,10 +504,9 @@ ${finalSummary}
 
   // Also scroll to bottom when component mounts
   useEffect(() => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-      setShouldAutoScroll(true); // Start with auto-scroll enabled
-    }, 200);
+    // Instant scroll on mount - no animation
+    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+    setShouldAutoScroll(true); // Start with auto-scroll enabled
   }, []);
 
   // Handle sending messages
