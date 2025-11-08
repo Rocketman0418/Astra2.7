@@ -142,16 +142,30 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   }, [getVisualizationState, messages]);
 
   // Register service worker for PWA
-  // Reset scroll flag on mount (when tab becomes visible)
   useEffect(() => {
-    hasScrolledInitiallyRef.current = false;
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('SW registered: ', registration);
+          })
+          .catch((registrationError) => {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
   }, []);
+
+  // Reset scroll flag whenever conversation changes
+  useEffect(() => {
+    console.log('ChatContainer: Conversation changed, resetting scroll flag. ConversationId:', currentConversationId);
+    hasScrolledInitiallyRef.current = false;
+  }, [currentConversationId]);
 
   // Handle conversation loading from sidebar
   useEffect(() => {
     if (conversationToLoad) {
       console.log('ChatContainer: Loading conversation from sidebar:', conversationToLoad);
-      hasScrolledInitiallyRef.current = false; // Reset scroll flag for new conversation
       loadConversation(conversationToLoad);
       onConversationLoaded();
     }
@@ -161,7 +175,6 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   useEffect(() => {
     if (shouldStartNewChat) {
       console.log('ChatContainer: Starting new chat from sidebar');
-      hasScrolledInitiallyRef.current = false; // Reset scroll flag for new chat
       startNewConversation();
       onNewChatStarted();
     }
@@ -266,20 +279,6 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
     
     console.log('❌ Private chat: No visualization data found for message:', messageId);
   }, [messages, getLocalVisualizationState, getHookVisualization, setVisualizationContent, showVisualization]);
-
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then((registration) => {
-            console.log('SW registered: ', registration);
-          })
-          .catch((registrationError) => {
-            console.log('SW registration failed: ', registrationError);
-          });
-      });
-    }
-  }, []);
 
   // Handle viewport adjustments for mobile keyboards
   useEffect(() => {
