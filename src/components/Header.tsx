@@ -141,14 +141,6 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          <div className="hidden sm:block text-right">
-            <p className="text-white text-sm font-medium">
-              {profile?.full_name || user?.user_metadata?.full_name || 'User'}
-            </p>
-            <p className="text-blue-200 text-xs">
-              {user?.email}
-            </p>
-          </div>
           <button
             data-tour="user-menu"
             onClick={() => setShowSettings(true)}
