@@ -364,7 +364,7 @@ export const CustomAuth: React.FC = () => {
       <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-2xl p-8">
         <div className="mb-6">
           <h2 className="text-xl font-semibold text-white mb-2">
-            {step === 'signup' ? 'Create Account' : 'Welcome Back'}
+            {step === 'signup' ? 'Create Free Account' : 'Welcome Back'}
           </h2>
           <button
             onClick={handleBack}
