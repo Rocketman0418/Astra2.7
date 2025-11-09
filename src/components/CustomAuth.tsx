@@ -261,12 +261,11 @@ export const CustomAuth: React.FC = () => {
           <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-blue-400 shadow-lg">
             <span className="text-4xl">🚀</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold mb-2 flex items-center justify-center gap-3 flex-wrap">
+          <h1 className="text-2xl md:text-3xl font-bold flex items-center justify-center gap-3 flex-wrap">
             <span className="text-blue-400">AI Rocket</span>
             <span className="text-white font-normal">+</span>
             <span className="text-emerald-400">Astra Intelligence</span>
           </h1>
-          <p className="text-gray-400 text-sm">AI For Entrepreneurs</p>
         </div>
 
         <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-2xl p-6">
@@ -278,7 +277,6 @@ export const CustomAuth: React.FC = () => {
 
           <form onSubmit={handleEmailSubmit} className="space-y-6">
             <div>
-              <label className="text-sm text-gray-400 mb-2 block">Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -353,12 +351,11 @@ export const CustomAuth: React.FC = () => {
         <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-blue-400 shadow-lg">
           <span className="text-4xl">🚀</span>
         </div>
-        <h1 className="text-2xl md:text-3xl font-bold mb-2 flex items-center justify-center gap-3 flex-wrap">
+        <h1 className="text-2xl md:text-3xl font-bold flex items-center justify-center gap-3 flex-wrap">
           <span className="text-blue-400">AI Rocket</span>
           <span className="text-white font-normal">+</span>
           <span className="text-emerald-400">Astra Intelligence</span>
         </h1>
-        <p className="text-gray-400 text-sm">AI For Entrepreneurs</p>
       </div>
 
       <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-2xl p-6">
