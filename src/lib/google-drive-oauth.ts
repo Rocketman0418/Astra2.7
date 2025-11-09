@@ -257,16 +257,22 @@ export const updateFolderConfiguration = async (folders: {
     throw new Error('Not authenticated');
   }
 
+  // Determine if financial sync should be enabled based on whether a folder is configured
+  const updateData = {
+    ...folders,
+    financial_sync_enabled: folders.financial_folder_id ? true : false
+  };
+
   const { error } = await supabase
     .from('user_drive_connections')
-    .update(folders)
+    .update(updateData)
     .eq('user_id', session.user.id);
 
   if (error) {
     throw error;
   }
 
-  console.log('📁 Folder configuration updated successfully');
+  console.log('📁 Folder configuration updated successfully', updateData.financial_sync_enabled ? '(Financial sync enabled)' : '');
 };
 
 /**
