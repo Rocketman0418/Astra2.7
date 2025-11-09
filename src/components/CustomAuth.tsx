@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Key } from 'lucide-react';
+import { Mail, Lock, Key, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-type AuthMode = 'signup' | 'login';
+type AuthStep = 'email' | 'signup' | 'login';
 
 export const CustomAuth: React.FC = () => {
-  const [mode, setMode] = useState<AuthMode>('signup');
+  const [step, setStep] = useState<AuthStep>('email');
   const [email, setEmail] = useState('');
   const [confirmEmail, setConfirmEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,6 +13,63 @@ export const CustomAuth: React.FC = () => {
   const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const checkUserExists = async (email: string): Promise<boolean> => {
+    try {
+      // Try to check if user exists by attempting a password reset
+      // This is a safe way to check without exposing user data
+      const { data: users } = await supabase
+        .from('users')
+        .select('id')
+        .eq('raw_user_meta_data->>email', email.toLowerCase())
+        .limit(1);
+
+      // If we find a user in the public users table, they exist
+      return users && users.length > 0;
+    } catch (err) {
+      console.error('Error checking user:', err);
+      return false;
+    }
+  };
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      if (!email) {
+        setError('Email is required');
+        setLoading(false);
+        return;
+      }
+
+      if (!validateEmail(email)) {
+        setError('Please enter a valid email address');
+        setLoading(false);
+        return;
+      }
+
+      const userExists = await checkUserExists(email.trim().toLowerCase());
+
+      if (userExists) {
+        setStep('login');
+      } else {
+        setStep('signup');
+        setConfirmEmail(email); // Pre-populate confirm email
+      }
+    } catch (err: any) {
+      console.error('Error:', err);
+      setError('An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const validateInviteCode = async (code: string, email: string): Promise<{ valid: boolean; inviteData?: any }> => {
     try {
@@ -54,11 +111,6 @@ export const CustomAuth: React.FC = () => {
       setError('Failed to validate invite code');
       return { valid: false };
     }
-  };
-
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
   };
 
   React.useEffect(() => {
@@ -189,160 +241,259 @@ export const CustomAuth: React.FC = () => {
     }
   };
 
-  return (
-    <div className="w-full">
-      <div className="flex border-b border-gray-700 mb-6">
-        <button
-          onClick={() => {
-            setMode('signup');
-            setError('');
-          }}
-          className={`flex-1 py-3 text-center font-medium transition-colors ${
-            mode === 'signup'
-              ? 'text-blue-400 border-b-2 border-blue-400'
-              : 'text-gray-400 hover:text-gray-300'
-          }`}
-        >
-          Create Account
-        </button>
-        <button
-          onClick={() => {
-            setMode('login');
-            setError('');
-          }}
-          className={`flex-1 py-3 text-center font-medium transition-colors ${
-            mode === 'login'
-              ? 'text-blue-400 border-b-2 border-blue-400'
-              : 'text-gray-400 hover:text-gray-300'
-          }`}
-        >
-          Existing Users
-        </button>
-      </div>
+  const handleBack = () => {
+    setStep('email');
+    setError('');
+    setPassword('');
+    setConfirmPassword('');
+    setInviteCode('');
+  };
 
-      {error && (
-        <div className="mb-4 bg-red-500/10 border border-red-500/50 rounded-lg p-4">
-          <p className="text-red-400 text-sm">{error}</p>
+  // Step 1: Email Entry
+  if (step === 'email') {
+    return (
+      <div className="w-full">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 rounded-full bg-blue-400 shadow-lg">
+            <span className="text-5xl">🚀</span>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center justify-center gap-3 flex-wrap">
+            <span className="text-blue-400">AI Rocket</span>
+            <span className="text-white font-normal">+</span>
+            <span className="text-emerald-400">Astra Intelligence</span>
+          </h1>
+          <p className="text-gray-400">AI For Entrepreneurs</p>
         </div>
-      )}
 
-      <form onSubmit={mode === 'signup' ? handleSignUp : handleLogin} className="space-y-4">
-        <div>
-          <label className="text-sm text-gray-400 mb-1 block">Email</label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              disabled={loading}
-              className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-              required
-            />
+        <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-2xl p-8">
+          {error && (
+            <div className="mb-4 bg-red-500/10 border border-red-500/50 rounded-lg p-4">
+              <p className="text-red-400 text-sm">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleEmailSubmit} className="space-y-6">
+            <div>
+              <label className="text-sm text-gray-400 mb-2 block">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  disabled={loading}
+                  className="w-full pl-10 pr-14 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={loading || !email}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                >
+                  {loading ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <ArrowRight className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </form>
+
+          {/* Powered By Section */}
+          <div className="mt-8 pt-8 border-t border-gray-700">
+            <p className="text-center text-gray-400 text-sm mb-4">Powered by</p>
+            <div className="grid grid-cols-3 gap-6">
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 mb-2 flex items-center justify-center">
+                  <img
+                    src="/claude logo.png"
+                    alt="Claude"
+                    className="w-full h-full object-contain rounded-lg"
+                  />
+                </div>
+                <p className="text-white text-xs font-medium">Claude</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 mb-2 flex items-center justify-center">
+                  <img
+                    src="/gemini app logo.jpeg"
+                    alt="Gemini"
+                    className="w-full h-full object-contain rounded-lg"
+                  />
+                </div>
+                <p className="text-white text-xs font-medium">Gemini</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 mb-2 flex items-center justify-center">
+                  <img
+                    src="/gpt app logo.png"
+                    alt="OpenAI"
+                    className="w-full h-full object-contain rounded-lg"
+                  />
+                </div>
+                <p className="text-white text-xs font-medium">OpenAI</p>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
+    );
+  }
 
-        {mode === 'signup' && (
+  // Step 2: Sign Up or Login
+  return (
+    <div className="w-full">
+      <div className="text-center mb-8">
+        <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 rounded-full bg-blue-400 shadow-lg">
+          <span className="text-5xl">🚀</span>
+        </div>
+        <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center justify-center gap-3 flex-wrap">
+          <span className="text-blue-400">AI Rocket</span>
+          <span className="text-white font-normal">+</span>
+          <span className="text-emerald-400">Astra Intelligence</span>
+        </h1>
+        <p className="text-gray-400">AI For Entrepreneurs</p>
+      </div>
+
+      <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-2xl p-8">
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-white mb-2">
+            {step === 'signup' ? 'Create Account' : 'Welcome Back'}
+          </h2>
+          <button
+            onClick={handleBack}
+            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+          >
+            ← Change email
+          </button>
+        </div>
+
+        {error && (
+          <div className="mb-4 bg-red-500/10 border border-red-500/50 rounded-lg p-4">
+            <p className="text-red-400 text-sm">{error}</p>
+          </div>
+        )}
+
+        <form onSubmit={step === 'signup' ? handleSignUp : handleLogin} className="space-y-4">
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">Confirm Email</label>
+            <label className="text-sm text-gray-400 mb-1 block">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="email"
-                value={confirmEmail}
-                onChange={(e) => setConfirmEmail(e.target.value)}
-                placeholder="Confirm your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
                 disabled={loading}
                 className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 required
               />
             </div>
           </div>
-        )}
 
-        <div>
-          <label className="text-sm text-gray-400 mb-1 block">Password</label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={mode === 'signup' ? 'Choose a password (min 6 characters)' : 'Your password'}
-              disabled={loading}
-              className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-              required
-            />
-          </div>
-        </div>
+          {step === 'signup' && (
+            <div>
+              <label className="text-sm text-gray-400 mb-1 block">Confirm Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="email"
+                  value={confirmEmail}
+                  onChange={(e) => setConfirmEmail(e.target.value)}
+                  placeholder="Confirm your email"
+                  disabled={loading}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  required
+                />
+              </div>
+            </div>
+          )}
 
-        {mode === 'signup' && (
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">Confirm Password</label>
+            <label className="text-sm text-gray-400 mb-1 block">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={step === 'signup' ? 'Choose a password (min 6 characters)' : 'Your password'}
                 disabled={loading}
                 className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 required
               />
             </div>
           </div>
-        )}
 
-        {mode === 'signup' && (
-          <div>
-            <label className="text-sm text-gray-400 mb-1 block">Invite Code</label>
-            <div className="relative">
-              <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                value={inviteCode}
-                onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                placeholder="Enter your invite code"
-                disabled={loading}
-                className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed uppercase"
-                required
-              />
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Need an invite code? Contact your administrator
-            </p>
+          {step === 'signup' && (
+            <>
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Confirm Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm your password"
+                    disabled={loading}
+                    className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Invite Code</label>
+                <div className="relative">
+                  <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                    placeholder="Enter your invite code"
+                    disabled={loading}
+                    className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed uppercase"
+                    required
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Need an invite code? Contact your administrator
+                </p>
+              </div>
+            </>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center space-x-2 mt-6"
+          >
+            {loading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>{step === 'signup' ? 'Creating Account...' : 'Logging In...'}</span>
+              </>
+            ) : (
+              <span>{step === 'signup' ? 'Create Account' : 'Log In'}</span>
+            )}
+          </button>
+        </form>
+
+        {step === 'signup' && (
+          <div className="mt-6 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+            <p className="text-blue-400 text-sm font-medium mb-2">Welcome to AI Rocket + Astra Intelligence!</p>
+            <ul className="text-gray-400 text-xs space-y-1">
+              <li>• Create your account instantly with a valid invite code</li>
+              <li>• No email confirmation required - get started immediately</li>
+              <li>• Access AI-powered insights for your business</li>
+              <li>• Connect your data sources and collaborate with your team</li>
+            </ul>
           </div>
         )}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center space-x-2 mt-6"
-        >
-          {loading ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span>{mode === 'signup' ? 'Creating Account...' : 'Logging In...'}</span>
-            </>
-          ) : (
-            <span>{mode === 'signup' ? 'Create Account' : 'Log In'}</span>
-          )}
-        </button>
-      </form>
-
-      {mode === 'signup' && (
-        <div className="mt-6 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-          <p className="text-blue-400 text-sm font-medium mb-2">Welcome to AI Rocket + Astra Intelligence!</p>
-          <ul className="text-gray-400 text-xs space-y-1">
-            <li>• Create your account instantly with a valid invite code</li>
-            <li>• No email confirmation required - get started immediately</li>
-            <li>• Access AI-powered insights for your business</li>
-            <li>• Connect your data sources and collaborate with your team</li>
-          </ul>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
