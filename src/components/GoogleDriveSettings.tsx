@@ -939,13 +939,14 @@ export const GoogleDriveSettings: React.FC = () => {
                   <div className="max-h-48 overflow-y-auto bg-gray-700/30 border border-gray-600 rounded-lg">
                     <button
                       onClick={() => setSelectedStrategyFolder(null)}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
                         !selectedStrategyFolder
-                          ? 'bg-blue-600/20 text-blue-300 border-l-2 border-blue-500'
+                          ? 'bg-blue-600/30 text-blue-200 border-l-4 border-blue-500 font-semibold'
                           : 'text-gray-400 hover:bg-gray-700/50'
                       }`}
                     >
-                      -- No folder selected --
+                      <span>-- No folder selected --</span>
+                      {!selectedStrategyFolder && <CheckCircle className="w-4 h-4 text-blue-400" />}
                     </button>
                     {folders
                       .filter(folder => folder.name.toLowerCase().includes(strategySearchTerm.toLowerCase()))
@@ -953,14 +954,17 @@ export const GoogleDriveSettings: React.FC = () => {
                         <button
                           key={folder.id}
                           onClick={() => setSelectedStrategyFolder(folder)}
-                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-t border-gray-600/50 ${
+                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-t border-gray-600/50 flex items-center justify-between ${
                             selectedStrategyFolder?.id === folder.id
-                              ? 'bg-blue-600/20 text-blue-300 border-l-2 border-blue-500'
+                              ? 'bg-blue-600/30 text-blue-200 border-l-4 border-blue-500 font-semibold'
                               : 'text-white hover:bg-gray-700/50'
                           }`}
                         >
-                          <FolderOpen className="w-4 h-4 inline mr-2 -mt-0.5" />
-                          {folder.name}
+                          <span className="flex items-center">
+                            <FolderOpen className="w-4 h-4 inline mr-2" />
+                            {folder.name}
+                          </span>
+                          {selectedStrategyFolder?.id === folder.id && <CheckCircle className="w-4 h-4 text-blue-400" />}
                         </button>
                       ))}
                   </div>
@@ -986,13 +990,14 @@ export const GoogleDriveSettings: React.FC = () => {
                   <div className="max-h-48 overflow-y-auto bg-gray-700/30 border border-gray-600 rounded-lg">
                     <button
                       onClick={() => setSelectedMeetingsFolder(null)}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
                         !selectedMeetingsFolder
-                          ? 'bg-blue-600/20 text-blue-300 border-l-2 border-blue-500'
+                          ? 'bg-blue-600/30 text-blue-200 border-l-4 border-blue-500 font-semibold'
                           : 'text-gray-400 hover:bg-gray-700/50'
                       }`}
                     >
-                      -- No folder selected --
+                      <span>-- No folder selected --</span>
+                      {!selectedMeetingsFolder && <CheckCircle className="w-4 h-4 text-blue-400" />}
                     </button>
                     {folders
                       .filter(folder => folder.name.toLowerCase().includes(meetingsSearchTerm.toLowerCase()))
@@ -1000,14 +1005,17 @@ export const GoogleDriveSettings: React.FC = () => {
                         <button
                           key={folder.id}
                           onClick={() => setSelectedMeetingsFolder(folder)}
-                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-t border-gray-600/50 ${
+                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-t border-gray-600/50 flex items-center justify-between ${
                             selectedMeetingsFolder?.id === folder.id
-                              ? 'bg-blue-600/20 text-blue-300 border-l-2 border-blue-500'
+                              ? 'bg-blue-600/30 text-blue-200 border-l-4 border-blue-500 font-semibold'
                               : 'text-white hover:bg-gray-700/50'
                           }`}
                         >
-                          <FolderOpen className="w-4 h-4 inline mr-2 -mt-0.5" />
-                          {folder.name}
+                          <span className="flex items-center">
+                            <FolderOpen className="w-4 h-4 inline mr-2" />
+                            {folder.name}
+                          </span>
+                          {selectedMeetingsFolder?.id === folder.id && <CheckCircle className="w-4 h-4 text-blue-400" />}
                         </button>
                       ))}
                   </div>
@@ -1033,13 +1041,14 @@ export const GoogleDriveSettings: React.FC = () => {
                   <div className="max-h-48 overflow-y-auto bg-gray-700/30 border border-gray-600 rounded-lg">
                     <button
                       onClick={() => setSelectedFinancialFolder(null)}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
                         !selectedFinancialFolder
-                          ? 'bg-blue-600/20 text-blue-300 border-l-2 border-blue-500'
+                          ? 'bg-blue-600/30 text-blue-200 border-l-4 border-blue-500 font-semibold'
                           : 'text-gray-400 hover:bg-gray-700/50'
                       }`}
                     >
-                      -- No folder selected --
+                      <span>-- No folder selected --</span>
+                      {!selectedFinancialFolder && <CheckCircle className="w-4 h-4 text-blue-400" />}
                     </button>
                     {folders
                       .filter(folder => folder.name.toLowerCase().includes(financialSearchTerm.toLowerCase()))
@@ -1047,14 +1056,17 @@ export const GoogleDriveSettings: React.FC = () => {
                         <button
                           key={folder.id}
                           onClick={() => setSelectedFinancialFolder(folder)}
-                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-t border-gray-600/50 ${
+                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-t border-gray-600/50 flex items-center justify-between ${
                             selectedFinancialFolder?.id === folder.id
-                              ? 'bg-blue-600/20 text-blue-300 border-l-2 border-blue-500'
+                              ? 'bg-blue-600/30 text-blue-200 border-l-4 border-blue-500 font-semibold'
                               : 'text-white hover:bg-gray-700/50'
                           }`}
                         >
-                          <FolderOpen className="w-4 h-4 inline mr-2 -mt-0.5" />
-                          {folder.name}
+                          <span className="flex items-center">
+                            <FolderOpen className="w-4 h-4 inline mr-2" />
+                            {folder.name}
+                          </span>
+                          {selectedFinancialFolder?.id === folder.id && <CheckCircle className="w-4 h-4 text-blue-400" />}
                         </button>
                       ))}
                   </div>
