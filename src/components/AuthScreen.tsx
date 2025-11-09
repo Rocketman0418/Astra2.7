@@ -1,6 +1,6 @@
 import React from 'react';
 import { CustomAuth } from './CustomAuth';
-import { Brain, Users, BarChart3, MessageSquare, Zap, Lock } from 'lucide-react';
+import { Brain, Users, BarChart3, MessageSquare, FileText, Lock } from 'lucide-react';
 
 export const AuthScreen: React.FC = () => {
   return (
@@ -17,35 +17,24 @@ export const AuthScreen: React.FC = () => {
               Your AI-Powered Business Command Center
             </h2>
             <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-              Astra Intelligence connects to all your data and provides intelligent insights to help entrepreneurs and teams make better decisions, faster.
+              Built for Entrepreneurs and their Teams
             </p>
           </div>
 
           {/* Features Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {/* Private AI Conversations */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-blue-500/50 transition-all duration-300">
-              <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4">
-                <Brain className="w-6 h-6 text-blue-400" />
+            {/* 1. All Your Data Connected */}
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-orange-500/50 transition-all duration-300">
+              <div className="w-12 h-12 rounded-lg bg-orange-500/10 flex items-center justify-center mb-4">
+                <MessageSquare className="w-6 h-6 text-orange-400" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Private AI Assistant</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">All Your Data Connected</h3>
               <p className="text-gray-400 text-sm">
-                Have confidential conversations with AI that understands your business context and provides personalized insights.
+                Connect Documents, Financials, and more. AI analyzes all your data for comprehensive insights.
               </p>
             </div>
 
-            {/* Team Collaboration */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-emerald-500/50 transition-all duration-300">
-              <div className="w-12 h-12 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-4">
-                <Users className="w-6 h-6 text-emerald-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Team Collaboration</h3>
-              <p className="text-gray-400 text-sm">
-                Work together with your team and AI in shared conversations. @mention team members and AI for instant insights.
-              </p>
-            </div>
-
-            {/* Data Visualization */}
+            {/* 2. Smart Visualizations */}
             <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-purple-500/50 transition-all duration-300">
               <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
                 <BarChart3 className="w-6 h-6 text-purple-400" />
@@ -56,29 +45,40 @@ export const AuthScreen: React.FC = () => {
               </p>
             </div>
 
-            {/* Connected Data */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-orange-500/50 transition-all duration-300">
-              <div className="w-12 h-12 rounded-lg bg-orange-500/10 flex items-center justify-center mb-4">
-                <MessageSquare className="w-6 h-6 text-orange-400" />
+            {/* 3. Private AI Assistant */}
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-blue-500/50 transition-all duration-300">
+              <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4">
+                <Brain className="w-6 h-6 text-blue-400" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">All Your Data Connected</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">Private AI Assistant</h3>
               <p className="text-gray-400 text-sm">
-                Connect Gmail, Google Drive, and more. AI analyzes your emails, documents, and data for comprehensive insights.
+                Have confidential conversations with AI that understands your business context and provides personalized insights.
               </p>
             </div>
 
-            {/* Real-Time Sync */}
+            {/* 4. Team Collaboration */}
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-emerald-500/50 transition-all duration-300">
+              <div className="w-12 h-12 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-4">
+                <Users className="w-6 h-6 text-emerald-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Team Collaboration</h3>
+              <p className="text-gray-400 text-sm">
+                Work together with your team and AI in shared conversations. @mention team members and AI for instant insights.
+              </p>
+            </div>
+
+            {/* 5. Reports */}
             <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-yellow-500/50 transition-all duration-300">
               <div className="w-12 h-12 rounded-lg bg-yellow-500/10 flex items-center justify-center mb-4">
-                <Zap className="w-6 h-6 text-yellow-400" />
+                <FileText className="w-6 h-6 text-yellow-400" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Real-Time Collaboration</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">Automated Reports</h3>
               <p className="text-gray-400 text-sm">
-                See updates instantly as your team collaborates. Everything syncs in real-time across all devices.
+                Schedule automated reports delivered to your inbox. Stay informed with daily, weekly, or monthly insights.
               </p>
             </div>
 
-            {/* Secure & Private */}
+            {/* 6. Secure & Private */}
             <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-cyan-500/50 transition-all duration-300">
               <div className="w-12 h-12 rounded-lg bg-cyan-500/10 flex items-center justify-center mb-4">
                 <Lock className="w-6 h-6 text-cyan-400" />
@@ -93,7 +93,7 @@ export const AuthScreen: React.FC = () => {
           {/* Value Proposition */}
           <div className="bg-gradient-to-br from-blue-500/10 via-emerald-500/10 to-purple-500/10 border border-gray-700 rounded-2xl p-8 text-center">
             <h3 className="text-2xl font-bold text-white mb-4">
-              Built for Entrepreneurs Who Move Fast
+              AI That Works For You
             </h3>
             <p className="text-gray-300 text-lg mb-6 max-w-3xl mx-auto">
               Stop switching between apps. Get instant answers from your business data, collaborate with your team in real-time, and make data-driven decisions with AI-powered insights—all in one place.
@@ -105,11 +105,7 @@ export const AuthScreen: React.FC = () => {
               </div>
               <div className="flex items-center gap-2 text-gray-400">
                 <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-                <span>Free for entrepreneurs</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-400">
-                <div className="w-2 h-2 rounded-full bg-purple-400"></div>
-                <span>Setup in 2 minutes</span>
+                <span>Built for Entrepreneurs and their Teams</span>
               </div>
             </div>
           </div>

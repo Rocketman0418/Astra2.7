@@ -257,19 +257,19 @@ export const CustomAuth: React.FC = () => {
   if (step === 'email') {
     return (
       <div className="w-full">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 rounded-full bg-blue-400 shadow-lg">
-            <span className="text-5xl">🚀</span>
+        <div className="text-center mb-6">
+          <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-blue-400 shadow-lg">
+            <span className="text-4xl">🚀</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center justify-center gap-3 flex-wrap">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2 flex items-center justify-center gap-3 flex-wrap">
             <span className="text-blue-400">AI Rocket</span>
             <span className="text-white font-normal">+</span>
             <span className="text-emerald-400">Astra Intelligence</span>
           </h1>
-          <p className="text-gray-400">AI For Entrepreneurs</p>
+          <p className="text-gray-400 text-sm">AI For Entrepreneurs</p>
         </div>
 
-        <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-2xl p-8">
+        <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-2xl p-6">
           {error && (
             <div className="mb-4 bg-red-500/10 border border-red-500/50 rounded-lg p-4">
               <p className="text-red-400 text-sm">{error}</p>
@@ -306,11 +306,11 @@ export const CustomAuth: React.FC = () => {
           </form>
 
           {/* Powered By Section */}
-          <div className="mt-8 pt-8 border-t border-gray-700">
-            <p className="text-center text-gray-400 text-sm mb-4">Powered by</p>
-            <div className="grid grid-cols-3 gap-6">
+          <div className="mt-6 pt-6 border-t border-gray-700">
+            <p className="text-center text-gray-400 text-xs mb-3">Powered by</p>
+            <div className="grid grid-cols-3 gap-4">
               <div className="flex flex-col items-center">
-                <div className="w-16 h-16 mb-2 flex items-center justify-center">
+                <div className="w-12 h-12 mb-1 flex items-center justify-center">
                   <img
                     src="/claude logo.png"
                     alt="Claude"
@@ -320,7 +320,7 @@ export const CustomAuth: React.FC = () => {
                 <p className="text-white text-xs font-medium">Claude</p>
               </div>
               <div className="flex flex-col items-center">
-                <div className="w-16 h-16 mb-2 flex items-center justify-center">
+                <div className="w-12 h-12 mb-1 flex items-center justify-center">
                   <img
                     src="/gemini app logo.jpeg"
                     alt="Gemini"
@@ -330,7 +330,7 @@ export const CustomAuth: React.FC = () => {
                 <p className="text-white text-xs font-medium">Gemini</p>
               </div>
               <div className="flex flex-col items-center">
-                <div className="w-16 h-16 mb-2 flex items-center justify-center">
+                <div className="w-12 h-12 mb-1 flex items-center justify-center">
                   <img
                     src="/gpt app logo.png"
                     alt="OpenAI"
@@ -349,19 +349,19 @@ export const CustomAuth: React.FC = () => {
   // Step 2: Sign Up or Login
   return (
     <div className="w-full">
-      <div className="text-center mb-8">
-        <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 rounded-full bg-blue-400 shadow-lg">
-          <span className="text-5xl">🚀</span>
+      <div className="text-center mb-6">
+        <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-blue-400 shadow-lg">
+          <span className="text-4xl">🚀</span>
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center justify-center gap-3 flex-wrap">
+        <h1 className="text-2xl md:text-3xl font-bold mb-2 flex items-center justify-center gap-3 flex-wrap">
           <span className="text-blue-400">AI Rocket</span>
           <span className="text-white font-normal">+</span>
           <span className="text-emerald-400">Astra Intelligence</span>
         </h1>
-        <p className="text-gray-400">AI For Entrepreneurs</p>
+        <p className="text-gray-400 text-sm">AI For Entrepreneurs</p>
       </div>
 
-      <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-2xl p-8">
+      <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-2xl p-6">
         <div className="mb-6">
           <h2 className="text-xl font-semibold text-white mb-2">
             {step === 'signup' ? 'Create Free Account' : 'Welcome Back'}
