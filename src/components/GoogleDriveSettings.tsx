@@ -687,10 +687,10 @@ export const GoogleDriveSettings: React.FC = () => {
                       <p className="font-semibold text-blue-300 mb-2">Follow these best practices to get the best AI insights on your Financial data:</p>
                       <ol className="list-decimal ml-4 space-y-1.5">
                         <li>
-                          <span className="font-medium">Only Google Sheets files are accepted</span> for financial documents (other file types are not yet supported).
+                          <span className="font-medium">Astra can understand your P&L, Balance Sheet, Transaction Statements, Cash Flow, etc.</span> as well as Budgets, Equity, Tax, AR and AP documents.
                         </li>
                         <li>
-                          <span className="font-medium">Auto-convert uploaded files:</span> You can configure your Google Drive settings to automatically convert uploaded Excel, CSV, and other spreadsheet files to Google Sheets format.
+                          <span className="font-medium">Only Google Sheets files are accepted</span> for financial documents (other file types are not yet supported). You can configure your Google Drive settings to automatically convert uploaded Excel, CSV, and other spreadsheet files to Google Sheets format.
                         </li>
                       </ol>
                     </div>
@@ -877,10 +877,10 @@ export const GoogleDriveSettings: React.FC = () => {
                     <p className="font-semibold text-blue-300 text-sm mb-2">Best Practices:</p>
                     <ol className="list-decimal ml-4 space-y-2 text-sm text-gray-300">
                       <li>
-                        <span className="font-medium">Only Google Sheets files are accepted</span> for financial documents (other file types are not yet supported).
+                        <span className="font-medium">Astra can understand your P&L, Balance Sheet, Transaction Statements, Cash Flow, etc.</span> as well as Budgets, Equity, Tax, AR and AP documents.
                       </li>
                       <li>
-                        <span className="font-medium">Auto-convert uploaded files:</span> You can configure your Google Drive settings to automatically convert uploaded Excel, CSV, and other spreadsheet files to Google Sheets format.
+                        <span className="font-medium">Only Google Sheets files are accepted</span> for financial documents (other file types are not yet supported). You can configure your Google Drive settings to automatically convert uploaded Excel, CSV, and other spreadsheet files to Google Sheets format.
                       </li>
                     </ol>
                   </div>
