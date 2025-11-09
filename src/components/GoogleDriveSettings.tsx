@@ -21,6 +21,7 @@ export const GoogleDriveSettings: React.FC = () => {
   const [savingFolders, setSavingFolders] = useState(false);
   const [showMeetingsBestPractices, setShowMeetingsBestPractices] = useState(false);
   const [showStrategyBestPractices, setShowStrategyBestPractices] = useState(false);
+  const [showFinancialBestPractices, setShowFinancialBestPractices] = useState(false);
   const [syncedDocuments, setSyncedDocuments] = useState<any[]>([]);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [showSetupGuide, setShowSetupGuide] = useState(false);
@@ -29,6 +30,7 @@ export const GoogleDriveSettings: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [strategySearchTerm, setStrategySearchTerm] = useState('');
   const [meetingsSearchTerm, setMeetingsSearchTerm] = useState('');
+  const [financialSearchTerm, setFinancialSearchTerm] = useState('');
   const [teamConnection, setTeamConnection] = useState<GoogleDriveConnection | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [connectedAdminName, setConnectedAdminName] = useState<string>('');
@@ -36,6 +38,7 @@ export const GoogleDriveSettings: React.FC = () => {
   // Temporary state for folder selection
   const [selectedMeetingsFolder, setSelectedMeetingsFolder] = useState<FolderInfo | null>(null);
   const [selectedStrategyFolder, setSelectedStrategyFolder] = useState<FolderInfo | null>(null);
+  const [selectedFinancialFolder, setSelectedFinancialFolder] = useState<FolderInfo | null>(null);
 
   const loadSyncedDocuments = async () => {
     try {
@@ -114,6 +117,12 @@ export const GoogleDriveSettings: React.FC = () => {
           setSelectedStrategyFolder({
             id: conn.strategy_folder_id,
             name: conn.strategy_folder_name
+          });
+        }
+        if (conn.financial_folder_id && conn.financial_folder_name) {
+          setSelectedFinancialFolder({
+            id: conn.financial_folder_id,
+            name: conn.financial_folder_name
           });
         }
 
@@ -203,6 +212,7 @@ export const GoogleDriveSettings: React.FC = () => {
       setTeamConnection(null);
       setSelectedMeetingsFolder(null);
       setSelectedStrategyFolder(null);
+      setSelectedFinancialFolder(null);
       setConnectedAdminName('');
       setError('');
     } catch (err: any) {
@@ -280,7 +290,7 @@ export const GoogleDriveSettings: React.FC = () => {
   };
 
   const handleSaveFolders = async () => {
-    if (!selectedMeetingsFolder && !selectedStrategyFolder) {
+    if (!selectedMeetingsFolder && !selectedStrategyFolder && !selectedFinancialFolder) {
       setError('Please select at least one folder');
       return;
     }
@@ -293,7 +303,9 @@ export const GoogleDriveSettings: React.FC = () => {
         meetings_folder_id: selectedMeetingsFolder?.id || null,
         meetings_folder_name: selectedMeetingsFolder?.name || null,
         strategy_folder_id: selectedStrategyFolder?.id || null,
-        strategy_folder_name: selectedStrategyFolder?.name || null
+        strategy_folder_name: selectedStrategyFolder?.name || null,
+        financial_folder_id: selectedFinancialFolder?.id || null,
+        financial_folder_name: selectedFinancialFolder?.name || null
       });
 
       await loadConnection();
@@ -410,6 +422,14 @@ export const GoogleDriveSettings: React.FC = () => {
                         </div>
                       </div>
                     )}
+                    {teamConnection.financial_folder_name && (
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">Financial Documents Folder</label>
+                        <div className="bg-gray-800 rounded px-3 py-2 text-sm">
+                          <span className="text-white">{teamConnection.financial_folder_name}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Synced Documents Summary */}
@@ -450,6 +470,9 @@ export const GoogleDriveSettings: React.FC = () => {
                                 </p>
                                 <p className="text-white">
                                   Strategy: <span className="font-semibold">{syncedDocuments.filter(d => d.folder_type === 'strategy').length}</span>
+                                </p>
+                                <p className="text-white">
+                                  Financial: <span className="font-semibold">{syncedDocuments.filter(d => d.folder_type === 'financial').length}</span>
                                 </p>
                               </div>
                             </div>
@@ -638,6 +661,42 @@ export const GoogleDriveSettings: React.FC = () => {
                   )}
                 </div>
               </div>
+
+              <div>
+                <label className="text-xs text-gray-400 mb-1 block">Financial Documents Folder</label>
+                <div className="bg-gray-800 rounded px-3 py-2 text-sm">
+                  {selectedFinancialFolder ? (
+                    <span className="text-white">{selectedFinancialFolder.name}</span>
+                  ) : (
+                    <span className="text-gray-500">Not configured</span>
+                  )}
+                </div>
+
+                {/* Financial Best Practices */}
+                <div className="mt-2">
+                  <button
+                    onClick={() => setShowFinancialBestPractices(!showFinancialBestPractices)}
+                    className="flex items-center space-x-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    <Info className="w-3 h-3" />
+                    <span>Financial Documents Best Practices: How to optimize for Astra Intelligence</span>
+                  </button>
+
+                  {showFinancialBestPractices && (
+                    <div className="mt-2 text-xs text-gray-300 bg-gray-800/50 rounded p-3 border border-blue-500/20">
+                      <p className="font-semibold text-blue-300 mb-2">Follow these best practices to get the best AI insights on your Financial data:</p>
+                      <ol className="list-decimal ml-4 space-y-1.5">
+                        <li>
+                          <span className="font-medium">Only Google Sheets files are accepted</span> for financial documents (other file types are not yet supported).
+                        </li>
+                        <li>
+                          <span className="font-medium">Auto-convert uploaded files:</span> You can configure your Google Drive settings to automatically convert uploaded Excel, CSV, and other spreadsheet files to Google Sheets format.
+                        </li>
+                      </ol>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Admin Controls Info for Members */}
@@ -690,6 +749,9 @@ export const GoogleDriveSettings: React.FC = () => {
                           </p>
                           <p className="text-white">
                             Strategy: <span className="font-semibold">{syncedDocuments.filter(d => d.folder_type === 'strategy').length}</span>
+                          </p>
+                          <p className="text-white">
+                            Financial: <span className="font-semibold">{syncedDocuments.filter(d => d.folder_type === 'financial').length}</span>
                           </p>
                         </div>
                       </div>
@@ -797,6 +859,28 @@ export const GoogleDriveSettings: React.FC = () => {
                       </li>
                       <li>
                         <span className="font-medium">Summaries are good, Transcripts are much better.</span> For best results, include full meeting transcripts, not just summaries (both is also ok). If using Google Meet, you can enable auto transcriptions and syncing to your Google Drive in the user settings. Other programs may offer this as well.
+                      </li>
+                    </ol>
+                  </div>
+                </div>
+
+                {/* Financial Documents Best Practices */}
+                <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Info className="w-5 h-5 text-blue-400" />
+                    <h4 className="text-md font-semibold text-white">Financial Documents Folder</h4>
+                  </div>
+                  <p className="text-sm text-gray-300 mb-3">
+                    This folder should contain your financial documents like budgets, forecasts, and reports in Google Sheets format.
+                  </p>
+                  <div className="bg-gray-800/50 rounded p-3 border border-blue-500/20">
+                    <p className="font-semibold text-blue-300 text-sm mb-2">Best Practices:</p>
+                    <ol className="list-decimal ml-4 space-y-2 text-sm text-gray-300">
+                      <li>
+                        <span className="font-medium">Only Google Sheets files are accepted</span> for financial documents (other file types are not yet supported).
+                      </li>
+                      <li>
+                        <span className="font-medium">Auto-convert uploaded files:</span> You can configure your Google Drive settings to automatically convert uploaded Excel, CSV, and other spreadsheet files to Google Sheets format.
                       </li>
                     </ol>
                   </div>
@@ -911,6 +995,43 @@ export const GoogleDriveSettings: React.FC = () => {
                     Folder containing your meeting recordings and notes
                   </p>
                 </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-white mb-2 block">
+                    Financial Documents Folder
+                  </label>
+                  <div className="relative mb-2">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search folders..."
+                      value={financialSearchTerm}
+                      onChange={(e) => setFinancialSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                    />
+                  </div>
+                  <select
+                    value={selectedFinancialFolder?.id || ''}
+                    onChange={(e) => {
+                      const folder = folders.find(f => f.id === e.target.value);
+                      setSelectedFinancialFolder(folder || null);
+                    }}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-500 focus:outline-none"
+                    size={5}
+                  >
+                    <option value="">-- Select a folder --</option>
+                    {folders
+                      .filter(folder => folder.name.toLowerCase().includes(financialSearchTerm.toLowerCase()))
+                      .map(folder => (
+                        <option key={folder.id} value={folder.id}>
+                          {folder.name}
+                        </option>
+                      ))}
+                  </select>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Folder containing your financial documents (Google Sheets only)
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -923,7 +1044,7 @@ export const GoogleDriveSettings: React.FC = () => {
               </button>
               <button
                 onClick={handleSaveFolders}
-                disabled={savingFolders || (!selectedMeetingsFolder && !selectedStrategyFolder)}
+                disabled={savingFolders || (!selectedMeetingsFolder && !selectedStrategyFolder && !selectedFinancialFolder)}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded transition-colors flex items-center space-x-2"
               >
                 {savingFolders ? (

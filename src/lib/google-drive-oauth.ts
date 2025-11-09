@@ -28,6 +28,8 @@ export interface GoogleDriveConnection {
   meetings_folder_name: string | null;
   strategy_folder_id: string | null;
   strategy_folder_name: string | null;
+  financial_folder_id: string | null;
+  financial_folder_name: string | null;
   is_active: boolean;
   connection_status: 'connected' | 'error' | 'disconnected' | 'token_expired';
   last_sync_at: string | null;
@@ -243,10 +245,12 @@ export const refreshGoogleDriveToken = async (): Promise<void> => {
  * Updates the folder configuration (meetings and/or strategy folder IDs)
  */
 export const updateFolderConfiguration = async (folders: {
-  meetings_folder_id?: string;
-  meetings_folder_name?: string;
-  strategy_folder_id?: string;
-  strategy_folder_name?: string;
+  meetings_folder_id?: string | null;
+  meetings_folder_name?: string | null;
+  strategy_folder_id?: string | null;
+  strategy_folder_name?: string | null;
+  financial_folder_id?: string | null;
+  financial_folder_name?: string | null;
 }): Promise<void> => {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
