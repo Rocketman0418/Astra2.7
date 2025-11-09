@@ -83,7 +83,12 @@ export const helpFAQ: FAQItem[] = [
   {
     category: 'reports',
     question: 'Can I create my own reports?',
-    answer: 'Yes! All team members can create, manage, edit, and delete their own reports from the Reports page. Admins can also set up automated scheduled reports that run daily, weekly, or monthly from Team Settings.'
+    answer: 'Yes! All team members can create, manage, edit, and delete their own reports from the Reports page. You can create custom reports that run manually or on a schedule (daily, weekly, or monthly).'
+  },
+  {
+    category: 'reports',
+    question: 'What are Team Reports?',
+    answer: 'Team Reports are reports created by admins that are automatically delivered to all team members. When you receive a Team Report, you\'ll see it with an orange "Team Report" badge showing who created it. Each team member gets their own copy in their Reports view.'
   },
   {
     category: 'integrations',
@@ -108,12 +113,17 @@ export const helpFAQ: FAQItem[] = [
   {
     category: 'admin',
     question: 'What\'s the difference between Admin and Member roles?',
-    answer: 'Admins can invite team members, manage team settings, connect integrations, delete documents, and set up automated scheduled reports. Members can chat with Astra, create visualizations, create and manage their own reports, and view team data.'
+    answer: 'Admins can invite team members, manage team settings, connect integrations, delete documents, and create Team Reports that are delivered to all members. Members can chat with Astra, create visualizations, create and manage their own personal reports, and view team data.'
   },
   {
     category: 'admin',
-    question: 'How do I set up scheduled reports?',
-    answer: 'Go to Team Settings and navigate to the Scheduled Reports section. You can create reports that run daily, weekly, or monthly at specific times, asking Astra any question you want automated.'
+    question: 'How do I create Team Reports?',
+    answer: 'As an admin, go to the Reports page and click "New Report". Configure your report (manual or scheduled), then check the "Team Report" checkbox before saving. Team Reports will be delivered to all team members, and each member will see it marked with a "Team Report" badge in their Reports view.'
+  },
+  {
+    category: 'admin',
+    question: 'What\'s the difference between personal and Team Reports?',
+    answer: 'Personal reports are only visible to the person who creates them. Team Reports, created by admins, are automatically delivered to every team member - each person gets their own copy with a special "Team Report" badge showing which admin created it.'
   },
   {
     category: 'admin',
