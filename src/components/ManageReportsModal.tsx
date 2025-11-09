@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, Plus, Settings, Play, Pause, Pencil, Trash2, Calendar, Clock, Zap, CheckCircle } from 'lucide-react';
+import { X, Plus, Settings, Play, Pause, Pencil, Trash2, Calendar, Clock, Zap, CheckCircle, Users } from 'lucide-react';
 import { useReportsContext, ReportTemplate, UserReport } from '../contexts/ReportsContext';
 import { HourOnlyTimePicker } from './HourOnlyTimePicker';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ManageReportsModalProps {
   isOpen: boolean;
@@ -30,6 +31,9 @@ export const ManageReportsModal: React.FC<ManageReportsModalProps> = ({
     runningReports
   } = useReportsContext();
 
+  const { user } = useAuth();
+  const isAdmin = user?.user_metadata?.role === 'admin';
+
   const [currentView, setCurrentView] = useState<ModalView>(startInCreateMode ? 'create' : 'list');
   const [createStep, setCreateStep] = useState<CreateStep>('template');
   const [editingReport, setEditingReport] = useState<UserReport | null>(null);
@@ -42,7 +46,8 @@ export const ManageReportsModal: React.FC<ManageReportsModalProps> = ({
     schedule_type: 'scheduled' as 'manual' | 'scheduled',
     schedule_frequency: 'daily',
     schedule_time: '07:00',
-    schedule_day: null as number | null
+    schedule_day: null as number | null,
+    is_team_report: false
   });
 
   // Reset form and view state
@@ -59,7 +64,8 @@ export const ManageReportsModal: React.FC<ManageReportsModalProps> = ({
       schedule_type: 'scheduled',
       schedule_frequency: 'daily',
       schedule_time: '07:00',
-      schedule_day: null
+      schedule_day: null,
+      is_team_report: false
     });
   };
 
@@ -85,7 +91,8 @@ export const ManageReportsModal: React.FC<ManageReportsModalProps> = ({
       schedule_type: report.schedule_type,
       schedule_frequency: report.schedule_frequency,
       schedule_time: report.schedule_time,
-      schedule_day: report.schedule_day
+      schedule_day: report.schedule_day,
+      is_team_report: report.is_team_report || false
     });
     setCurrentView('edit');
     setCreateStep('configure');
@@ -296,13 +303,19 @@ export const ManageReportsModal: React.FC<ManageReportsModalProps> = ({
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
+                          <div className="flex items-center gap-3 mb-2 flex-wrap">
                             <span className="text-2xl">
                               {report.template?.icon || '📊'}
                             </span>
                             <h3 className="font-medium text-white">{report.title}</h3>
+                            {report.is_team_report && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-orange-300 bg-orange-500/20 border border-orange-500/40 rounded-full whitespace-nowrap">
+                                <Users className="w-3 h-3" />
+                                Team Report
+                              </span>
+                            )}
                           </div>
-                          
+
                           <div className="flex items-center space-x-4 text-xs text-gray-500 mb-3">
                             <div className="flex items-center space-x-1">
                               <Calendar className="w-3 h-3" />
@@ -559,6 +572,29 @@ export const ManageReportsModal: React.FC<ManageReportsModalProps> = ({
                             </select>
                           </div>
                         )}
+                      </div>
+                    )}
+
+                    {/* Team Report Checkbox - Only show for admins */}
+                    {isAdmin && (
+                      <div className="mt-4 p-4 bg-gradient-to-r from-orange-500/10 to-blue-500/10 border border-orange-500/30 rounded-lg">
+                        <label className="flex items-start space-x-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.is_team_report}
+                            onChange={(e) => setFormData({ ...formData, is_team_report: e.target.checked })}
+                            className="mt-1 w-4 h-4 text-orange-500 bg-gray-700 border-gray-600 rounded focus:ring-orange-500 focus:ring-2"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2">
+                              <Users className="w-4 h-4 text-orange-400" />
+                              <span className="text-white font-medium">Team Report</span>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-1">
+                              Deliver this report to all team members. Each member will receive their own copy with a "Team Report" badge.
+                            </p>
+                          </div>
+                        </label>
                       </div>
                     )}
                   </div>

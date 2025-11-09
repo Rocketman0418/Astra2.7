@@ -28,6 +28,8 @@ export interface UserReport {
   report_template_id: string | null;
   created_at: string;
   template?: ReportTemplate;
+  is_team_report?: boolean;
+  created_by_user_id?: string;
 }
 
 export interface ReportMessage {
@@ -147,12 +149,21 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     try {
       setLoading(true);
+
+      // Prepare report data
+      const reportData: any = {
+        ...data,
+        user_id: user.id
+      };
+
+      // If creating a team report, store who created it
+      if (data.is_team_report) {
+        reportData.created_by_user_id = user.id;
+      }
+
       const { error } = await supabase
         .from('astra_reports')
-        .insert({
-          ...data,
-          user_id: user.id
-        });
+        .insert(reportData);
 
       if (error) throw error;
 

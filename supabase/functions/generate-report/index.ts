@@ -161,12 +161,56 @@ Deno.serve(async (req: Request) => {
 
     console.log('✅ Report generated successfully from n8n webhook');
 
-    // Save report message to astra_chats
-    const { error: insertError } = await supabase
-      .from('astra_chats')
-      .insert({
+    // Determine recipients based on whether this is a team report
+    const recipients = [];
+
+    if (report.is_team_report && teamId) {
+      console.log(`📤 Team report detected - sending to all members of team: ${teamId}`);
+
+      // Fetch all team members
+      const { data: teamMembers, error: membersError } = await supabase
+        .from('users')
+        .select('id, raw_user_meta_data')
+        .eq('team_id', teamId);
+
+      if (membersError) {
+        console.error('❌ Error fetching team members:', membersError);
+        // Fallback to just the creator
+        recipients.push({
+          user_id: userId,
+          user_email: userData.user.email,
+          user_name: userName
+        });
+      } else if (teamMembers && teamMembers.length > 0) {
+        console.log(`✅ Found ${teamMembers.length} team members`);
+        for (const member of teamMembers) {
+          // Get member's auth info
+          const { data: memberAuth } = await supabase.auth.admin.getUserById(member.id);
+          if (memberAuth?.user?.email) {
+            recipients.push({
+              user_id: member.id,
+              user_email: memberAuth.user.email,
+              user_name: member.raw_user_meta_data?.full_name || memberAuth.user.email
+            });
+          }
+        }
+      }
+    } else {
+      // Regular report - send only to creator
+      recipients.push({
         user_id: userId,
         user_email: userData.user.email,
+        user_name: userName
+      });
+    }
+
+    console.log(`📬 Sending report to ${recipients.length} recipient(s)`);
+
+    // Save report message for each recipient
+    const insertPromises = recipients.map(recipient =>
+      supabase.from('astra_chats').insert({
+        user_id: recipient.user_id,
+        user_email: recipient.user_email,
         mode: 'reports',
         message: reportText,
         message_type: 'astra',
@@ -177,14 +221,23 @@ Deno.serve(async (req: Request) => {
           report_schedule: report.schedule_time,
           report_frequency: report.schedule_frequency,
           is_manual_run: true,
-          executed_at: new Date().toISOString()
+          executed_at: new Date().toISOString(),
+          is_team_report: report.is_team_report || false,
+          created_by_user_id: report.created_by_user_id || null,
+          created_by_name: report.is_team_report ? userName : null
         }
-      });
+      })
+    );
 
-    if (insertError) {
-      console.error('Error inserting report message:', insertError);
-      throw new Error(`Failed to save report: ${insertError.message}`);
+    const insertResults = await Promise.allSettled(insertPromises);
+    const failedInserts = insertResults.filter(r => r.status === 'rejected');
+
+    if (failedInserts.length > 0) {
+      console.error(`❌ ${failedInserts.length} insert(s) failed`);
+      throw new Error(`Failed to save report for some recipients`);
     }
+
+    console.log(`✅ Report delivered to all ${recipients.length} recipient(s)`);
 
     // Update last_run_at timestamp
     await supabase

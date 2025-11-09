@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Plus, Settings, Trash2, Eye, FileText, Maximize2, RotateCcw, Copy, Check, FileBarChart } from 'lucide-react';
+import { Plus, Settings, Trash2, Eye, FileText, Maximize2, RotateCcw, Copy, Check, FileBarChart, Users } from 'lucide-react';
 import { useVisualization } from '../hooks/useVisualization';
 import { useReportsContext } from '../contexts/ReportsContext';
 import { ManageReportsModal } from './ManageReportsModal';
@@ -176,12 +176,23 @@ export const ReportsView: React.FC = () => {
                       🚀
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-white truncate">
-                        {message.reportMetadata?.title || message.reportMetadata?.report_title || 'Report'}
-                      </h3>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-lg font-semibold text-white truncate">
+                          {message.reportMetadata?.title || message.reportMetadata?.report_title || 'Report'}
+                        </h3>
+                        {message.reportMetadata?.is_team_report && (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-orange-300 bg-orange-500/20 border border-orange-500/40 rounded-full whitespace-nowrap">
+                            <Users className="w-3 h-3" />
+                            Team Report
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-gray-400">
                         {message.timestamp.toLocaleDateString()} at{' '}
                         {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {message.reportMetadata?.is_team_report && message.reportMetadata?.created_by_name && (
+                          <> • Created by {message.reportMetadata.created_by_name}</>
+                        )}
                       </p>
                     </div>
                   </div>
