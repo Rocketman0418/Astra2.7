@@ -21,13 +21,17 @@ export const CustomAuth: React.FC = () => {
 
   const checkUserExists = async (email: string): Promise<boolean> => {
     try {
-      // Try to check if user exists by attempting a password reset
-      // This is a safe way to check without exposing user data
-      const { data: users } = await supabase
+      // Check if user exists in the public users table
+      const { data: users, error } = await supabase
         .from('users')
         .select('id')
-        .eq('raw_user_meta_data->>email', email.toLowerCase())
+        .eq('email', email.toLowerCase())
         .limit(1);
+
+      if (error) {
+        console.error('Error checking user:', error);
+        return false;
+      }
 
       // If we find a user in the public users table, they exist
       return users && users.length > 0;
@@ -61,7 +65,7 @@ export const CustomAuth: React.FC = () => {
         setStep('login');
       } else {
         setStep('signup');
-        setConfirmEmail(email); // Pre-populate confirm email
+        // Don't pre-populate confirm email - user should enter it again
       }
     } catch (err: any) {
       console.error('Error:', err);
