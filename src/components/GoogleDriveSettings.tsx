@@ -921,114 +921,144 @@ export const GoogleDriveSettings: React.FC = () => {
             </div>
 
             <div className="p-6 overflow-y-auto flex-1">
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div>
-                  <label className="text-sm font-semibold text-white mb-2 block">
+                  <label className="text-sm font-semibold text-white mb-3 block">
                     Strategy Documents Folder
                   </label>
-                  <div className="relative mb-2">
+                  <div className="relative mb-3">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
                       type="text"
                       placeholder="Search folders..."
                       value={strategySearchTerm}
                       onChange={(e) => setStrategySearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                      className="w-full pl-10 pr-3 py-2.5 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
                     />
                   </div>
-                  <select
-                    value={selectedStrategyFolder?.id || ''}
-                    onChange={(e) => {
-                      const folder = folders.find(f => f.id === e.target.value);
-                      setSelectedStrategyFolder(folder || null);
-                    }}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-500 focus:outline-none"
-                    size={5}
-                  >
-                    <option value="">-- Select a folder --</option>
+                  <div className="max-h-48 overflow-y-auto bg-gray-700/30 border border-gray-600 rounded-lg">
+                    <button
+                      onClick={() => setSelectedStrategyFolder(null)}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                        !selectedStrategyFolder
+                          ? 'bg-blue-600/20 text-blue-300 border-l-2 border-blue-500'
+                          : 'text-gray-400 hover:bg-gray-700/50'
+                      }`}
+                    >
+                      -- No folder selected --
+                    </button>
                     {folders
                       .filter(folder => folder.name.toLowerCase().includes(strategySearchTerm.toLowerCase()))
                       .map(folder => (
-                        <option key={folder.id} value={folder.id}>
+                        <button
+                          key={folder.id}
+                          onClick={() => setSelectedStrategyFolder(folder)}
+                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-t border-gray-600/50 ${
+                            selectedStrategyFolder?.id === folder.id
+                              ? 'bg-blue-600/20 text-blue-300 border-l-2 border-blue-500'
+                              : 'text-white hover:bg-gray-700/50'
+                          }`}
+                        >
+                          <FolderOpen className="w-4 h-4 inline mr-2 -mt-0.5" />
                           {folder.name}
-                        </option>
+                        </button>
                       ))}
-                  </select>
-                  <p className="text-xs text-gray-400 mt-1">
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
                     Folder containing your strategy documents and plans
                   </p>
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-white mb-2 block">
+                  <label className="text-sm font-semibold text-white mb-3 block">
                     Meetings Folder
                   </label>
-                  <div className="relative mb-2">
+                  <div className="relative mb-3">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
                       type="text"
                       placeholder="Search folders..."
                       value={meetingsSearchTerm}
                       onChange={(e) => setMeetingsSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                      className="w-full pl-10 pr-3 py-2.5 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
                     />
                   </div>
-                  <select
-                    value={selectedMeetingsFolder?.id || ''}
-                    onChange={(e) => {
-                      const folder = folders.find(f => f.id === e.target.value);
-                      setSelectedMeetingsFolder(folder || null);
-                    }}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-500 focus:outline-none"
-                    size={5}
-                  >
-                    <option value="">-- Select a folder --</option>
+                  <div className="max-h-48 overflow-y-auto bg-gray-700/30 border border-gray-600 rounded-lg">
+                    <button
+                      onClick={() => setSelectedMeetingsFolder(null)}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                        !selectedMeetingsFolder
+                          ? 'bg-blue-600/20 text-blue-300 border-l-2 border-blue-500'
+                          : 'text-gray-400 hover:bg-gray-700/50'
+                      }`}
+                    >
+                      -- No folder selected --
+                    </button>
                     {folders
                       .filter(folder => folder.name.toLowerCase().includes(meetingsSearchTerm.toLowerCase()))
                       .map(folder => (
-                        <option key={folder.id} value={folder.id}>
+                        <button
+                          key={folder.id}
+                          onClick={() => setSelectedMeetingsFolder(folder)}
+                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-t border-gray-600/50 ${
+                            selectedMeetingsFolder?.id === folder.id
+                              ? 'bg-blue-600/20 text-blue-300 border-l-2 border-blue-500'
+                              : 'text-white hover:bg-gray-700/50'
+                          }`}
+                        >
+                          <FolderOpen className="w-4 h-4 inline mr-2 -mt-0.5" />
                           {folder.name}
-                        </option>
+                        </button>
                       ))}
-                  </select>
-                  <p className="text-xs text-gray-400 mt-1">
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
                     Folder containing your meeting recordings and notes
                   </p>
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-white mb-2 block">
+                  <label className="text-sm font-semibold text-white mb-3 block">
                     Financial Documents Folder
                   </label>
-                  <div className="relative mb-2">
+                  <div className="relative mb-3">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
                       type="text"
                       placeholder="Search folders..."
                       value={financialSearchTerm}
                       onChange={(e) => setFinancialSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                      className="w-full pl-10 pr-3 py-2.5 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
                     />
                   </div>
-                  <select
-                    value={selectedFinancialFolder?.id || ''}
-                    onChange={(e) => {
-                      const folder = folders.find(f => f.id === e.target.value);
-                      setSelectedFinancialFolder(folder || null);
-                    }}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-500 focus:outline-none"
-                    size={5}
-                  >
-                    <option value="">-- Select a folder --</option>
+                  <div className="max-h-48 overflow-y-auto bg-gray-700/30 border border-gray-600 rounded-lg">
+                    <button
+                      onClick={() => setSelectedFinancialFolder(null)}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                        !selectedFinancialFolder
+                          ? 'bg-blue-600/20 text-blue-300 border-l-2 border-blue-500'
+                          : 'text-gray-400 hover:bg-gray-700/50'
+                      }`}
+                    >
+                      -- No folder selected --
+                    </button>
                     {folders
                       .filter(folder => folder.name.toLowerCase().includes(financialSearchTerm.toLowerCase()))
                       .map(folder => (
-                        <option key={folder.id} value={folder.id}>
+                        <button
+                          key={folder.id}
+                          onClick={() => setSelectedFinancialFolder(folder)}
+                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-t border-gray-600/50 ${
+                            selectedFinancialFolder?.id === folder.id
+                              ? 'bg-blue-600/20 text-blue-300 border-l-2 border-blue-500'
+                              : 'text-white hover:bg-gray-700/50'
+                          }`}
+                        >
+                          <FolderOpen className="w-4 h-4 inline mr-2 -mt-0.5" />
                           {folder.name}
-                        </option>
+                        </button>
                       ))}
-                  </select>
-                  <p className="text-xs text-gray-400 mt-1">
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
                     Folder containing your financial documents (Google Sheets only)
                   </p>
                 </div>
@@ -1038,14 +1068,14 @@ export const GoogleDriveSettings: React.FC = () => {
             <div className="px-6 py-4 border-t border-gray-700 flex justify-end space-x-3">
               <button
                 onClick={() => setShowFolderPicker(false)}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors"
+                className="px-5 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveFolders}
                 disabled={savingFolders || (!selectedMeetingsFolder && !selectedStrategyFolder && !selectedFinancialFolder)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded transition-colors flex items-center space-x-2"
+                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center space-x-2 font-medium"
               >
                 {savingFolders ? (
                   <>
