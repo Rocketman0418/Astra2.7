@@ -60,9 +60,9 @@ export function FeedbackAnalyticsPanel() {
         .from('user_feedback_submissions')
         .select(`
           id,
+          user_id,
           submitted_at,
-          general_feedback,
-          users!inner(id, raw_user_meta_data)
+          general_feedback
         `)
         .eq('team_id', teamId);
 
@@ -88,7 +88,7 @@ export function FeedbackAnalyticsPanel() {
           rating,
           comment,
           submission_id,
-          user_feedback_submissions!inner(submitted_at, team_id, user_id, users(raw_user_meta_data)),
+          user_feedback_submissions!inner(submitted_at, team_id, user_id),
           feedback_questions(question_text, category)
         `)
         .eq('user_feedback_submissions.team_id', teamId);
@@ -123,12 +123,24 @@ export function FeedbackAnalyticsPanel() {
         avgRatings[question] = stats.sum / stats.total;
       });
 
+      // Get unique user IDs from answers
+      const userIds = new Set(answers?.map(a => a.user_feedback_submissions?.user_id).filter(Boolean));
+      const userIdArray = Array.from(userIds);
+
+      // Fetch user names from public.users table
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('id, name')
+        .in('id', userIdArray);
+
+      const userMap = new Map(usersData?.map(u => [u.id, u.name || 'Anonymous']) || []);
+
       const recentSuggestions = answers
         ?.filter(a => a.comment && a.comment.trim() !== '')
         .slice(0, 20)
         .map(a => ({
           id: a.id,
-          user_name: a.user_feedback_submissions?.users?.raw_user_meta_data?.name || 'Anonymous',
+          user_name: userMap.get(a.user_feedback_submissions?.user_id || '') || 'Anonymous',
           submitted_at: a.user_feedback_submissions?.submitted_at || '',
           question_text: a.feedback_questions?.question_text || '',
           rating: a.rating,
@@ -136,11 +148,22 @@ export function FeedbackAnalyticsPanel() {
         })) || [];
 
       // Get general feedback from submissions
+      const submissionUserIds = new Set(submissions?.map(s => s.user_id).filter(Boolean));
+      const submissionUserIdArray = Array.from(submissionUserIds);
+
+      // Fetch user names for submissions
+      const { data: submissionUsersData } = await supabase
+        .from('users')
+        .select('id, name')
+        .in('id', submissionUserIdArray);
+
+      const submissionUserMap = new Map(submissionUsersData?.map(u => [u.id, u.name || 'Anonymous']) || []);
+
       const generalFeedback = submissions
         ?.filter(s => s.general_feedback && s.general_feedback.trim() !== '')
         .map(s => ({
           id: s.id,
-          user_name: s.users?.raw_user_meta_data?.name || 'Anonymous',
+          user_name: submissionUserMap.get(s.user_id) || 'Anonymous',
           submitted_at: s.submitted_at,
           general_feedback: s.general_feedback
         })) || [];
