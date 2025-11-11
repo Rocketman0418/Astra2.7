@@ -43,10 +43,21 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
       }
 
       // Check if user has pending team setup (new team invite from signup)
-      const hasPendingSetup = user.user_metadata?.pending_team_setup === true;
-      const inviteCode = user.user_metadata?.invite_code;
+      // Also check if user exists in public.users but has no team (partial setup)
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id, team_id')
+        .eq('id', user.id)
+        .maybeSingle();
 
-      if (hasPendingSetup && inviteCode) {
+      const pendingSetup = user.user_metadata?.pending_team_setup;
+      const hasPendingSetup = pendingSetup === true || pendingSetup === 'true';
+      const inviteCode = user.user_metadata?.invite_code;
+      const hasIncompleteSetup = existingUser && !existingUser.team_id && inviteCode;
+
+      console.log('Onboarding check:', { hasPendingSetup, hasIncompleteSetup, inviteCode, existingUser });
+
+      if ((hasPendingSetup || hasIncompleteSetup) && inviteCode) {
         console.log('Completing pending team setup via RPC');
 
         // Complete signup with team name via RPC
