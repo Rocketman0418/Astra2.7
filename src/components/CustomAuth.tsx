@@ -11,6 +11,8 @@ export const CustomAuth: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [inviteCode, setInviteCode] = useState('');
+  const [teamName, setTeamName] = useState('');
+  const [isNewTeam, setIsNewTeam] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -109,6 +111,9 @@ export const CustomAuth: React.FC = () => {
         return { valid: false };
       }
 
+      // Set whether this is a new team invite
+      setIsNewTeam(!data.team_id);
+
       return { valid: true, inviteData: data };
     } catch (err) {
       console.error('Error validating invite code:', err);
@@ -122,7 +127,7 @@ export const CustomAuth: React.FC = () => {
       if (inviteCode && email && inviteCode.length >= 6) {
         const { data } = await supabase
           .from('invite_codes')
-          .select('invited_email')
+          .select('invited_email, team_id')
           .eq('code', inviteCode.toUpperCase())
           .maybeSingle();
 
@@ -130,6 +135,11 @@ export const CustomAuth: React.FC = () => {
           setError('Email does not match the invited email for this code');
         } else if (error && error.includes('Email does not match')) {
           setError('');
+        }
+
+        // Update isNewTeam state based on invite code
+        if (data) {
+          setIsNewTeam(!data.team_id);
         }
       }
     };
@@ -179,11 +189,22 @@ export const CustomAuth: React.FC = () => {
         return;
       }
 
+      // Check if this is a "new team" invite (no team_id)
+      const isCreatingNewTeam = !inviteData.team_id;
+
+      // If creating new team, require team name
+      if (isCreatingNewTeam && !teamName.trim()) {
+        setError('Please enter your company/team name');
+        setLoading(false);
+        return;
+      }
+
       const metadata: any = {
         invite_code: inviteCode.toUpperCase()
       };
 
       if (inviteData.team_id) {
+        // Joining existing team
         metadata.team_id = inviteData.team_id;
         metadata.role = inviteData.assigned_role || 'member';
         metadata.view_financial = inviteData.view_financial !== undefined ? inviteData.view_financial : true;
@@ -197,6 +218,11 @@ export const CustomAuth: React.FC = () => {
         if (teamData) {
           metadata.team_name = teamData.name;
         }
+      } else {
+        // Creating new team - include team name in metadata for trigger to process
+        metadata.new_team_name = teamName.trim();
+        metadata.role = 'admin'; // First user becomes admin
+        metadata.view_financial = true; // Admins can view financial data
       }
 
       console.log('Attempting signup with metadata:', metadata);
@@ -494,6 +520,26 @@ export const CustomAuth: React.FC = () => {
                   Need an invite code? Contact your administrator
                 </p>
               </div>
+
+              {isNewTeam && (
+                <div>
+                  <label className="text-sm text-gray-400 mb-1 block">Company/Team Name</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={teamName}
+                      onChange={(e) => setTeamName(e.target.value)}
+                      placeholder="Enter your company or team name"
+                      disabled={loading}
+                      className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    This will be your team workspace name
+                  </p>
+                </div>
+              )}
             </>
           )}
 
