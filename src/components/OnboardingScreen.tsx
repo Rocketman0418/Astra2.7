@@ -42,48 +42,96 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
         return;
       }
 
-      // Create team
-      const { data: teamData, error: teamError } = await supabase
-        .from('teams')
-        .insert({
-          name: teamName.trim(),
-          created_by: user.id
-        })
-        .select()
-        .single();
+      // Check if user has pending team setup (new team invite from signup)
+      const hasPendingSetup = user.user_metadata?.pending_team_setup === true;
+      const inviteCode = user.user_metadata?.invite_code;
 
-      if (teamError) throw teamError;
+      if (hasPendingSetup && inviteCode) {
+        console.log('Completing pending team setup via RPC');
 
-      // Update public.users table with team and profile information
-      const { error: usersError } = await supabase
-        .from('users')
-        .upsert({
-          id: user.id,
-          email: user.email!,
-          name: fullName.trim(),
-          team_id: teamData.id,
-          role: 'admin',
-          view_financial: true
+        // Complete signup with team name via RPC
+        const { data: setupResult, error: setupError } = await supabase.rpc('complete_user_signup', {
+          p_invite_code: inviteCode,
+          p_new_team_name: teamName.trim()
         });
 
-      if (usersError) throw usersError;
-
-      // The trigger will automatically sync this to auth.users.raw_user_meta_data
-      // But we also update auth metadata directly for immediate JWT refresh
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: {
-          full_name: fullName.trim(),
-          team_id: teamData.id,
-          role: 'admin',
-          view_financial: true
+        if (setupError) {
+          console.error('Setup error:', setupError);
+          throw new Error(`Failed to complete setup: ${setupError.message}`);
         }
-      });
 
-      if (updateError) throw updateError;
+        if (!setupResult?.success) {
+          console.error('Setup failed:', setupResult);
+          throw new Error(setupResult?.error || 'Failed to complete setup');
+        }
 
-      // Show team settings modal for admins who created a new team
-      setCreatedTeamId(teamData.id);
-      setShowTeamSettings(true);
+        console.log('Setup completed successfully:', setupResult);
+
+        // Update user name
+        const { error: nameUpdateError } = await supabase
+          .from('users')
+          .update({ name: fullName.trim() })
+          .eq('id', user.id);
+
+        if (nameUpdateError) throw nameUpdateError;
+
+        // Update auth metadata to remove pending flag and add name
+        await supabase.auth.updateUser({
+          data: {
+            full_name: fullName.trim(),
+            pending_team_setup: false
+          }
+        });
+
+        // Show team settings modal
+        setCreatedTeamId(setupResult.team_id);
+        setShowTeamSettings(true);
+      } else {
+        // Legacy flow: user didn't go through invite signup
+        console.log('Using legacy onboarding flow');
+
+        // Create team
+        const { data: teamData, error: teamError } = await supabase
+          .from('teams')
+          .insert({
+            name: teamName.trim(),
+            created_by: user.id
+          })
+          .select()
+          .single();
+
+        if (teamError) throw teamError;
+
+        // Update public.users table with team and profile information
+        const { error: usersError } = await supabase
+          .from('users')
+          .upsert({
+            id: user.id,
+            email: user.email!,
+            name: fullName.trim(),
+            team_id: teamData.id,
+            role: 'admin',
+            view_financial: true
+          });
+
+        if (usersError) throw usersError;
+
+        // Update auth metadata
+        const { error: updateError } = await supabase.auth.updateUser({
+          data: {
+            full_name: fullName.trim(),
+            team_id: teamData.id,
+            role: 'admin',
+            view_financial: true
+          }
+        });
+
+        if (updateError) throw updateError;
+
+        // Show team settings modal
+        setCreatedTeamId(teamData.id);
+        setShowTeamSettings(true);
+      }
     } catch (err: any) {
       console.error('Onboarding error:', err);
       setError(err.message || 'Failed to complete onboarding');

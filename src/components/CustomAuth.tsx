@@ -192,21 +192,19 @@ export const CustomAuth: React.FC = () => {
       // Check if this is a "new team" invite (no team_id)
       const isCreatingNewTeam = !inviteData.team_id;
 
-      // If creating new team, require team name
-      if (isCreatingNewTeam && !teamName.trim()) {
-        setError('Please enter your company/team name');
-        setLoading(false);
-        return;
-      }
-
       console.log('Attempting signup for:', email);
 
-      // Step 1: Create auth user (no metadata needed, trigger removed)
+      // Step 1: Create auth user
       const { data, error } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
         options: {
-          emailRedirectTo: window.location.origin
+          emailRedirectTo: window.location.origin,
+          data: {
+            invite_code: inviteCode.toUpperCase(),
+            is_new_team: isCreatingNewTeam,
+            pending_team_setup: isCreatingNewTeam // Flag that team name is needed
+          }
         }
       });
 
@@ -223,30 +221,33 @@ export const CustomAuth: React.FC = () => {
 
       console.log('Auth user created successfully:', data.user.id);
 
-      // Step 2: Complete user setup by calling RPC function
-      console.log('Calling complete_user_signup with:', {
-        invite_code: inviteCode,
-        new_team_name: isCreatingNewTeam ? teamName : null
-      });
+      // Step 2: Complete user setup
+      // If joining existing team, complete setup immediately
+      // If creating new team, skip setup (will be done in onboarding with team name)
+      if (!isCreatingNewTeam) {
+        console.log('Joining existing team, completing setup now');
 
-      const { data: setupResult, error: setupError } = await supabase.rpc('complete_user_signup', {
-        p_invite_code: inviteCode.toUpperCase(),
-        p_new_team_name: isCreatingNewTeam ? teamName.trim() : null
-      });
+        const { data: setupResult, error: setupError } = await supabase.rpc('complete_user_signup', {
+          p_invite_code: inviteCode.toUpperCase(),
+          p_new_team_name: null
+        });
 
-      console.log('Setup result:', setupResult);
+        console.log('Setup result:', setupResult);
 
-      if (setupError) {
-        console.error('Setup error:', setupError);
-        throw new Error(`Failed to complete signup: ${setupError.message}`);
+        if (setupError) {
+          console.error('Setup error:', setupError);
+          throw new Error(`Failed to complete signup: ${setupError.message}`);
+        }
+
+        if (!setupResult?.success) {
+          console.error('Setup failed:', setupResult);
+          throw new Error(setupResult?.error || 'Failed to complete user setup');
+        }
+
+        console.log('User setup completed successfully:', setupResult);
+      } else {
+        console.log('New team signup - will complete setup during onboarding');
       }
-
-      if (!setupResult?.success) {
-        console.error('Setup failed:', setupResult);
-        throw new Error(setupResult?.error || 'Failed to complete user setup');
-      }
-
-      console.log('User setup completed successfully:', setupResult);
     } catch (err: any) {
       console.error('Signup error details:', {
         message: err.message,
@@ -520,21 +521,9 @@ export const CustomAuth: React.FC = () => {
               </div>
 
               {isNewTeam && (
-                <div>
-                  <label className="text-sm text-gray-400 mb-1 block">Company/Team Name</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={teamName}
-                      onChange={(e) => setTeamName(e.target.value)}
-                      placeholder="Enter your company or team name"
-                      disabled={loading}
-                      className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-                      required
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    This will be your team workspace name
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                  <p className="text-blue-400 text-sm">
+                    <strong>New Team Signup</strong> - You'll set your team name in the next step
                   </p>
                 </div>
               )}
