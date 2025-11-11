@@ -34,6 +34,8 @@ export const GoogleDriveSettings: React.FC = () => {
   const [teamConnection, setTeamConnection] = useState<GoogleDriveConnection | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [connectedAdminName, setConnectedAdminName] = useState<string>('');
+  const [documentTypeFilter, setDocumentTypeFilter] = useState<'all' | 'strategy' | 'meetings' | 'financial'>('all');
+  const [documentSearchTerm, setDocumentSearchTerm] = useState('');
 
   // Temporary state for folder selection
   const [selectedMeetingsFolder, setSelectedMeetingsFolder] = useState<FolderInfo | null>(null);
@@ -1110,14 +1112,46 @@ export const GoogleDriveSettings: React.FC = () => {
       {showAllDocumentsModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-            <div className="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-white">All Synced Documents</h3>
-              <button
-                onClick={() => setShowAllDocumentsModal(false)}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <XCircle className="w-5 h-5" />
-              </button>
+            <div className="px-6 py-4 border-b border-gray-700">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white">All Synced Documents</h3>
+                <button
+                  onClick={() => setShowAllDocumentsModal(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <label className="text-xs text-gray-400 mb-1 block">Filter by Type</label>
+                  <select
+                    value={documentTypeFilter}
+                    onChange={(e) => setDocumentTypeFilter(e.target.value as any)}
+                    className="w-full px-3 py-2 bg-gray-700 text-white text-sm rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="strategy">Strategy</option>
+                    <option value="meetings">Meetings</option>
+                    <option value="financial">Financial</option>
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs text-gray-400 mb-1 block">Search Documents</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search by title..."
+                      value={documentSearchTerm}
+                      onChange={(e) => setDocumentSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-3 py-2 bg-gray-700 text-white text-sm rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="p-6 overflow-y-auto flex-1">
@@ -1143,64 +1177,114 @@ export const GoogleDriveSettings: React.FC = () => {
                   <p className="text-gray-400">No synced documents found</p>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {syncedDocuments.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className="flex items-start space-x-3 bg-gray-700/50 rounded-lg p-4 border border-gray-600 hover:border-gray-500 transition-colors"
-                    >
-                      <FileText className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-medium text-white truncate mb-1">
-                          {doc.title}
-                        </h4>
-                        <div className="flex items-center space-x-3 text-xs text-gray-400">
-                          <span className="capitalize">{doc.folder_type}</span>
-                          <span>•</span>
-                          <span>{new Date(doc.created_at).toLocaleString()}</span>
-                        </div>
-                        {doc.source_url && (
-                          <a
-                            href={doc.source_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-400 hover:text-blue-300 mt-1 inline-block"
-                          >
-                            View in Google Drive
-                          </a>
-                        )}
-                      </div>
-                      {isAdmin && (
+                (() => {
+                  // Apply filters
+                  const filteredDocuments = syncedDocuments.filter(doc => {
+                    // Type filter
+                    if (documentTypeFilter !== 'all' && doc.folder_type !== documentTypeFilter) {
+                      return false;
+                    }
+                    // Search filter
+                    if (documentSearchTerm && !doc.title.toLowerCase().includes(documentSearchTerm.toLowerCase())) {
+                      return false;
+                    }
+                    return true;
+                  });
+
+                  if (filteredDocuments.length === 0) {
+                    return (
+                      <div className="text-center py-8">
+                        <FileText className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                        <p className="text-gray-400">No documents match your filters</p>
                         <button
-                          onClick={() => handleDeleteDocument(doc.id)}
-                          disabled={deletingDocId === doc.id}
-                          className="px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs rounded transition-colors flex items-center space-x-1"
+                          onClick={() => {
+                            setDocumentTypeFilter('all');
+                            setDocumentSearchTerm('');
+                          }}
+                          className="mt-3 text-blue-400 hover:text-blue-300 text-sm"
                         >
-                          {deletingDocId === doc.id ? (
-                            <>
-                              <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                              <span>Deleting...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Trash2 className="w-3 h-3" />
-                              <span>Delete</span>
-                            </>
-                          )}
+                          Clear Filters
                         </button>
-                      )}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-2">
+                      {filteredDocuments.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="flex items-start space-x-3 bg-gray-700/50 rounded-lg p-4 border border-gray-600 hover:border-gray-500 transition-colors"
+                        >
+                          <FileText className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-medium text-white truncate mb-1">
+                              {doc.title}
+                            </h4>
+                            <div className="flex items-center space-x-3 text-xs text-gray-400">
+                              <span className="capitalize">{doc.folder_type}</span>
+                              <span>•</span>
+                              <span>{new Date(doc.created_at).toLocaleString()}</span>
+                            </div>
+                            {doc.source_url && (
+                              <a
+                                href={doc.source_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-400 hover:text-blue-300 mt-1 inline-block"
+                              >
+                                View in Google Drive
+                              </a>
+                            )}
+                          </div>
+                          {isAdmin && (
+                            <button
+                              onClick={() => handleDeleteDocument(doc.id)}
+                              disabled={deletingDocId === doc.id}
+                              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs rounded transition-colors flex items-center space-x-1"
+                            >
+                              {deletingDocId === doc.id ? (
+                                <>
+                                  <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                  <span>Deleting...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Trash2 className="w-3 h-3" />
+                                  <span>Delete</span>
+                                </>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  );
+                })()
               )}
             </div>
 
             <div className="px-6 py-4 border-t border-gray-700 flex justify-between items-center">
               <p className="text-sm text-gray-400">
-                Total: {syncedDocuments.length} document{syncedDocuments.length !== 1 ? 's' : ''}
+                {(() => {
+                  const filteredCount = syncedDocuments.filter(doc => {
+                    if (documentTypeFilter !== 'all' && doc.folder_type !== documentTypeFilter) return false;
+                    if (documentSearchTerm && !doc.title.toLowerCase().includes(documentSearchTerm.toLowerCase())) return false;
+                    return true;
+                  }).length;
+
+                  if (documentTypeFilter !== 'all' || documentSearchTerm) {
+                    return `Showing ${filteredCount} of ${syncedDocuments.length} document${syncedDocuments.length !== 1 ? 's' : ''}`;
+                  }
+                  return `Total: ${syncedDocuments.length} document${syncedDocuments.length !== 1 ? 's' : ''}`;
+                })()}
               </p>
               <button
-                onClick={() => setShowAllDocumentsModal(false)}
+                onClick={() => {
+                  setShowAllDocumentsModal(false);
+                  setDocumentTypeFilter('all');
+                  setDocumentSearchTerm('');
+                }}
                 className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors"
               >
                 Close
