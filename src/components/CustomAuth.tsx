@@ -208,12 +208,38 @@ export const CustomAuth: React.FC = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase signup error:', error);
+        throw error;
+      }
+
+      if (!data.user) {
+        throw new Error('User created but no user data returned');
+      }
 
       console.log('User created successfully with team assignment:', metadata);
+      console.log('New user data:', data.user);
     } catch (err: any) {
-      console.error('Signup error:', err);
-      setError(err.message || 'Failed to create account');
+      console.error('Signup error details:', {
+        message: err.message,
+        status: err.status,
+        details: err.details,
+        hint: err.hint,
+        code: err.code
+      });
+
+      // Show the actual error message from the database
+      let errorMessage = err.message || 'Failed to create account';
+
+      // If it's a database error with more details, include them
+      if (err.details) {
+        errorMessage += ` (${err.details})`;
+      }
+      if (err.hint) {
+        errorMessage += ` Hint: ${err.hint}`;
+      }
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
