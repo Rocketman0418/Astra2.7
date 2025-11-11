@@ -15,6 +15,15 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
   const [showTeamSettings, setShowTeamSettings] = useState(false);
   const [createdTeamId, setCreatedTeamId] = useState<string | null>(null);
 
+  // Debug: Log state changes
+  React.useEffect(() => {
+    console.log('🔍 [OnboardingScreen] State updated:', {
+      showTeamSettings,
+      createdTeamId,
+      loading
+    });
+  }, [showTeamSettings, createdTeamId, loading]);
+
   const handleBackToLogin = async () => {
     try {
       await supabase.auth.signOut();
@@ -86,13 +95,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
 
         if (nameUpdateError) throw nameUpdateError;
 
-        // Update auth metadata to remove pending flag and add name
-        await supabase.auth.updateUser({
-          data: {
-            full_name: fullName.trim(),
-            pending_team_setup: false
-          }
-        });
+        // DON'T update auth metadata yet - wait until after TeamSettingsModal is closed
+        // This prevents App.tsx from seeing team_id and unmounting OnboardingScreen prematurely
 
         // Show team settings modal
         console.log('Showing team settings modal for team:', setupResult.team_id);
@@ -130,17 +134,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
 
         if (usersError) throw usersError;
 
-        // Update auth metadata
-        const { error: updateError } = await supabase.auth.updateUser({
-          data: {
-            full_name: fullName.trim(),
-            team_id: teamData.id,
-            role: 'admin',
-            view_financial: true
-          }
-        });
-
-        if (updateError) throw updateError;
+        // DON'T update auth metadata yet - wait until after TeamSettingsModal is closed
+        // This prevents App.tsx from seeing team_id and unmounting OnboardingScreen prematurely
 
         // Show team settings modal
         console.log('Showing team settings modal for team (legacy):', teamData.id);
@@ -156,8 +151,26 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
     }
   };
 
-  const handleTeamSettingsClose = () => {
+  const handleTeamSettingsClose = async () => {
+    console.log('🎉 [OnboardingScreen] Team settings closed, completing onboarding');
     setShowTeamSettings(false);
+
+    // Now update auth metadata so App.tsx knows onboarding is complete
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && createdTeamId) {
+        await supabase.auth.updateUser({
+          data: {
+            full_name: fullName.trim(),
+            pending_team_setup: false
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Error updating auth metadata:', err);
+    }
+
+    // Trigger completion which will cause App.tsx to refresh and see the team_id
     onComplete();
   };
 
