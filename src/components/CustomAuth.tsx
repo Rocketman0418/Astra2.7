@@ -199,14 +199,18 @@ export const CustomAuth: React.FC = () => {
         }
       }
 
+      console.log('Attempting signup with metadata:', metadata);
+
       const { data, error } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
         options: {
-          emailRedirectTo: undefined,
-          data: metadata
+          data: metadata,
+          emailRedirectTo: window.location.origin
         }
       });
+
+      console.log('Signup response:', { data, error });
 
       if (error) {
         console.error('Supabase signup error:', error);
