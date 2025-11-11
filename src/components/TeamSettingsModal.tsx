@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Loader2 } from 'lucide-react';
+import { X, Save, Loader2, Sparkles, FastForward } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { TeamSettings, MeetingType, NewsPreferences } from '../types';
 import { MeetingTypesSection } from './MeetingTypesSection';
@@ -216,28 +216,79 @@ export const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-2 sm:p-4 z-50">
-      <div className="bg-[#0d1117] rounded-lg w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-700">
-          <div>
-            <h2 className="text-2xl font-bold text-white">
-              {isOnboarding ? 'Set Up Team Settings' : 'Team Settings'}
-            </h2>
-            <p className="text-sm text-gray-400 mt-1">
-              {isOnboarding
-                ? 'Configure your team preferences to help Astra better assist you'
-                : 'Manage your team preferences'}
-            </p>
-          </div>
-          <button
-            onClick={handleClose}
-            className="text-gray-400 hover:text-white transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-2xl border border-gray-700 w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+        {isOnboarding ? (
+          <div className="p-6 border-b border-gray-700 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">
+                    Let's Personalize Astra for Your Team
+                  </h2>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Help me understand your workflow
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleClose}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+            <div className="bg-gray-800/50 rounded-lg p-4 mb-4 border border-gray-700">
+              <p className="text-gray-300 text-sm leading-relaxed">
+                Hi! I'm Astra, your AI assistant. To provide the most relevant insights and summaries, I need to learn about your team's meeting types and interests. This helps me:
+              </p>
+              <ul className="mt-3 space-y-2 text-sm text-gray-400">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-400 mt-0.5">•</span>
+                  <span>Automatically categorize and summarize your meetings</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-400 mt-0.5">•</span>
+                  <span>Monitor industry news and trends relevant to your business</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-400 mt-0.5">•</span>
+                  <span>Provide better context-aware responses to your questions</span>
+                </li>
+              </ul>
+            </div>
+
+            <button
+              onClick={handleSkip}
+              disabled={isSaving}
+              className="w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FastForward className="w-5 h-5" />
+              Skip for Now - Use Defaults Instead
+            </button>
+          </div>
+        ) : (
+          <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-700">
+            <div>
+              <h2 className="text-2xl font-bold text-white">Team Settings</h2>
+              <p className="text-sm text-gray-400 mt-1">
+                Manage your team preferences
+              </p>
+            </div>
+            <button
+              onClick={handleClose}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+        )}
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-gray-800/30">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
@@ -259,33 +310,34 @@ export const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
           )}
         </div>
 
-        <div className="border-t border-gray-700 p-6 space-y-3">
+        <div className="border-t border-gray-700 p-6 space-y-3 bg-gray-900/50">
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded p-3 text-red-400 text-sm">
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm">
               {error}
             </div>
           )}
 
           {successMessage && (
-            <div className="bg-green-500/10 border border-green-500/30 rounded p-3 text-green-400 text-sm">
+            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-green-400 text-sm">
               {successMessage}
             </div>
           )}
 
-          <div className="flex justify-end gap-3">
+          <div className="flex flex-col sm:flex-row justify-end gap-3">
             {isOnboarding && (
               <button
                 onClick={handleSkip}
-                className="px-6 py-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 disabled={isSaving}
               >
+                <FastForward className="w-4 h-4" />
                 Use Defaults & Continue
               </button>
             )}
             <button
               onClick={handleSave}
               disabled={isSaving || isLoading}
-              className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg transition-all disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium shadow-lg"
             >
               {isSaving ? (
                 <>
@@ -295,11 +347,17 @@ export const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  Save Settings
+                  {isOnboarding ? 'Save & Continue' : 'Save Settings'}
                 </>
               )}
             </button>
           </div>
+
+          {isOnboarding && (
+            <p className="text-xs text-gray-500 text-center mt-2">
+              Don't worry, you can always update these settings later from User Settings
+            </p>
+          )}
         </div>
       </div>
     </div>
