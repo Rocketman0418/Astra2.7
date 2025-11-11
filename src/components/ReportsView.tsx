@@ -163,7 +163,7 @@ export const ReportsView: React.FC = () => {
       {/* Content - Single Column Stack */}
       <div className="flex-1 overflow-y-auto p-4 overflow-x-hidden">
         {reportMessages.length > 0 ? (
-          <div className="max-w-4xl mx-auto space-y-6 w-full">
+          <div className="max-w-7xl mx-auto space-y-6 w-full">
             {reportMessages.map((message) => (
               <div
                 key={message.id}
