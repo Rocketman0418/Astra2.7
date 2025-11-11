@@ -244,7 +244,10 @@ export const GoogleDriveSettings: React.FC = () => {
   };
 
   const handleDeleteDocument = async (docId: string) => {
+    console.log('handleDeleteDocument called with docId:', docId);
+
     if (!confirm('Are you sure you want to delete this document? This will remove it from Astra Intelligence.')) {
+      console.log('User cancelled deletion');
       return;
     }
 
@@ -255,8 +258,13 @@ export const GoogleDriveSettings: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      console.log('User authenticated:', user.id);
+      console.log('User team_id:', user.user_metadata?.team_id);
+
       // Find the document to get its source_id and folder_type
       const doc = syncedDocuments.find(d => d.id === docId);
+      console.log('Found document:', doc);
+
       if (!doc) throw new Error('Document not found');
 
       if (!doc.source_id) {
@@ -273,12 +281,17 @@ export const GoogleDriveSettings: React.FC = () => {
         ? 'document_chunks_financial'
         : null;
 
+      console.log('Chunks table:', chunksTable);
+      console.log('Deleting chunks with source_id:', doc.source_id);
+
       if (chunksTable) {
-        const { error: chunksError } = await supabase
+        const { error: chunksError, count } = await supabase
           .from(chunksTable)
-          .delete()
+          .delete({ count: 'exact' })
           .eq('team_id', user.user_metadata?.team_id)
           .eq('source_id', doc.source_id);
+
+        console.log('Chunks deleted:', count);
 
         if (chunksError) {
           console.error(`Failed to delete chunks from ${chunksTable}:`, chunksError);
@@ -287,16 +300,24 @@ export const GoogleDriveSettings: React.FC = () => {
       }
 
       // Delete from documents table
+      console.log('Deleting document from documents table, id:', docId);
       const { error: deleteError } = await supabase
         .from('documents')
         .delete()
         .eq('id', docId);
 
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        console.error('Failed to delete document:', deleteError);
+        throw deleteError;
+      }
 
+      console.log('Document deleted successfully');
       await loadSyncedDocuments();
     } catch (err: any) {
-      setError(err.message || 'Failed to delete document');
+      console.error('Delete error:', err);
+      const errorMessage = err.message || 'Failed to delete document';
+      setError(errorMessage);
+      alert(`Error deleting document: ${errorMessage}`);
     } finally {
       setDeletingDocId(null);
     }
