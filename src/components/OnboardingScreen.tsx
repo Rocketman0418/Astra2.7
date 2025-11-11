@@ -95,8 +95,11 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
         });
 
         // Show team settings modal
+        console.log('Showing team settings modal for team:', setupResult.team_id);
+        setLoading(false);
         setCreatedTeamId(setupResult.team_id);
         setShowTeamSettings(true);
+        return; // Exit early to prevent finally block from running
       } else {
         // Legacy flow: user didn't go through invite signup
         console.log('Using legacy onboarding flow');
@@ -140,13 +143,15 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
         if (updateError) throw updateError;
 
         // Show team settings modal
+        console.log('Showing team settings modal for team (legacy):', teamData.id);
+        setLoading(false);
         setCreatedTeamId(teamData.id);
         setShowTeamSettings(true);
+        return; // Exit early to prevent finally block from running
       }
     } catch (err: any) {
       console.error('Onboarding error:', err);
       setError(err.message || 'Failed to complete onboarding');
-    } finally {
       setLoading(false);
     }
   };
