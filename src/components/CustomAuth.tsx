@@ -199,39 +199,13 @@ export const CustomAuth: React.FC = () => {
         return;
       }
 
-      const metadata: any = {
-        invite_code: inviteCode.toUpperCase()
-      };
+      console.log('Attempting signup for:', email);
 
-      if (inviteData.team_id) {
-        // Joining existing team
-        metadata.team_id = inviteData.team_id;
-        metadata.role = inviteData.assigned_role || 'member';
-        metadata.view_financial = inviteData.view_financial !== undefined ? inviteData.view_financial : true;
-
-        const { data: teamData } = await supabase
-          .from('teams')
-          .select('name')
-          .eq('id', inviteData.team_id)
-          .maybeSingle();
-
-        if (teamData) {
-          metadata.team_name = teamData.name;
-        }
-      } else {
-        // Creating new team - include team name in metadata for trigger to process
-        metadata.new_team_name = teamName.trim();
-        metadata.role = 'admin'; // First user becomes admin
-        metadata.view_financial = true; // Admins can view financial data
-      }
-
-      console.log('Attempting signup with metadata:', metadata);
-
+      // Step 1: Create auth user (no metadata needed, trigger removed)
       const { data, error } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
         options: {
-          data: metadata,
           emailRedirectTo: window.location.origin
         }
       });
@@ -247,8 +221,32 @@ export const CustomAuth: React.FC = () => {
         throw new Error('User created but no user data returned');
       }
 
-      console.log('User created successfully with team assignment:', metadata);
-      console.log('New user data:', data.user);
+      console.log('Auth user created successfully:', data.user.id);
+
+      // Step 2: Complete user setup by calling RPC function
+      console.log('Calling complete_user_signup with:', {
+        invite_code: inviteCode,
+        new_team_name: isCreatingNewTeam ? teamName : null
+      });
+
+      const { data: setupResult, error: setupError } = await supabase.rpc('complete_user_signup', {
+        p_invite_code: inviteCode.toUpperCase(),
+        p_new_team_name: isCreatingNewTeam ? teamName.trim() : null
+      });
+
+      console.log('Setup result:', setupResult);
+
+      if (setupError) {
+        console.error('Setup error:', setupError);
+        throw new Error(`Failed to complete signup: ${setupError.message}`);
+      }
+
+      if (!setupResult?.success) {
+        console.error('Setup failed:', setupResult);
+        throw new Error(setupResult?.error || 'Failed to complete user setup');
+      }
+
+      console.log('User setup completed successfully:', setupResult);
     } catch (err: any) {
       console.error('Signup error details:', {
         message: err.message,
