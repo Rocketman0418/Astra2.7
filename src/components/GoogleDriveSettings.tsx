@@ -255,24 +255,33 @@ export const GoogleDriveSettings: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Find the document to get its title and folder_type
+      // Find the document to get its source_id and folder_type
       const doc = syncedDocuments.find(d => d.id === docId);
       if (!doc) throw new Error('Document not found');
 
+      if (!doc.source_id) {
+        throw new Error('Document source_id not found. Cannot delete document.');
+      }
+
       // Delete from the appropriate document_chunks table based on folder_type
+      // Use source_id to ensure we only delete chunks for THIS specific version
       const chunksTable = doc.folder_type === 'strategy'
         ? 'document_chunks_strategy'
-        : 'document_chunks_meetings';
+        : doc.folder_type === 'meetings'
+        ? 'document_chunks_meetings'
+        : null;
 
-      const { error: chunksError } = await supabase
-        .from(chunksTable)
-        .delete()
-        .eq('team_id', user.user_metadata?.team_id)
-        .eq('title', doc.title);
+      if (chunksTable) {
+        const { error: chunksError } = await supabase
+          .from(chunksTable)
+          .delete()
+          .eq('team_id', user.user_metadata?.team_id)
+          .eq('source_id', doc.source_id);
 
-      if (chunksError) {
-        console.error(`Failed to delete chunks from ${chunksTable}:`, chunksError);
-        throw new Error(`Failed to delete document chunks: ${chunksError.message}`);
+        if (chunksError) {
+          console.error(`Failed to delete chunks from ${chunksTable}:`, chunksError);
+          throw new Error(`Failed to delete document chunks: ${chunksError.message}`);
+        }
       }
 
       // Delete from documents table
