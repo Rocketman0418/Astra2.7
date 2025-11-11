@@ -269,6 +269,8 @@ export const GoogleDriveSettings: React.FC = () => {
         ? 'document_chunks_strategy'
         : doc.folder_type === 'meetings'
         ? 'document_chunks_meetings'
+        : doc.folder_type === 'financial'
+        ? 'document_chunks_financial'
         : null;
 
       if (chunksTable) {
