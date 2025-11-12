@@ -32,6 +32,9 @@ interface OverviewMetrics {
   totalUsers: number;
   totalTeams: number;
   totalDocuments: number;
+  strategyDocsCount: number;
+  meetingDocsCount: number;
+  financialDocsCount: number;
   totalChats: number;
   totalReports: number;
   activeUsersLast7Days: number;
@@ -99,6 +102,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const [detailView, setDetailView] = useState<DetailView>(null);
   const [supportFilter, setSupportFilter] = useState<SupportFilter>('all');
   const [teamsData, setTeamsData] = useState<Array<{ id: string; name: string; created_at: string; member_count: number }>>([]);
+  const [documentsData, setDocumentsData] = useState<any[]>([]);
 
   const isSuperAdmin = user?.email === 'clay@rockethub.ai';
 
@@ -214,12 +218,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     const feedbackSubmissions = allFeedback.filter((f: any) => !f.support_type);
     const supportMsgs = allFeedback.filter((f: any) => f.support_type);
 
+    const strategyDocsCount = documents.filter((d: any) => d.folder_type === 'strategy').length;
+    const meetingDocsCount = documents.filter((d: any) => d.folder_type === 'meetings').length;
+    const financialDocsCount = documents.filter((d: any) => d.folder_type === 'financial').length;
+
     setUsers(enrichedUsers);
     setTeamsData(enrichedTeams);
+    setDocumentsData(documents);
     setOverviewMetrics({
       totalUsers: users.length,
       totalTeams: teams.length,
       totalDocuments: documents.length,
+      strategyDocsCount,
+      meetingDocsCount,
+      financialDocsCount,
       totalChats: chats.length,
       totalReports: reports.length,
       activeUsersLast7Days: active7Days,
@@ -1149,19 +1161,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-gray-700/50 rounded-lg p-4">
                     <div className="text-2xl font-bold text-white">
-                      {users.reduce((sum, u) => sum + u.strategy_docs_count, 0)}
+                      {overviewMetrics.strategyDocsCount}
                     </div>
                     <div className="text-sm text-gray-400">Strategy Docs</div>
                   </div>
                   <div className="bg-gray-700/50 rounded-lg p-4">
                     <div className="text-2xl font-bold text-white">
-                      {users.reduce((sum, u) => sum + u.meeting_docs_count, 0)}
+                      {overviewMetrics.meetingDocsCount}
                     </div>
                     <div className="text-sm text-gray-400">Meeting Docs</div>
                   </div>
                   <div className="bg-gray-700/50 rounded-lg p-4">
                     <div className="text-2xl font-bold text-white">
-                      {users.reduce((sum, u) => sum + u.financial_docs_count, 0)}
+                      {overviewMetrics.financialDocsCount}
                     </div>
                     <div className="text-sm text-gray-400">Financial Docs</div>
                   </div>
