@@ -34,16 +34,56 @@ export const Header: React.FC<HeaderProps> = ({
 
   useEffect(() => {
     const checkN8NAccess = async () => {
-      if (!user) return;
-      const { data } = await supabase
-        .from('n8n_user_access')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_enabled', true)
-        .maybeSingle();
-      setHasN8NAccess(!!data);
+      if (!user) {
+        setHasN8NAccess(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('n8n_user_access')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_enabled', true)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error checking N8N access:', error);
+          setHasN8NAccess(false);
+          return;
+        }
+
+        console.log('N8N Access Check:', { userId: user.id, hasAccess: !!data, data });
+        setHasN8NAccess(!!data);
+      } catch (err) {
+        console.error('Exception checking N8N access:', err);
+        setHasN8NAccess(false);
+      }
     };
+
     checkN8NAccess();
+
+    // Set up realtime subscription for access changes
+    const channel = supabase
+      .channel('n8n_access_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'n8n_user_access',
+          filter: `user_id=eq.${user?.id}`,
+        },
+        (payload) => {
+          console.log('N8N access changed:', payload);
+          checkN8NAccess();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   useEffect(() => {
