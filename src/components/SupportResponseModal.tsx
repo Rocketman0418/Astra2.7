@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Send, Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -32,6 +32,12 @@ export default function SupportResponseModal({ message, onClose, onSuccess }: Su
   const [notResolved, setNotResolved] = useState(message.not_resolved || false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Sync state when message changes (e.g., when reopening modal with updated data)
+  useEffect(() => {
+    setInternalNotes(message.internal_notes || '');
+    setNotResolved(message.not_resolved || false);
+  }, [message.internal_notes, message.not_resolved]);
 
   const handleSend = async () => {
     if (!responseMessage.trim()) {

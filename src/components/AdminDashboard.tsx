@@ -299,7 +299,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
       created_at: msg.created_at,
       support_type: msg.support_type,
       support_details: msg.support_details || {},
-      attachment_urls: msg.attachment_urls || []
+      attachment_urls: msg.attachment_urls || [],
+      status: msg.status,
+      admin_response: msg.admin_response,
+      responded_at: msg.responded_at,
+      internal_notes: msg.internal_notes,
+      not_resolved: msg.not_resolved
     })));
     setFeedback(feedbackSubmissions.map((fb: any) => ({
       id: fb.id,
@@ -567,7 +572,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     try {
       const { data, error } = await supabase
         .from('user_feedback_submissions')
-        .select('id, user_id, submitted_at, support_type, support_details, attachment_urls')
+        .select('id, user_id, submitted_at, support_type, support_details, attachment_urls, status, admin_response, responded_at, internal_notes, not_resolved')
         .not('support_type', 'is', null)
         .order('submitted_at', { ascending: false });
 
@@ -586,7 +591,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
           created_at: msg.submitted_at,
           support_type: msg.support_type || 'general',
           support_details: msg.support_details || {},
-          attachment_urls: msg.attachment_urls || []
+          attachment_urls: msg.attachment_urls || [],
+          status: msg.status,
+          admin_response: msg.admin_response,
+          responded_at: msg.responded_at,
+          internal_notes: msg.internal_notes,
+          not_resolved: msg.not_resolved
         };
       }));
 
