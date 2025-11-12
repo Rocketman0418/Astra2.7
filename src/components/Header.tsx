@@ -5,6 +5,7 @@ import { ChatMode } from '../types';
 import { NotificationBell } from './NotificationBell';
 import { UserSettingsModal } from './UserSettingsModal';
 import { useUserProfile } from '../hooks/useUserProfile';
+import { SupportMenu } from './SupportMenu';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -140,6 +141,9 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
           </div>
+
+          {/* Support Menu */}
+          <SupportMenu />
 
           <button
             data-tour="user-menu"
