@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, User as UserIcon, Save, LogOut, Key, Camera, Trash2, Upload, Settings, Mail, Clock, HardDrive } from 'lucide-react';
+import { X, User as UserIcon, Save, LogOut, Key, Camera, Trash2, Upload, Settings, Mail, Clock, HardDrive, BarChart3, ExternalLink } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { GmailSettings } from './GmailSettings';
 import { GoogleDriveSettings } from './GoogleDriveSettings';
@@ -8,7 +8,6 @@ import { supabase } from '../lib/supabase';
 import { AdminInviteCodesPanel } from './AdminInviteCodesPanel';
 import { TeamMembersPanel } from './TeamMembersPanel';
 import { TeamSettingsModal } from './TeamSettingsModal';
-import { FeedbackAnalyticsPanel } from './FeedbackAnalyticsPanel';
 import { FEATURES } from '../config/features';
 
 interface UserSettingsModalProps {
@@ -573,7 +572,28 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
 
           {isSuperAdmin && (
             <>
-              <FeedbackAnalyticsPanel />
+              <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg p-6 border border-blue-500/30">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <BarChart3 className="w-5 h-5 text-blue-400" />
+                    <h3 className="text-lg font-semibold text-white">Admin Dashboard</h3>
+                    <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs font-semibold rounded-full border border-blue-500/30">
+                      Super Admin Only
+                    </span>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-300 mb-4">
+                  Access comprehensive analytics and metrics for all users, teams, documents, feedback, and support messages across the platform.
+                </p>
+                <button
+                  onClick={() => window.open('/admin-dashboard', '_blank')}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  <span>Open Admin Dashboard</span>
+                  <ExternalLink className="w-4 h-4" />
+                </button>
+              </div>
               <AdminInviteCodesPanel />
             </>
           )}
