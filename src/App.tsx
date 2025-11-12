@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ReportsProvider } from './contexts/ReportsContext';
 import { AuthScreen } from './components/AuthScreen';
@@ -9,6 +10,8 @@ import { OnboardingScreen } from './components/OnboardingScreen';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { FeedbackModal } from './components/FeedbackModal';
 import { VersionChecker } from './components/VersionChecker';
+import ProtectedAdminRoute from './components/ProtectedAdminRoute';
+import AdminDashboardPage from './components/AdminDashboardPage';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
 import { useFeedbackPrompt } from './hooks/useFeedbackPrompt';
 import { useActivityTracking } from './hooks/useActivityTracking';
@@ -56,38 +59,6 @@ const AppContent: React.FC = () => {
     }
   };
 
-  // Gmail OAuth callback handling (only if Gmail is enabled)
-  if (FEATURES.GMAIL_ENABLED) {
-    console.log('🔍 [App] Current pathname:', window.location.pathname);
-    console.log('🔍 [App] Full URL:', window.location.href);
-    console.log('🔍 [App] Search params:', window.location.search);
-    console.log('🔍 [App] Has code param:', new URLSearchParams(window.location.search).has('code'));
-    console.log('🔍 [App] Has state param:', new URLSearchParams(window.location.search).has('state'));
-
-    if (window.location.pathname === '/auth/gmail/callback') {
-      console.log('✅ [App] Rendering GmailCallback component');
-      return <GmailCallback />;
-    }
-
-    // Also check if we have OAuth params on root path (fallback)
-    const searchParams = new URLSearchParams(window.location.search);
-    if (searchParams.has('code') && searchParams.has('state') && window.location.pathname === '/') {
-      console.log('⚠️ [App] Found OAuth params on root path - rendering GmailCallback');
-      return <GmailCallback />;
-    }
-  }
-
-  // Google Drive OAuth callback handling (only if Google Drive is enabled)
-  if (FEATURES.GOOGLE_DRIVE_SYNC_ENABLED) {
-    console.log('🔍 [App] Checking Google Drive callback...');
-    console.log('🔍 [App] Current pathname:', window.location.pathname);
-
-    if (window.location.pathname === '/auth/google-drive/callback') {
-      console.log('✅ [App] Rendering GoogleDriveCallback component');
-      return <GoogleDriveCallback />;
-    }
-  }
-
   if (loading || checkingOnboarding) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -100,33 +71,62 @@ const AppContent: React.FC = () => {
     );
   }
 
-  if (!user) {
-    return <AuthScreen />;
-  }
-
-  if (needsOnboarding) {
-    return <OnboardingScreen onComplete={handleOnboardingComplete} />;
-  }
-
   return (
-    <>
-      <VersionChecker />
-      <MainContainer />
-      <PWAInstallPrompt />
-      {shouldShowFeedback && questions.length > 0 && (
-        <FeedbackModal questions={questions} onSubmit={submitFeedback} />
+    <Routes>
+      {/* OAuth Callbacks */}
+      {FEATURES.GMAIL_ENABLED && (
+        <Route path="/auth/gmail/callback" element={<GmailCallback />} />
       )}
-    </>
+      {FEATURES.GOOGLE_DRIVE_SYNC_ENABLED && (
+        <Route path="/auth/google-drive/callback" element={<GoogleDriveCallback />} />
+      )}
+
+      {/* Admin Dashboard - Protected Route */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedAdminRoute>
+            <AdminDashboardPage />
+          </ProtectedAdminRoute>
+        }
+      />
+
+      {/* Main App Routes */}
+      <Route
+        path="/"
+        element={
+          !user ? (
+            <AuthScreen />
+          ) : needsOnboarding ? (
+            <OnboardingScreen onComplete={handleOnboardingComplete} />
+          ) : (
+            <>
+              <VersionChecker />
+              <MainContainer />
+              <PWAInstallPrompt />
+              {shouldShowFeedback && questions.length > 0 && (
+                <FeedbackModal questions={questions} onSubmit={submitFeedback} />
+              )}
+            </>
+          )
+        }
+      />
+
+      {/* Catch-all redirect */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 };
 
 function App() {
   return (
-    <AuthProvider>
-      <ReportsProvider>
-        <AppContent />
-      </ReportsProvider>
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <ReportsProvider>
+          <AppContent />
+        </ReportsProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

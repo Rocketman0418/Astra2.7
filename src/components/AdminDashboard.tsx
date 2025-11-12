@@ -90,11 +90,11 @@ type DetailView = 'users' | 'teams' | 'documents' | 'chats' | null;
 type SupportFilter = 'all' | 'bug_report' | 'support_message' | 'feature_request';
 
 interface AdminDashboardProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, onClose }) => {
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [overviewMetrics, setOverviewMetrics] = useState<OverviewMetrics | null>(null);
@@ -758,13 +758,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     ? (teamsData.reduce((sum, t) => sum + t.documents_count, 0) / teamsData.length).toFixed(1)
     : '0';
 
+  const isModal = !!onClose;
+  const containerClass = isModal ? "fixed inset-0 z-50" : "";
+
   if (!isOpen) {
     return null;
   }
 
   if (authLoading) {
     return (
-      <div className="fixed inset-0 z-50 bg-gray-900 flex items-center justify-center">
+      <div className={`${containerClass} bg-gray-900 flex items-center justify-center`}>
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
           <p className="text-white text-lg">Authenticating...</p>
@@ -775,17 +778,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
   if (!user) {
     return (
-      <div className="fixed inset-0 z-50 bg-gray-900 flex items-center justify-center">
+      <div className={`${containerClass} bg-gray-900 flex items-center justify-center`}>
         <div className="text-center">
           <Shield className="w-16 h-16 text-red-400 mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-white mb-4">Authentication Required</h1>
           <p className="text-gray-400 mb-6">You must be logged in to access this page.</p>
-          <button
-            onClick={onClose}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            Close
-          </button>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              Close
+            </button>
+          )}
         </div>
       </div>
     );
@@ -793,18 +798,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
   if (!isSuperAdmin) {
     return (
-      <div className="fixed inset-0 z-50 bg-gray-900 flex items-center justify-center">
+      <div className={`${containerClass} bg-gray-900 flex items-center justify-center`}>
         <div className="text-center">
           <Shield className="w-16 h-16 text-red-400 mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-white mb-4">Access Denied</h1>
           <p className="text-gray-400 mb-2">This page is restricted to super administrators only.</p>
           <p className="text-gray-500 text-sm mb-6">Your account: {user.email}</p>
-          <button
-            onClick={onClose}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            Close
-          </button>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              Close
+            </button>
+          )}
         </div>
       </div>
     );
@@ -812,7 +819,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 bg-gray-900 flex items-center justify-center">
+      <div className={`${containerClass} bg-gray-900 flex items-center justify-center`}>
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
           <p className="text-white text-lg">Loading Admin Dashboard...</p>
@@ -822,7 +829,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-gray-900 overflow-y-auto">
+    <div className={`${containerClass} bg-gray-900 ${isModal ? 'overflow-y-auto' : ''}`}>
       <div className="min-h-screen p-4 md:p-8">
         <div className="max-w-7xl mx-auto space-y-6 md:space-y-8 pb-8">
           <div className="flex items-center justify-between sticky top-0 bg-gray-900 py-4 z-10">
@@ -841,13 +848,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                 <option value="30days">Last 30 Days</option>
                 <option value="90days">Last 90 Days</option>
               </select>
-              <button
-                onClick={onClose}
-                className="p-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors"
-                title="Close Dashboard"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              {onClose && (
+                <button
+                  onClick={onClose}
+                  className="p-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors"
+                  title="Close Dashboard"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
             </div>
           </div>
 
