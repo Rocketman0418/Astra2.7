@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import {
   Users, Building2, FileText, MessageSquare, BarChart3, Download,
   TrendingUp, TrendingDown, Minus, Mail, HardDrive, AlertCircle,
-  CheckCircle, XCircle, Search, ArrowUpDown, MessageCircleQuestion, Shield, X, ChevronRight
+  CheckCircle, XCircle, Search, ArrowUpDown, MessageCircleQuestion, Shield, X, ChevronRight, MessageCircle
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
+import SupportResponseModal from './SupportResponseModal';
 
 interface UserMetric {
   id: string;
@@ -65,6 +66,10 @@ interface SupportMessage {
     url_context?: string;
   };
   attachment_urls: string[];
+  status?: 'new' | 'in_progress' | 'responded' | 'resolved';
+  admin_response?: string;
+  responded_at?: string;
+  internal_notes?: string;
 }
 
 interface FeedbackStats {
@@ -121,6 +126,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const [documentsData, setDocumentsData] = useState<any[]>([]);
   const [teamsSortField, setTeamsSortField] = useState<'name' | 'created_at' | 'member_count' | 'documents_count' | 'reports_count' | 'total_messages_count'>('created_at');
   const [teamsSortDirection, setTeamsSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [responseModalMessage, setResponseModalMessage] = useState<SupportMessage | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'new' | 'in_progress' | 'responded' | 'resolved'>('all');
 
   const isSuperAdmin = user?.email === 'clay@rockethub.ai';
 
@@ -680,9 +687,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   }, [users, searchQuery, timeFilter, sortField, sortDirection]);
 
   const filteredSupportMessages = React.useMemo(() => {
-    if (supportFilter === 'all') return supportMessages;
-    return supportMessages.filter(msg => msg.support_type === supportFilter);
-  }, [supportMessages, supportFilter]);
+    let filtered = supportMessages;
+
+    // Filter by type
+    if (supportFilter !== 'all') {
+      filtered = filtered.filter(msg => msg.support_type === supportFilter);
+    }
+
+    // Filter by status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(msg => (msg.status || 'new') === statusFilter);
+    }
+
+    return filtered;
+  }, [supportMessages, supportFilter, statusFilter]);
 
   const sortedTeamsData = React.useMemo(() => {
     const sorted = [...teamsData].sort((a, b) => {
@@ -1172,55 +1190,115 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                 </button>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => setSupportFilter('all')}
-                  className={`px-3 py-1 rounded text-sm transition-colors ${
-                    supportFilter === 'all'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  }`}
-                >
-                  All ({supportMessages.length})
-                </button>
-                <button
-                  onClick={() => setSupportFilter('bug_report')}
-                  className={`px-3 py-1 rounded text-sm transition-colors ${
-                    supportFilter === 'bug_report'
-                      ? 'bg-red-600 text-white'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  }`}
-                >
-                  Bug Reports ({supportMessages.filter(m => m.support_type === 'bug_report').length})
-                </button>
-                <button
-                  onClick={() => setSupportFilter('support_message')}
-                  className={`px-3 py-1 rounded text-sm transition-colors ${
-                    supportFilter === 'support_message'
-                      ? 'bg-yellow-600 text-white'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  }`}
-                >
-                  Support ({supportMessages.filter(m => m.support_type === 'support_message').length})
-                </button>
-                <button
-                  onClick={() => setSupportFilter('feature_request')}
-                  className={`px-3 py-1 rounded text-sm transition-colors ${
-                    supportFilter === 'feature_request'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  }`}
-                >
-                  Feature Requests ({supportMessages.filter(m => m.support_type === 'feature_request').length})
-                </button>
+              <div className="space-y-3">
+                <div>
+                  <div className="text-xs text-gray-400 mb-2 font-medium">Filter by Type:</div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setSupportFilter('all')}
+                      className={`px-3 py-1 rounded text-sm transition-colors ${
+                        supportFilter === 'all'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      All ({supportMessages.length})
+                    </button>
+                    <button
+                      onClick={() => setSupportFilter('bug_report')}
+                      className={`px-3 py-1 rounded text-sm transition-colors ${
+                        supportFilter === 'bug_report'
+                          ? 'bg-red-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      Bug Reports ({supportMessages.filter(m => m.support_type === 'bug_report').length})
+                    </button>
+                    <button
+                      onClick={() => setSupportFilter('support_message')}
+                      className={`px-3 py-1 rounded text-sm transition-colors ${
+                        supportFilter === 'support_message'
+                          ? 'bg-yellow-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      Support ({supportMessages.filter(m => m.support_type === 'support_message').length})
+                    </button>
+                    <button
+                      onClick={() => setSupportFilter('feature_request')}
+                      className={`px-3 py-1 rounded text-sm transition-colors ${
+                        supportFilter === 'feature_request'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      Feature Requests ({supportMessages.filter(m => m.support_type === 'feature_request').length})
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-400 mb-2 font-medium">Filter by Status:</div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setStatusFilter('all')}
+                      className={`px-3 py-1 rounded text-sm transition-colors ${
+                        statusFilter === 'all'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      All
+                    </button>
+                    <button
+                      onClick={() => setStatusFilter('new')}
+                      className={`px-3 py-1 rounded text-sm transition-colors ${
+                        statusFilter === 'new'
+                          ? 'bg-red-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      New ({supportMessages.filter(m => (m.status || 'new') === 'new').length})
+                    </button>
+                    <button
+                      onClick={() => setStatusFilter('in_progress')}
+                      className={`px-3 py-1 rounded text-sm transition-colors ${
+                        statusFilter === 'in_progress'
+                          ? 'bg-yellow-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      In Progress ({supportMessages.filter(m => m.status === 'in_progress').length})
+                    </button>
+                    <button
+                      onClick={() => setStatusFilter('responded')}
+                      className={`px-3 py-1 rounded text-sm transition-colors ${
+                        statusFilter === 'responded'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      Responded ({supportMessages.filter(m => m.status === 'responded').length})
+                    </button>
+                    <button
+                      onClick={() => setStatusFilter('resolved')}
+                      className={`px-3 py-1 rounded text-sm transition-colors ${
+                        statusFilter === 'resolved'
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      Resolved ({supportMessages.filter(m => m.status === 'resolved').length})
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {filteredSupportMessages.map((msg) => (
-                <div key={msg.id} className="bg-gray-700/50 rounded-lg p-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-3 flex-wrap">
+                <div key={msg.id} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <div className="text-sm text-white font-medium">{msg.user_email}</div>
                       <span className={`px-2 py-1 text-xs rounded ${
                         msg.support_type === 'bug_report' ? 'bg-red-500/20 text-red-400' :
@@ -1229,14 +1307,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                       }`}>
                         {msg.support_type?.replace(/_/g, ' ')}
                       </span>
+                      <span className={`px-2 py-1 text-xs rounded font-medium ${
+                        (msg.status || 'new') === 'new' ? 'bg-red-500/20 text-red-400' :
+                        msg.status === 'in_progress' ? 'bg-yellow-500/20 text-yellow-400' :
+                        msg.status === 'responded' ? 'bg-blue-500/20 text-blue-400' :
+                        'bg-emerald-500/20 text-emerald-400'
+                      }`}>
+                        {(msg.status || 'new').replace(/_/g, ' ')}
+                      </span>
                     </div>
-                    <div className="text-xs text-gray-400">{format(new Date(msg.created_at), 'MMM d, yyyy h:mm a')}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-xs text-gray-400">{format(new Date(msg.created_at), 'MMM d, yyyy h:mm a')}</div>
+                    </div>
                   </div>
                   {msg.support_details.subject && (
                     <div className="text-sm text-gray-300 font-medium mb-2">{msg.support_details.subject}</div>
                   )}
                   {msg.support_details.description && (
-                    <div className="text-sm text-gray-400 mb-2">{msg.support_details.description}</div>
+                    <div className="text-sm text-gray-400 mb-2 whitespace-pre-wrap">{msg.support_details.description}</div>
                   )}
                   {msg.support_details.url_context && (
                     <div className="text-xs text-gray-500 mb-2">Page: {msg.support_details.url_context}</div>
@@ -1248,6 +1336,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                       </div>
                     </div>
                   )}
+                  {msg.admin_response && (
+                    <div className="mt-3 pt-3 border-t border-gray-600">
+                      <div className="flex items-center gap-2 mb-2">
+                        <MessageCircle className="w-4 h-4 text-blue-400" />
+                        <span className="text-xs text-blue-400 font-medium">Admin Response</span>
+                        {msg.responded_at && (
+                          <span className="text-xs text-gray-500">({format(new Date(msg.responded_at), 'MMM d, h:mm a')})</span>
+                        )}
+                      </div>
+                      <div className="text-sm text-gray-300 whitespace-pre-wrap bg-blue-500/5 p-2 rounded">{msg.admin_response}</div>
+                    </div>
+                  )}
+                  <div className="mt-3 pt-3 border-t border-gray-600 flex gap-2">
+                    <button
+                      onClick={() => setResponseModalMessage(msg)}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition-colors flex items-center gap-1.5"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      {msg.admin_response ? 'Update Response' : 'Respond'}
+                    </button>
+                  </div>
                 </div>
               ))}
               {filteredSupportMessages.length === 0 && (
@@ -1463,6 +1572,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
             )}
           </div>
         </div>
+      )}
+
+      {responseModalMessage && (
+        <SupportResponseModal
+          message={responseModalMessage}
+          onClose={() => setResponseModalMessage(null)}
+          onSuccess={() => {
+            loadAllMetrics();
+          }}
+        />
       )}
     </div>
   );
