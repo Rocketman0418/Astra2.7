@@ -77,7 +77,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const inviterName = user.user_metadata?.full_name || user.email;
-    const appUrl = supabaseUrl.replace('.supabase.co', '').replace('https://', 'https://app.');
+    const appUrl = 'https://airocket.app';
 
     const emailSubject = `Join ${teamName} on AI Rocket`;
 
