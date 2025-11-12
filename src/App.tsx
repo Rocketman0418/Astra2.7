@@ -11,6 +11,7 @@ import { FeedbackModal } from './components/FeedbackModal';
 import { VersionChecker } from './components/VersionChecker';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
 import { useFeedbackPrompt } from './hooks/useFeedbackPrompt';
+import { useActivityTracking } from './hooks/useActivityTracking';
 import { supabase } from './lib/supabase';
 import { FEATURES } from './config/features';
 
@@ -22,6 +23,9 @@ const AppContent: React.FC = () => {
 
   // Automatically refresh Gmail tokens in the background (only if Gmail is enabled)
   useGmailTokenRefresh(FEATURES.GMAIL_ENABLED);
+
+  // Track user activity for accurate "Last Active" metrics
+  useActivityTracking();
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {

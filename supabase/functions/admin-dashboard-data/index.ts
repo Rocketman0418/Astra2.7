@@ -93,7 +93,8 @@ Deno.serve(async (req: Request) => {
       return {
         ...u,
         email: authData?.email || null,
-        last_sign_in_at: authData?.last_sign_in_at || u.created_at
+        last_sign_in_at: authData?.last_sign_in_at || u.created_at,
+        last_active_at: u.last_active_at || u.created_at
       };
     });
 

@@ -16,6 +16,7 @@ interface UserMetric {
   team_name: string;
   role: string;
   last_sign_in_at: string;
+  last_active_at: string;
   private_chats_count: number;
   team_messages_count: number;
   documents_synced: boolean;
@@ -180,6 +181,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
         team_name: teamMap.get(user.team_id) || 'No Team',
         role: user.role || 'member',
         last_sign_in_at: user.last_sign_in_at || user.created_at,
+        last_active_at: user.last_active_at || user.created_at,
         private_chats_count: privateChats,
         team_messages_count: teamMessages,
         documents_synced: totalDocs > 0,
@@ -206,13 +208,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const active7Days = users.filter((u: any) =>
-      u.last_sign_in_at && new Date(u.last_sign_in_at) >= sevenDaysAgo
+      u.last_active_at && new Date(u.last_active_at) >= sevenDaysAgo
     ).length;
 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const active30Days = users.filter((u: any) =>
-      u.last_sign_in_at && new Date(u.last_sign_in_at) >= thirtyDaysAgo
+      u.last_active_at && new Date(u.last_active_at) >= thirtyDaysAgo
     ).length;
 
     const feedbackSubmissions = allFeedback.filter((f: any) => !f.support_type);
@@ -315,7 +317,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
       const { data: active7Days } = await supabase
         .from('users')
         .select('id')
-        .gte('last_sign_in_at', sevenDaysAgo.toISOString());
+        .gte('last_active_at', sevenDaysAgo.toISOString());
 
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -323,7 +325,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
       const { data: active30Days } = await supabase
         .from('users')
         .select('id')
-        .gte('last_sign_in_at', thirtyDaysAgo.toISOString());
+        .gte('last_active_at', thirtyDaysAgo.toISOString());
 
       setOverviewMetrics({
         totalUsers: totalUsers || 0,
@@ -343,7 +345,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     try {
       const { data: usersData, error: usersError } = await supabase
         .from('users')
-        .select('id, email, created_at, team_id, role, last_sign_in_at')
+        .select('id, email, created_at, team_id, role, last_sign_in_at, last_active_at')
         .order('created_at', { ascending: false });
 
       if (usersError) throw usersError;
@@ -384,6 +386,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
           team_name: teamMap.get(user.team_id) || 'No Team',
           role: user.role || 'member',
           last_sign_in_at: user.last_sign_in_at || user.created_at,
+          last_active_at: user.last_active_at || user.created_at,
           private_chats_count: privateChats || 0,
           team_messages_count: teamMessages || 0,
           documents_synced: totalDocs > 0,
@@ -848,7 +851,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                         {format(new Date(user.created_at), 'MMM d, yyyy')}
                       </td>
                       <td className="py-3 px-4 text-sm text-gray-300 whitespace-nowrap">
-                        {format(new Date(user.last_sign_in_at), 'MMM d, yyyy')}
+                        {format(new Date(user.last_active_at), 'MMM d, yyyy')}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
