@@ -162,7 +162,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
       const userDocs = documents.filter((d: any) => d.team_id === user.team_id);
       const strategyCount = userDocs.filter((d: any) => d.folder_type === 'strategy').length;
-      const meetingCount = userDocs.filter((d: any) => d.folder_type === 'meeting').length;
+      const meetingCount = userDocs.filter((d: any) => d.folder_type === 'meetings').length;
       const financialCount = userDocs.filter((d: any) => d.folder_type === 'financial').length;
       const totalDocs = strategyCount + meetingCount + financialCount;
 
