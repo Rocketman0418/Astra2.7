@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import {
   Users, Building2, FileText, MessageSquare, BarChart3, Download,
   Calendar, TrendingUp, Mail, HardDrive, Clock, AlertCircle,
-  CheckCircle, XCircle, Filter, Search, ArrowUpDown, MessageCircleQuestion
+  CheckCircle, XCircle, Filter, Search, ArrowUpDown, MessageCircleQuestion, Shield
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
 
@@ -64,6 +65,7 @@ type SortField = 'email' | 'created_at' | 'team_name' | 'documents' | 'messages'
 type SortDirection = 'asc' | 'desc';
 
 export const AdminDashboard: React.FC = () => {
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [overviewMetrics, setOverviewMetrics] = useState<OverviewMetrics | null>(null);
   const [users, setUsers] = useState<UserMetric[]>([]);
@@ -74,9 +76,13 @@ export const AdminDashboard: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
+  const isSuperAdmin = user?.email === 'clay@rockethub.ai';
+
   useEffect(() => {
-    loadAllMetrics();
-  }, [timeFilter]);
+    if (user && isSuperAdmin) {
+      loadAllMetrics();
+    }
+  }, [timeFilter, user, isSuperAdmin]);
 
   const loadAllMetrics = async () => {
     setLoading(true);
@@ -386,6 +392,54 @@ export const AdminDashboard: React.FC = () => {
 
     return filtered;
   }, [users, searchQuery, timeFilter, sortField, sortDirection]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-white text-lg">Authenticating...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Shield className="w-16 h-16 text-red-400 mx-auto mb-4" />
+          <h1 className="text-3xl font-bold text-white mb-4">Authentication Required</h1>
+          <p className="text-gray-400 mb-6">You must be logged in to access this page.</p>
+          <button
+            onClick={() => window.location.href = '/'}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          >
+            Return to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isSuperAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Shield className="w-16 h-16 text-red-400 mx-auto mb-4" />
+          <h1 className="text-3xl font-bold text-white mb-4">Access Denied</h1>
+          <p className="text-gray-400 mb-2">This page is restricted to super administrators only.</p>
+          <p className="text-gray-500 text-sm mb-6">Your account: {user.email}</p>
+          <button
+            onClick={() => window.location.href = '/'}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          >
+            Return to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
