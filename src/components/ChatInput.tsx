@@ -80,12 +80,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           {/* AI Suggestions button */}
           <button
             onClick={() => setShowSuggestedPrompts(true)}
-            className="group relative p-3 bg-gradient-to-br from-orange-500 via-green-500 to-blue-500 text-white rounded-xl hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300 animate-shimmer"
+            className="group relative p-3 bg-gray-800/50 border-2 border-blue-500 rounded-xl hover:bg-gray-700/50 transition-all duration-300 animate-border-shimmer"
             title="View suggested prompts"
             data-tour="suggested-prompts"
           >
-            <Sparkles className="w-5 h-5" />
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg opacity-0 group-hover:opacity-30 transition-opacity"></div>
+            <div className="relative">
+              <Sparkles className="w-5 h-5 text-blue-400 relative z-10 drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
+              <Sparkles className="w-5 h-5 text-purple-400 absolute top-0 left-0 opacity-50 blur-sm" />
+            </div>
           </button>
 
           {/* Bookmark button */}

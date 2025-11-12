@@ -90,19 +90,24 @@
     }
   }
 
-  /* Shimmer animation for AI suggestions button */
-  @keyframes shimmer {
+  /* Border shimmer animation for AI suggestions button */
+  @keyframes borderShimmer {
     0% {
-      background-position: -200% center;
+      border-color: rgba(59, 130, 246, 1);
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+    50% {
+      border-color: rgba(147, 51, 234, 1);
+      box-shadow: 0 0 15px rgba(147, 51, 234, 0.5);
     }
     100% {
-      background-position: 200% center;
+      border-color: rgba(59, 130, 246, 1);
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
     }
   }
 
-  .animate-shimmer {
-    background-size: 200% auto;
-    animation: shimmer 3s linear infinite;
+  .animate-border-shimmer {
+    animation: borderShimmer 3s ease-in-out infinite;
   }
 
   /* Message highlight animation */

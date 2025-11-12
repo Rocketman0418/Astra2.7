@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Sparkles } from 'lucide-react';
+import { X, Sparkles, ArrowRight } from 'lucide-react';
 
 interface SuggestedPrompt {
   title: string;
@@ -86,7 +86,7 @@ export const SuggestedPromptsModal: React.FC<SuggestedPromptsModalProps> = ({
                   <h3 className="text-lg font-semibold text-white group-hover:text-blue-400 transition-colors">
                     {item.title}
                   </h3>
-                  <Sparkles className="w-5 h-5 text-blue-400 flex-shrink-0 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ArrowRight className="w-5 h-5 text-blue-400 flex-shrink-0 ml-2 group-hover:translate-x-1 transition-transform" />
                 </div>
                 <p className="text-sm text-gray-300 mb-3 italic">
                   "{item.prompt}"
