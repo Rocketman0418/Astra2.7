@@ -155,7 +155,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
       }
 
       const data = await response.json();
-      processAdminDashboardData(data);
+      await processAdminDashboardData(data);
     } catch (error) {
       console.error('Error loading metrics:', error);
     } finally {
@@ -163,7 +163,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     }
   };
 
-  const processAdminDashboardData = (data: any) => {
+  const processAdminDashboardData = async (data: any) => {
     const users = data.users || [];
     const teams = data.teams || [];
     const documents = data.documents || [];
@@ -300,6 +300,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
       answers: [],
       general_feedback: fb.general_feedback
     })));
+
+    // Load feedback stats for chart display
+    await loadFeedbackStats();
+    await loadFeedback();
   };
 
   const loadTeams = async () => {
