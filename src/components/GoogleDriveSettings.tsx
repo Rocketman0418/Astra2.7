@@ -83,14 +83,7 @@ export const GoogleDriveSettings: React.FC = () => {
         if (teamId) {
           const { data: existingTeamConnection, error: teamConnError } = await supabase
             .from('user_drive_connections')
-            .select(`
-              *,
-              users!user_drive_connections_user_id_fkey(
-                id,
-                name,
-                email
-              )
-            `)
+            .select('*')
             .eq('team_id', teamId)
             .eq('is_active', true)
             .order('created_at', { ascending: false })
@@ -100,7 +93,11 @@ export const GoogleDriveSettings: React.FC = () => {
           if (!teamConnError && existingTeamConnection) {
             setTeamConnection(existingTeamConnection as any);
             // Get the connected admin's name
-            const adminUser = (existingTeamConnection as any).users;
+            const { data: adminUser } = await supabase
+              .from('users')
+              .select('name, email')
+              .eq('id', existingTeamConnection.user_id)
+              .maybeSingle();
             const adminName = adminUser?.name || adminUser?.email?.split('@')[0] || 'Team Admin';
             setConnectedAdminName(adminName);
           }
