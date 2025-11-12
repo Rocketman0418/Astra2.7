@@ -11,7 +11,7 @@ export const memberTourSteps: TourStep[] = [
   {
     id: 'chat-with-astra',
     title: 'Chat with Astra',
-    description: 'Ask Astra questions about your data using the message box. Tip: You can save your favorite prompts by clicking the star icon next to the input!',
+    description: 'Ask Astra questions about your data using the message box. Save your favorite prompts so you can quickly use them again.',
     targetSelector: '[data-tour="chat-input"]',
     position: 'top',
     navigation: { mode: 'private' }
@@ -62,7 +62,7 @@ export const adminTourSteps: TourStep[] = [
   {
     id: 'chat-with-astra',
     title: 'Chat with Astra',
-    description: 'Ask Astra questions about your data using the message box. Tip: You can save your favorite prompts by clicking the star icon next to the input!',
+    description: 'Ask Astra questions about your data using the message box. Save your favorite prompts so you can quickly use them again.',
     targetSelector: '[data-tour="chat-input"]',
     position: 'top',
     navigation: { mode: 'private' }
