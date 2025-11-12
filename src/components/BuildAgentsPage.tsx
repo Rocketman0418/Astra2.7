@@ -443,7 +443,7 @@ export const BuildAgentsPage: React.FC = () => {
                   <div className="flex items-center space-x-2 mb-4">
                     {workflow.tags?.map((tag, index) => (
                       <span key={`${workflow.id}-tag-${index}`} className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded">
-                        {tag}
+                        {typeof tag === 'string' ? tag : (tag?.name || 'Tag')}
                       </span>
                     ))}
                     {workflow.nodes && (
@@ -480,7 +480,9 @@ export const BuildAgentsPage: React.FC = () => {
 
                   {workflow.updatedAt && (
                     <p className="text-xs text-gray-500 mt-4">
-                      Updated: {new Date(workflow.updatedAt).toLocaleString()}
+                      Updated: {typeof workflow.updatedAt === 'string'
+                        ? new Date(workflow.updatedAt).toLocaleString()
+                        : 'Recently'}
                     </p>
                   )}
                 </div>
