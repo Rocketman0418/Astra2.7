@@ -30,7 +30,8 @@ export function FeedbackAnalyticsPanel() {
   const [dateRange, setDateRange] = useState<'7days' | '30days' | 'all'>('7days');
 
   const isAdmin = user?.user_metadata?.role === 'admin';
-  const isSuperAdmin = user?.email === 'clay@rockethub.ai';
+  const superAdminEmails = ['clay@rockethub.ai', 'derek@rockethub.ai', 'marshall@rockethub.ai'];
+  const isSuperAdmin = user?.email && superAdminEmails.includes(user.email);
   const teamId = user?.user_metadata?.team_id;
 
   useEffect(() => {

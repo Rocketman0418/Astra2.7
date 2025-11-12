@@ -39,7 +39,8 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
   const [dbTeamId, setDbTeamId] = useState<string | null>(null);
 
   const isAdmin = user?.user_metadata?.role === 'admin';
-  const isSuperAdmin = user?.email === 'clay@rockethub.ai';
+  const superAdminEmails = ['clay@rockethub.ai', 'derek@rockethub.ai', 'marshall@rockethub.ai'];
+  const isSuperAdmin = user?.email && superAdminEmails.includes(user.email);
   const teamId = user?.user_metadata?.team_id;
 
   React.useEffect(() => {

@@ -1,13 +1,14 @@
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 200,
       headers: corsHeaders,
@@ -15,11 +16,10 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    // Get the authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'No authorization header' }),
+        JSON.stringify({ error: 'Missing authorization header' }),
         {
           status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -27,8 +27,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Create client with user's token to verify identity
-    const supabaseClient = createClient(
+    const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
@@ -38,8 +37,8 @@ Deno.serve(async (req: Request) => {
       }
     );
 
-    // Verify user is the super admin
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
     if (userError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
@@ -50,7 +49,8 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    if (user.email !== 'clay@rockethub.ai') {
+    const superAdminEmails = ['clay@rockethub.ai', 'derek@rockethub.ai', 'marshall@rockethub.ai'];
+    if (!user.email || !superAdminEmails.includes(user.email)) {
       return new Response(
         JSON.stringify({ error: 'Forbidden: Super admin access only' }),
         {
@@ -66,61 +66,46 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Fetch all data in parallel
-    const [usersRes, authUsersRes, teamsRes, documentsRes, chatsRes, reportsRes, gmailRes, driveRes, feedbackRes] = await Promise.all([
-      supabaseAdmin.from('users').select('*').order('created_at', { ascending: false }),
-      supabaseAdmin.auth.admin.listUsers(),
-      supabaseAdmin.from('teams').select('*').order('created_at', { ascending: false }),
-      supabaseAdmin.from('documents').select('*').order('created_at', { ascending: false }),
-      supabaseAdmin.from('astra_chats').select('*').order('created_at', { ascending: false }),
-      supabaseAdmin.from('astra_reports').select('*').order('created_at', { ascending: false }),
-      supabaseAdmin.from('gmail_auth').select('*'),
-      supabaseAdmin.from('user_drive_connections').select('*'),
-      supabaseAdmin.from('user_feedback_submissions').select('*').order('created_at', { ascending: false })
-    ]);
+    const url = new URL(req.url);
+    const timeFilter = url.searchParams.get('timeFilter') || '30days';
 
-    // Map auth users to add email and last_sign_in
-    const authUsersMap = new Map(
-      authUsersRes.data?.users?.map((au: any) => [
-        au.id,
-        { email: au.email, last_sign_in_at: au.last_sign_in_at }
-      ]) || []
-    );
+    // Calculate date range
+    let dateThreshold = new Date();
+    if (timeFilter === '7days') {
+      dateThreshold.setDate(dateThreshold.getDate() - 7);
+    } else if (timeFilter === '30days') {
+      dateThreshold.setDate(dateThreshold.getDate() - 30);
+    } else if (timeFilter === '90days') {
+      dateThreshold.setDate(dateThreshold.getDate() - 90);
+    } else {
+      dateThreshold = new Date('2000-01-01');
+    }
 
-    // Enrich users with auth data
-    const users = (usersRes.data || []).map((u: any) => {
-      const authData = authUsersMap.get(u.id);
-      return {
-        ...u,
-        email: authData?.email || null,
-        last_sign_in_at: authData?.last_sign_in_at || u.created_at,
-        last_active_at: u.last_active_at || u.created_at
-      };
+    // Execute comprehensive admin dashboard query
+    const { data, error } = await supabaseAdmin.rpc('get_admin_dashboard_data', {
+      time_filter: timeFilter
     });
 
-    const result = {
-      users,
-      teams: teamsRes.data || [],
-      documents: documentsRes.data || [],
-      chats: (chatsRes.data || []).map((c: any) => ({
-        ...c,
-        mode: c.mode || 'private'
-      })),
-      reports: reportsRes.data || [],
-      gmail_connections: gmailRes.data || [],
-      drive_connections: driveRes.data || [],
-      feedback: feedbackRes.data || []
-    };
+    if (error) {
+      console.error('Error fetching admin dashboard data:', error);
+      return new Response(
+        JSON.stringify({ error: error.message }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
 
     return new Response(
-      JSON.stringify(result),
+      JSON.stringify(data),
       {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   } catch (error) {
-    console.error('Error fetching admin data:', error);
+    console.error('Error in admin-dashboard-data:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {

@@ -130,7 +130,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
   const [responseModalMessage, setResponseModalMessage] = useState<SupportMessage | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'needs_response' | 'responded' | 'not_resolved'>('all');
 
-  const isSuperAdmin = user?.email === 'clay@rockethub.ai';
+  const superAdminEmails = ['clay@rockethub.ai', 'derek@rockethub.ai', 'marshall@rockethub.ai'];
+  const isSuperAdmin = user?.email && superAdminEmails.includes(user.email);
 
   useEffect(() => {
     if (isOpen && user && isSuperAdmin) {

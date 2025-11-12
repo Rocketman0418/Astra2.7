@@ -61,7 +61,8 @@ Deno.serve(async (req: Request) => {
 
     const { data: { user: adminUser }, error: authError } = await supabaseAdmin.auth.admin.getUserById(adminUserId);
 
-    if (authError || !adminUser || adminUser.email !== 'clay@rockethub.ai') {
+    const superAdminEmails = ['clay@rockethub.ai', 'derek@rockethub.ai', 'marshall@rockethub.ai'];
+    if (authError || !adminUser || !adminUser.email || !superAdminEmails.includes(adminUser.email)) {
       return new Response(
         JSON.stringify({ error: "Unauthorized: Super admin access required" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -186,36 +187,36 @@ Deno.serve(async (req: Request) => {
           </style>
         </head>
         <body>
-          <div class=\"container\">
-            <div class=\"header\">
-              <h2 style=\"margin: 0;\">Astra Intelligence Support</h2>
-              <p style=\"margin: 5px 0 0 0; opacity: 0.9;\">Response to your ${typeLabel}</p>
+          <div class="container">
+            <div class="header">
+              <h2 style="margin: 0;">Astra Intelligence Support</h2>
+              <p style="margin: 5px 0 0 0; opacity: 0.9;">Response to your ${typeLabel}</p>
             </div>
-            <div class=\"content\">
+            <div class="content">
               <p>Hi ${userName},</p>
               <p>Thank you for reaching out to Astra Support. We've reviewed your ${typeLabel.toLowerCase()} and wanted to get back to you.</p>
 
-              <div class=\"response-box\">
-                <div class=\"label\">Support Team Response</div>
-                <div style=\"margin-top: 10px; white-space: pre-wrap;\">${responseMessage}</div>
+              <div class="response-box">
+                <div class="label">Support Team Response</div>
+                <div style="margin-top: 10px; white-space: pre-wrap;">${responseMessage}</div>
               </div>
 
-              <div class=\"original-message\">
-                <div class=\"label\">Your Original Message</div>
-                <div class=\"field\" style=\"margin-top: 10px;\">
+              <div class="original-message">
+                <div class="label">Your Original Message</div>
+                <div class="field" style="margin-top: 10px;">
                   <strong>Subject:</strong> ${subject}
                 </div>
-                <div class=\"field\">
+                <div class="field">
                   <strong>Description:</strong>
-                  <div style=\"margin-top: 5px; white-space: pre-wrap;\">${originalDescription}</div>
+                  <div style="margin-top: 5px; white-space: pre-wrap;">${originalDescription}</div>
                 </div>
                 ${submission.attachment_urls && submission.attachment_urls.length > 0 ? `
-                <div class=\"field\">
+                <div class="field">
                   <strong>Attachments:</strong>
-                  <div style=\"margin-top: 5px;\">
+                  <div style="margin-top: 5px;">
                     ${submission.attachment_urls.map((url: string, index: number) => `
-                      <div style=\"margin-bottom: 5px;\">
-                        <a href=\"${url}\" target=\"_blank\" style=\"color: #3b82f6; text-decoration: none;\">
+                      <div style="margin-bottom: 5px;">
+                        <a href="${url}" target="_blank" style="color: #3b82f6; text-decoration: none;">
                           📎 Attachment ${index + 1}
                         </a>
                       </div>
@@ -225,15 +226,15 @@ Deno.serve(async (req: Request) => {
                 ` : ''}
               </div>
 
-              <div class=\"footer\">
+              <div class="footer">
                 <p><strong>Need more help?</strong> Simply reply to this email and we'll continue the conversation.</p>
-                <p style=\"margin-top: 10px;\">
-                  <strong>Reference ID:</strong> <span style=\"font-family: monospace; font-size: 11px;\">${submissionId}</span>
+                <p style="margin-top: 10px;">
+                  <strong>Reference ID:</strong> <span style="font-family: monospace; font-size: 11px;">${submissionId}</span>
                 </p>
-                <p style=\"margin-top: 15px;\">
+                <p style="margin-top: 15px;">
                   Best regards,<br>
                   The Astra Intelligence Team<br>
-                  <a href=\"mailto:support@rockethub.ai\" style=\"color: #3b82f6; text-decoration: none;\">support@rockethub.ai</a>
+                  <a href="mailto:support@rockethub.ai" style="color: #3b82f6; text-decoration: none;">support@rockethub.ai</a>
                 </p>
               </div>
             </div>

@@ -63,7 +63,8 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    if (user.email !== "clay@rockethub.ai") {
+    const superAdminEmails = ['clay@rockethub.ai', 'derek@rockethub.ai', 'marshall@rockethub.ai'];
+    if (!user.email || !superAdminEmails.includes(user.email)) {
       return new Response(
         JSON.stringify({ error: "Only admin users can invite new users" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }

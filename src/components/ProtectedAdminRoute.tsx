@@ -28,7 +28,13 @@ export default function ProtectedAdminRoute({ children }: ProtectedAdminRoutePro
     return <Navigate to="/" replace />;
   }
 
-  const isSuperAdmin = user.email === 'clay@rockethub.ai';
+  const superAdminEmails = [
+    'clay@rockethub.ai',
+    'derek@rockethub.ai',
+    'marshall@rockethub.ai'
+  ];
+
+  const isSuperAdmin = user.email && superAdminEmails.includes(user.email);
 
   if (!isSuperAdmin) {
     return <Navigate to="/" replace />;
