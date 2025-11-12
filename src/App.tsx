@@ -12,6 +12,7 @@ import { FeedbackModal } from './components/FeedbackModal';
 import { VersionChecker } from './components/VersionChecker';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import AdminDashboardPage from './components/AdminDashboardPage';
+import { BuildAgentsPage } from './components/BuildAgentsPage';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
 import { useFeedbackPrompt } from './hooks/useFeedbackPrompt';
 import { useActivityTracking } from './hooks/useActivityTracking';
@@ -88,6 +89,18 @@ const AppContent: React.FC = () => {
           <ProtectedAdminRoute>
             <AdminDashboardPage />
           </ProtectedAdminRoute>
+        }
+      />
+
+      {/* Build Agents - Protected Route */}
+      <Route
+        path="/build-agents"
+        element={
+          user ? (
+            <BuildAgentsPage />
+          ) : (
+            <Navigate to="/" replace />
+          )
         }
       />
 

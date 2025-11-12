@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, User, HelpCircle, BookOpen, MessageCircleQuestion, Sparkles } from 'lucide-react';
+import { Menu, User, HelpCircle, BookOpen, MessageCircleQuestion, Sparkles, Workflow } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 import { ChatMode } from '../types';
 import { NotificationBell } from './NotificationBell';
 import { UserSettingsModal } from './UserSettingsModal';
@@ -28,7 +29,22 @@ export const Header: React.FC<HeaderProps> = ({
   const { profile } = useUserProfile();
   const [showSettings, setShowSettings] = useState(false);
   const [showHelpMenu, setShowHelpMenu] = useState(false);
+  const [hasN8NAccess, setHasN8NAccess] = useState(false);
   const helpMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const checkN8NAccess = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('n8n_user_access')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_enabled', true)
+        .maybeSingle();
+      setHasN8NAccess(!!data);
+    };
+    checkN8NAccess();
+  }, [user]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -108,6 +124,19 @@ export const Header: React.FC<HeaderProps> = ({
 
             {showHelpMenu && (
               <div className="absolute right-0 mt-2 w-56 bg-gray-800 rounded-lg shadow-xl border border-gray-700 py-2 z-50">
+                {hasN8NAccess && (
+                  <>
+                    <a
+                      href="/build-agents"
+                      className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 transition-colors flex items-center gap-3"
+                      onClick={() => setShowHelpMenu(false)}
+                    >
+                      <Workflow className="w-4 h-4 text-purple-400" />
+                      <span>Build Agents</span>
+                    </a>
+                    <div className="border-t border-gray-700 my-2"></div>
+                  </>
+                )}
                 <button
                   onClick={() => {
                     setShowHelpMenu(false);
