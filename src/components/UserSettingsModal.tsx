@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, User as UserIcon, Save, LogOut, Key, Camera, Trash2, Upload, Settings, Mail, Clock, HardDrive, BarChart3, ExternalLink } from 'lucide-react';
+import { X, User as UserIcon, Save, LogOut, Key, Camera, Trash2, Upload, Settings, Mail, Clock, HardDrive, BarChart3 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { GmailSettings } from './GmailSettings';
 import { GoogleDriveSettings } from './GoogleDriveSettings';
@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import { AdminInviteCodesPanel } from './AdminInviteCodesPanel';
 import { TeamMembersPanel } from './TeamMembersPanel';
 import { TeamSettingsModal } from './TeamSettingsModal';
+import { AdminDashboard } from './AdminDashboard';
 import { FEATURES } from '../config/features';
 
 interface UserSettingsModalProps {
@@ -33,6 +34,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [showTeamSettings, setShowTeamSettings] = useState(false);
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false);
   const [teamName, setTeamName] = useState<string>('');
   const [needsSessionRefresh, setNeedsSessionRefresh] = useState(false);
   const [refreshingSession, setRefreshingSession] = useState(false);
@@ -586,12 +588,11 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
                   Access comprehensive analytics and metrics for all users, teams, documents, feedback, and support messages across the platform.
                 </p>
                 <button
-                  onClick={() => window.open('/admin-dashboard', '_blank')}
+                  onClick={() => setShowAdminDashboard(true)}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
                 >
                   <BarChart3 className="w-4 h-4" />
                   <span>Open Admin Dashboard</span>
-                  <ExternalLink className="w-4 h-4" />
                 </button>
               </div>
               <AdminInviteCodesPanel />
@@ -606,6 +607,13 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
           onClose={() => setShowTeamSettings(false)}
           teamId={teamId}
           isOnboarding={false}
+        />
+      )}
+
+      {isSuperAdmin && (
+        <AdminDashboard
+          isOpen={showAdminDashboard}
+          onClose={() => setShowAdminDashboard(false)}
         />
       )}
     </div>

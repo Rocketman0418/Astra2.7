@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Users, Building2, FileText, MessageSquare, BarChart3, Download,
   Calendar, TrendingUp, Mail, HardDrive, Clock, AlertCircle,
-  CheckCircle, XCircle, Filter, Search, ArrowUpDown, MessageCircleQuestion, Shield
+  CheckCircle, XCircle, Filter, Search, ArrowUpDown, MessageCircleQuestion, Shield, X
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -64,7 +64,12 @@ type TimeFilter = '7days' | '30days' | '90days' | 'all';
 type SortField = 'email' | 'created_at' | 'team_name' | 'documents' | 'messages';
 type SortDirection = 'asc' | 'desc';
 
-export const AdminDashboard: React.FC = () => {
+interface AdminDashboardProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [overviewMetrics, setOverviewMetrics] = useState<OverviewMetrics | null>(null);
@@ -79,10 +84,10 @@ export const AdminDashboard: React.FC = () => {
   const isSuperAdmin = user?.email === 'clay@rockethub.ai';
 
   useEffect(() => {
-    if (user && isSuperAdmin) {
+    if (isOpen && user && isSuperAdmin) {
       loadAllMetrics();
     }
-  }, [timeFilter, user, isSuperAdmin]);
+  }, [isOpen, timeFilter, user, isSuperAdmin]);
 
   const loadAllMetrics = async () => {
     setLoading(true);
@@ -393,6 +398,10 @@ export const AdminDashboard: React.FC = () => {
     return filtered;
   }, [users, searchQuery, timeFilter, sortField, sortDirection]);
 
+  if (!isOpen) {
+    return null;
+  }
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -453,27 +462,35 @@ export const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
-            <p className="text-gray-400">Comprehensive metrics and analytics for AI Rocket</p>
+    <div className="fixed inset-0 z-50 bg-gray-900">
+      <div className="min-h-screen bg-gray-900 p-8 overflow-y-auto">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* Header */}
+          <div className="flex items-center justify-between sticky top-0 bg-gray-900 pb-4 z-10">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
+              <p className="text-gray-400">Comprehensive metrics and analytics for AI Rocket</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <select
+                value={timeFilter}
+                onChange={(e) => setTimeFilter(e.target.value as TimeFilter)}
+                className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Time</option>
+                <option value="7days">Last 7 Days</option>
+                <option value="30days">Last 30 Days</option>
+                <option value="90days">Last 90 Days</option>
+              </select>
+              <button
+                onClick={onClose}
+                className="p-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors"
+                title="Close Dashboard"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <select
-              value={timeFilter}
-              onChange={(e) => setTimeFilter(e.target.value as TimeFilter)}
-              className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Time</option>
-              <option value="7days">Last 7 Days</option>
-              <option value="30days">Last 30 Days</option>
-              <option value="90days">Last 90 Days</option>
-            </select>
-          </div>
-        </div>
 
         {/* Overview Cards */}
         {overviewMetrics && (
@@ -749,6 +766,7 @@ export const AdminDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

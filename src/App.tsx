@@ -9,7 +9,6 @@ import { OnboardingScreen } from './components/OnboardingScreen';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { FeedbackModal } from './components/FeedbackModal';
 import { VersionChecker } from './components/VersionChecker';
-import { AdminDashboard } from './components/AdminDashboard';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
 import { useFeedbackPrompt } from './hooks/useFeedbackPrompt';
 import { supabase } from './lib/supabase';
@@ -83,31 +82,6 @@ const AppContent: React.FC = () => {
       console.log('✅ [App] Rendering GoogleDriveCallback component');
       return <GoogleDriveCallback />;
     }
-  }
-
-  // Admin Dashboard route (super admin only)
-  if (window.location.pathname === '/admin-dashboard') {
-    if (!user) {
-      return <AuthScreen />;
-    }
-    const isSuperAdmin = user?.email === 'clay@rockethub.ai';
-    if (!isSuperAdmin) {
-      return (
-        <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-white mb-4">Access Denied</h1>
-            <p className="text-gray-400 mb-6">You don't have permission to access this page.</p>
-            <button
-              onClick={() => window.location.href = '/'}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              Return to Home
-            </button>
-          </div>
-        </div>
-      );
-    }
-    return <AdminDashboard />;
   }
 
   if (loading || checkingOnboarding) {
