@@ -14,15 +14,43 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
   const [error, setError] = useState('');
   const [showTeamSettings, setShowTeamSettings] = useState(false);
   const [createdTeamId, setCreatedTeamId] = useState<string | null>(null);
+  const [joiningExistingTeam, setJoiningExistingTeam] = useState(false);
+  const [existingTeamName, setExistingTeamName] = useState<string | null>(null);
+
+  // Check if user is joining an existing team
+  React.useEffect(() => {
+    const checkInviteType = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const inviteCode = user.user_metadata?.invite_code;
+      if (inviteCode) {
+        const { data: invite } = await supabase
+          .from('invite_codes')
+          .select('team_id, teams(name)')
+          .eq('code', inviteCode.toUpperCase())
+          .maybeSingle();
+
+        if (invite?.team_id) {
+          setJoiningExistingTeam(true);
+          setExistingTeamName(invite.teams?.name || 'the team');
+        }
+      }
+    };
+
+    checkInviteType();
+  }, []);
 
   // Debug: Log state changes
   React.useEffect(() => {
     console.log('🔍 [OnboardingScreen] State updated:', {
       showTeamSettings,
       createdTeamId,
-      loading
+      loading,
+      joiningExistingTeam,
+      existingTeamName
     });
-  }, [showTeamSettings, createdTeamId, loading]);
+  }, [showTeamSettings, createdTeamId, loading, joiningExistingTeam, existingTeamName]);
 
   const handleBackToLogin = async () => {
     try {
@@ -38,8 +66,14 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
     setLoading(true);
 
     try {
-      if (!fullName.trim() || !teamName.trim()) {
-        setError('Please fill in all fields');
+      if (!fullName.trim()) {
+        setError('Please enter your full name');
+        setLoading(false);
+        return;
+      }
+
+      if (!joiningExistingTeam && !teamName.trim()) {
+        setError('Please enter a team name');
         setLoading(false);
         return;
       }
@@ -64,15 +98,15 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
       const inviteCode = user.user_metadata?.invite_code;
       const hasIncompleteSetup = existingUser && !existingUser.team_id && inviteCode;
 
-      console.log('Onboarding check:', { hasPendingSetup, hasIncompleteSetup, inviteCode, existingUser });
+      console.log('Onboarding check:', { hasPendingSetup, hasIncompleteSetup, inviteCode, existingUser, joiningExistingTeam });
 
-      if ((hasPendingSetup || hasIncompleteSetup) && inviteCode) {
+      if ((hasPendingSetup || hasIncompleteSetup || joiningExistingTeam) && inviteCode) {
         console.log('Completing pending team setup via RPC');
 
-        // Complete signup with team name via RPC
+        // Complete signup with team name via RPC (only if creating new team)
         const { data: setupResult, error: setupError } = await supabase.rpc('complete_user_signup', {
           p_invite_code: inviteCode,
-          p_new_team_name: teamName.trim()
+          p_new_team_name: joiningExistingTeam ? null : teamName.trim()
         });
 
         if (setupError) {
@@ -95,10 +129,24 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
 
         if (nameUpdateError) throw nameUpdateError;
 
+        // If joining existing team, skip team settings and complete immediately
+        if (joiningExistingTeam) {
+          console.log('Joined existing team, completing onboarding');
+          await supabase.auth.updateUser({
+            data: {
+              team_id: setupResult.team_id,
+              pending_team_setup: false
+            }
+          });
+          setLoading(false);
+          onComplete();
+          return;
+        }
+
         // DON'T update auth metadata yet - wait until after TeamSettingsModal is closed
         // This prevents App.tsx from seeing team_id and unmounting OnboardingScreen prematurely
 
-        // Show team settings modal
+        // Show team settings modal for new team creators
         console.log('Showing team settings modal for team:', setupResult.team_id);
         setLoading(false);
         setCreatedTeamId(setupResult.team_id);
@@ -213,24 +261,33 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
               </div>
             </div>
 
-            <div>
-              <label className="text-sm text-gray-400 mb-2 block">Create Your Team</label>
-              <div className="relative">
-                <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  value={teamName}
-                  onChange={(e) => setTeamName(e.target.value)}
-                  placeholder="Company, Project, or Group Name"
-                  disabled={loading}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-                  required
-                />
+            {joiningExistingTeam ? (
+              <div className="bg-blue-500/10 border border-blue-500/50 rounded-lg p-4">
+                <p className="text-blue-400 text-sm mb-2 font-medium">Welcome!</p>
+                <p className="text-gray-300 text-sm">
+                  You're joining <span className="font-semibold text-white">{existingTeamName}</span>
+                </p>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                This is your team name. You can invite members later.
-              </p>
-            </div>
+            ) : (
+              <div>
+                <label className="text-sm text-gray-400 mb-2 block">Create Your Team</label>
+                <div className="relative">
+                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value)}
+                    placeholder="Company, Project, or Group Name"
+                    disabled={loading}
+                    className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                    required
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  This is your team name. You can invite members later.
+                </p>
+              </div>
+            )}
 
             <button
               type="submit"
