@@ -76,6 +76,8 @@ interface FeedbackStats {
 type TimeFilter = '7days' | '30days' | '90days' | 'all';
 type SortField = 'email' | 'created_at' | 'team_name' | 'documents' | 'messages';
 type SortDirection = 'asc' | 'desc';
+type DetailView = 'users' | 'teams' | 'documents' | 'chats' | null;
+type SupportFilter = 'all' | 'bug_report' | 'support_message' | 'feature_request';
 
 interface AdminDashboardProps {
   isOpen: boolean;
@@ -94,6 +96,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [detailView, setDetailView] = useState<DetailView>(null);
+  const [supportFilter, setSupportFilter] = useState<SupportFilter>('all');
+  const [teamsData, setTeamsData] = useState<Array<{ id: string; name: string; created_at: string; member_count: number }>>([]);
 
   const isSuperAdmin = user?.email === 'clay@rockethub.ai';
 
@@ -111,12 +116,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
         loadUserMetrics(),
         loadFeedback(),
         loadFeedbackStats(),
-        loadSupportMessages()
+        loadSupportMessages(),
+        loadTeams()
       ]);
     } catch (error) {
       console.error('Error loading metrics:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTeams = async () => {
+    try {
+      const { data: teams, error } = await supabase
+        .from('teams')
+        .select('id, name, created_at')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const enrichedTeams = await Promise.all((teams || []).map(async (team) => {
+        const { count: memberCount } = await supabase
+          .from('users')
+          .select('*', { count: 'exact', head: true })
+          .eq('team_id', team.id);
+
+        return {
+          id: team.id,
+          name: team.name,
+          created_at: team.created_at,
+          member_count: memberCount || 0
+        };
+      }));
+
+      setTeamsData(enrichedTeams);
+    } catch (error) {
+      console.error('Error loading teams:', error);
     }
   };
 
@@ -126,9 +161,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
         .from('users')
         .select('*', { count: 'exact', head: true });
 
-      const { count: totalTeams } = await supabase
+      const { data: teamsCount } = await supabase
         .from('teams')
-        .select('*', { count: 'exact', head: true });
+        .select('id');
 
       const { count: totalDocuments } = await supabase
         .from('documents')
@@ -164,7 +199,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
       setOverviewMetrics({
         totalUsers: totalUsers || 0,
-        totalTeams: totalTeams || 0,
+        totalTeams: teamsCount?.length || 0,
         totalDocuments: totalDocuments || 0,
         totalChats: (privateChats || 0) + (teamMessages || 0),
         totalReports: reports || 0,
@@ -451,6 +486,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     return filtered;
   }, [users, searchQuery, timeFilter, sortField, sortDirection]);
 
+  const filteredSupportMessages = React.useMemo(() => {
+    if (supportFilter === 'all') return supportMessages;
+    return supportMessages.filter(msg => msg.support_type === supportFilter);
+  }, [supportMessages, supportFilter]);
+
   if (!isOpen) {
     return null;
   }
@@ -546,7 +586,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
           {overviewMetrics && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              <div className="bg-gray-800 border border-gray-700 hover:border-blue-500 rounded-xl p-6 transition-all cursor-pointer hover:shadow-lg hover:shadow-blue-500/20">
+              <button
+                onClick={() => setDetailView('users')}
+                className="bg-gray-800 border border-gray-700 hover:border-blue-500 rounded-xl p-6 transition-all hover:shadow-lg hover:shadow-blue-500/20 text-left w-full"
+              >
                 <div className="flex items-center justify-between mb-4">
                   <Users className="w-8 h-8 text-blue-400" />
                   <TrendingUp className="w-5 h-5 text-emerald-400" />
@@ -556,34 +599,43 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                 <div className="mt-2 text-xs text-gray-500">
                   Active: {overviewMetrics.activeUsersLast7Days} (7d) / {overviewMetrics.activeUsersLast30Days} (30d)
                 </div>
-              </div>
+              </button>
 
-              <div className="bg-gray-800 border border-gray-700 hover:border-emerald-500 rounded-xl p-6 transition-all cursor-pointer hover:shadow-lg hover:shadow-emerald-500/20">
+              <button
+                onClick={() => setDetailView('teams')}
+                className="bg-gray-800 border border-gray-700 hover:border-emerald-500 rounded-xl p-6 transition-all hover:shadow-lg hover:shadow-emerald-500/20 text-left w-full"
+              >
                 <div className="flex items-center justify-between mb-4">
                   <Building2 className="w-8 h-8 text-emerald-400" />
                   <ChevronRight className="w-5 h-5 text-gray-400" />
                 </div>
                 <div className="text-3xl font-bold text-white mb-1">{overviewMetrics.totalTeams}</div>
                 <div className="text-sm text-gray-400">Total Teams</div>
-              </div>
+              </button>
 
-              <div className="bg-gray-800 border border-gray-700 hover:border-purple-500 rounded-xl p-6 transition-all cursor-pointer hover:shadow-lg hover:shadow-purple-500/20">
+              <button
+                onClick={() => setDetailView('documents')}
+                className="bg-gray-800 border border-gray-700 hover:border-purple-500 rounded-xl p-6 transition-all hover:shadow-lg hover:shadow-purple-500/20 text-left w-full"
+              >
                 <div className="flex items-center justify-between mb-4">
                   <FileText className="w-8 h-8 text-purple-400" />
                   <ChevronRight className="w-5 h-5 text-gray-400" />
                 </div>
                 <div className="text-3xl font-bold text-white mb-1">{overviewMetrics.totalDocuments}</div>
                 <div className="text-sm text-gray-400">Total Documents</div>
-              </div>
+              </button>
 
-              <div className="bg-gray-800 border border-gray-700 hover:border-orange-500 rounded-xl p-6 transition-all cursor-pointer hover:shadow-lg hover:shadow-orange-500/20">
+              <button
+                onClick={() => setDetailView('chats')}
+                className="bg-gray-800 border border-gray-700 hover:border-orange-500 rounded-xl p-6 transition-all hover:shadow-lg hover:shadow-orange-500/20 text-left w-full"
+              >
                 <div className="flex items-center justify-between mb-4">
                   <MessageSquare className="w-8 h-8 text-orange-400" />
                   <ChevronRight className="w-5 h-5 text-gray-400" />
                 </div>
                 <div className="text-3xl font-bold text-white mb-1">{overviewMetrics.totalChats}</div>
                 <div className="text-sm text-gray-400">Total Messages</div>
-              </div>
+              </button>
             </div>
           )}
 
@@ -808,22 +860,67 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
           </div>
 
           <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 md:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                <AlertCircle className="w-6 h-6 text-orange-400" />
-                Support Messages ({supportMessages.length})
-              </h2>
-              <button
-                onClick={() => exportToCSV(supportMessages, 'support-messages')}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
-              >
-                <Download className="w-4 h-4" />
-                Export CSV
-              </button>
+            <div className="flex flex-col gap-4 mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                  <AlertCircle className="w-6 h-6 text-orange-400" />
+                  Support Messages ({supportMessages.length})
+                </h2>
+                <button
+                  onClick={() => exportToCSV(supportMessages, 'support-messages')}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
+                >
+                  <Download className="w-4 h-4" />
+                  Export CSV
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setSupportFilter('all')}
+                  className={`px-3 py-1 rounded text-sm transition-colors ${
+                    supportFilter === 'all'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  All ({supportMessages.length})
+                </button>
+                <button
+                  onClick={() => setSupportFilter('bug_report')}
+                  className={`px-3 py-1 rounded text-sm transition-colors ${
+                    supportFilter === 'bug_report'
+                      ? 'bg-red-600 text-white'
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  Bug Reports ({supportMessages.filter(m => m.support_type === 'bug_report').length})
+                </button>
+                <button
+                  onClick={() => setSupportFilter('support_message')}
+                  className={`px-3 py-1 rounded text-sm transition-colors ${
+                    supportFilter === 'support_message'
+                      ? 'bg-yellow-600 text-white'
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  Support ({supportMessages.filter(m => m.support_type === 'support_message').length})
+                </button>
+                <button
+                  onClick={() => setSupportFilter('feature_request')}
+                  className={`px-3 py-1 rounded text-sm transition-colors ${
+                    supportFilter === 'feature_request'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  Feature Requests ({supportMessages.filter(m => m.support_type === 'feature_request').length})
+                </button>
+              </div>
             </div>
 
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              {supportMessages.map((msg) => (
+              {filteredSupportMessages.map((msg) => (
                 <div key={msg.id} className="bg-gray-700/50 rounded-lg p-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                     <div className="flex items-center gap-3 flex-wrap">
@@ -856,13 +953,128 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                   )}
                 </div>
               ))}
-              {supportMessages.length === 0 && (
-                <div className="text-center py-8 text-gray-400">No support messages yet</div>
+              {filteredSupportMessages.length === 0 && (
+                <div className="text-center py-8 text-gray-400">
+                  {supportMessages.length === 0 ? 'No support messages yet' : 'No messages in this category'}
+                </div>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Detail View Modal */}
+      {detailView && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setDetailView(null)}>
+          <div
+            className="bg-gray-800 rounded-xl p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-white">
+                {detailView === 'users' && 'User Details'}
+                {detailView === 'teams' && 'Team Details'}
+                {detailView === 'documents' && 'Document Details'}
+                {detailView === 'chats' && 'Chat Details'}
+              </h3>
+              <button
+                onClick={() => setDetailView(null)}
+                className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+
+            {detailView === 'teams' && (
+              <div className="space-y-4">
+                {teamsData.map((team) => (
+                  <div key={team.id} className="bg-gray-700/50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-lg font-semibold text-white">{team.name}</div>
+                      <div className="text-sm text-gray-400">
+                        {team.member_count} {team.member_count === 1 ? 'member' : 'members'}
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-400">
+                      Created: {format(new Date(team.created_at), 'MMM d, yyyy h:mm a')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {detailView === 'users' && (
+              <div className="text-gray-300">
+                <p className="mb-4">Total Users: {users.length}</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-700/50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-white">{users.filter(u => u.role === 'admin').length}</div>
+                    <div className="text-sm text-gray-400">Admins</div>
+                  </div>
+                  <div className="bg-gray-700/50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-white">{users.filter(u => u.gmail_connected).length}</div>
+                    <div className="text-sm text-gray-400">Gmail Connected</div>
+                  </div>
+                  <div className="bg-gray-700/50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-white">{users.filter(u => u.drive_connected).length}</div>
+                    <div className="text-sm text-gray-400">Drive Connected</div>
+                  </div>
+                  <div className="bg-gray-700/50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-white">{users.filter(u => u.documents_synced).length}</div>
+                    <div className="text-sm text-gray-400">Documents Synced</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {detailView === 'documents' && overviewMetrics && (
+              <div className="text-gray-300">
+                <p className="mb-4">Total Documents: {overviewMetrics.totalDocuments}</p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-gray-700/50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-white">
+                      {users.reduce((sum, u) => sum + u.strategy_docs_count, 0)}
+                    </div>
+                    <div className="text-sm text-gray-400">Strategy Docs</div>
+                  </div>
+                  <div className="bg-gray-700/50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-white">
+                      {users.reduce((sum, u) => sum + u.meeting_docs_count, 0)}
+                    </div>
+                    <div className="text-sm text-gray-400">Meeting Docs</div>
+                  </div>
+                  <div className="bg-gray-700/50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-white">
+                      {users.reduce((sum, u) => sum + u.financial_docs_count, 0)}
+                    </div>
+                    <div className="text-sm text-gray-400">Financial Docs</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {detailView === 'chats' && overviewMetrics && (
+              <div className="text-gray-300">
+                <p className="mb-4">Total Messages: {overviewMetrics.totalChats}</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-700/50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-white">
+                      {users.reduce((sum, u) => sum + u.private_chats_count, 0)}
+                    </div>
+                    <div className="text-sm text-gray-400">Private Chats</div>
+                  </div>
+                  <div className="bg-gray-700/50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-white">
+                      {users.reduce((sum, u) => sum + u.team_messages_count, 0)}
+                    </div>
+                    <div className="text-sm text-gray-400">Team Messages</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
