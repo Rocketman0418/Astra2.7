@@ -10,7 +10,7 @@ const corsHeaders = {
 interface SupportResponseRequest {
   submissionId: string;
   responseMessage: string;
-  status?: 'in_progress' | 'responded' | 'resolved';
+  notResolved?: boolean;
   internalNotes?: string;
 }
 
@@ -68,7 +68,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { submissionId, responseMessage, status, internalNotes }: SupportResponseRequest = await req.json();
+    const { submissionId, responseMessage, notResolved, internalNotes }: SupportResponseRequest = await req.json();
 
     if (!submissionId || !responseMessage) {
       return new Response(
@@ -77,14 +77,10 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Get the original submission with user details
+    // Get the original submission
     const { data: submission, error: fetchError } = await supabaseAdmin
       .from("user_feedback_submissions")
-      .select(`
-        *,
-        users!inner(email, raw_user_meta_data),
-        teams(name)
-      `)
+      .select("*")
       .eq("id", submissionId)
       .single();
 
@@ -96,15 +92,41 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Update submission with response
+    // Get user details from auth.users
+    const { data: { user: submissionUser }, error: userError } = await supabaseAdmin.auth.admin.getUserById(submission.user_id);
+
+    if (userError || !submissionUser) {
+      console.error("Failed to fetch user:", userError);
+      return new Response(
+        JSON.stringify({ error: "User not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Get team details if exists
+    let teamName = "No team";
+    if (submission.team_id) {
+      const { data: team } = await supabaseAdmin
+        .from("teams")
+        .select("name")
+        .eq("id", submission.team_id)
+        .single();
+
+      if (team) {
+        teamName = team.name;
+      }
+    }
+
+    // Update submission with response (always mark as 'responded')
     const updateData: any = {
       admin_response: responseMessage,
       responded_at: new Date().toISOString(),
       responded_by: adminUserId,
-      status: status || 'responded',
+      status: 'responded',
+      not_resolved: notResolved || false,
     };
 
-    if (internalNotes) {
+    if (internalNotes !== undefined) {
       updateData.internal_notes = internalNotes;
     }
 
@@ -132,9 +154,8 @@ Deno.serve(async (req: Request) => {
       });
 
     // Send email to user
-    const userEmail = submission.users.email;
-    const userName = submission.users.raw_user_meta_data?.full_name || userEmail;
-    const teamName = submission.teams?.name || "Your team";
+    const userEmail = submissionUser.email;
+    const userName = submissionUser.user_metadata?.full_name || userEmail;
     const supportType = submission.support_type || "support_message";
     const subject = submission.support_details?.subject || "Support Request";
     const originalDescription = submission.support_details?.description || "";

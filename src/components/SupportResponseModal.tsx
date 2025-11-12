@@ -13,10 +13,11 @@ interface SupportMessage {
     url_context?: string;
   };
   attachment_urls: string[];
-  status?: 'new' | 'in_progress' | 'responded' | 'resolved';
+  status?: 'needs_response' | 'responded';
   admin_response?: string;
   responded_at?: string;
   internal_notes?: string;
+  not_resolved?: boolean;
 }
 
 interface SupportResponseModalProps {
@@ -28,9 +29,7 @@ interface SupportResponseModalProps {
 export default function SupportResponseModal({ message, onClose, onSuccess }: SupportResponseModalProps) {
   const [responseMessage, setResponseMessage] = useState('');
   const [internalNotes, setInternalNotes] = useState(message.internal_notes || '');
-  const [status, setStatus] = useState<'in_progress' | 'responded' | 'resolved'>(
-    message.status === 'new' ? 'responded' : (message.status as any)
-  );
+  const [notResolved, setNotResolved] = useState(message.not_resolved || false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,7 +59,7 @@ export default function SupportResponseModal({ message, onClose, onSuccess }: Su
           body: JSON.stringify({
             submissionId: message.id,
             responseMessage: responseMessage.trim(),
-            status,
+            notResolved,
             internalNotes: internalNotes.trim() || undefined,
           }),
         }
@@ -205,46 +204,25 @@ export default function SupportResponseModal({ message, onClose, onSuccess }: Su
             </p>
           </div>
 
-          {/* Status Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Update Status
+          {/* Not Resolved Checkbox */}
+          <div className="bg-gray-700/30 border border-gray-600 rounded-lg p-4">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={notResolved}
+                onChange={(e) => setNotResolved(e.target.checked)}
+                disabled={sending}
+                className="mt-0.5 w-4 h-4 rounded border-gray-600 bg-gray-900 text-yellow-600 focus:ring-2 focus:ring-yellow-500 focus:ring-offset-0 disabled:opacity-50"
+              />
+              <div className="flex-1">
+                <span className="text-sm font-medium text-gray-300 block">
+                  Mark as "Not Resolved"
+                </span>
+                <p className="text-xs text-gray-400 mt-1">
+                  Check this if the issue requires additional attention or follow-up after your response. The message will be tagged as "Not Resolved" alongside the "Responded" status.
+                </p>
+              </div>
             </label>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setStatus('in_progress')}
-                disabled={sending}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
-                  status === 'in_progress'
-                    ? 'bg-yellow-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                In Progress
-              </button>
-              <button
-                onClick={() => setStatus('responded')}
-                disabled={sending}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
-                  status === 'responded'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                Responded
-              </button>
-              <button
-                onClick={() => setStatus('resolved')}
-                disabled={sending}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
-                  status === 'resolved'
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                Resolved
-              </button>
-            </div>
           </div>
 
           {/* Internal Notes */}
@@ -287,7 +265,7 @@ export default function SupportResponseModal({ message, onClose, onSuccess }: Su
               ) : (
                 <>
                   <Send className="w-5 h-5" />
-                  Send Response & Update Status
+                  Send Response
                 </>
               )}
             </button>

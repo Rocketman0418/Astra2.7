@@ -66,10 +66,11 @@ interface SupportMessage {
     url_context?: string;
   };
   attachment_urls: string[];
-  status?: 'new' | 'in_progress' | 'responded' | 'resolved';
+  status?: 'needs_response' | 'responded';
   admin_response?: string;
   responded_at?: string;
   internal_notes?: string;
+  not_resolved?: boolean;
 }
 
 interface FeedbackStats {
@@ -127,7 +128,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const [teamsSortField, setTeamsSortField] = useState<'name' | 'created_at' | 'member_count' | 'documents_count' | 'reports_count' | 'total_messages_count'>('created_at');
   const [teamsSortDirection, setTeamsSortDirection] = useState<'asc' | 'desc'>('desc');
   const [responseModalMessage, setResponseModalMessage] = useState<SupportMessage | null>(null);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'new' | 'in_progress' | 'responded' | 'resolved'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'needs_response' | 'responded' | 'not_resolved'>('all');
 
   const isSuperAdmin = user?.email === 'clay@rockethub.ai';
 
@@ -695,8 +696,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     }
 
     // Filter by status
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(msg => (msg.status || 'new') === statusFilter);
+    if (statusFilter === 'not_resolved') {
+      filtered = filtered.filter(msg => msg.not_resolved === true);
+    } else if (statusFilter !== 'all') {
+      filtered = filtered.filter(msg => (msg.status || 'needs_response') === statusFilter);
     }
 
     return filtered;
@@ -1250,44 +1253,34 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                       All
                     </button>
                     <button
-                      onClick={() => setStatusFilter('new')}
+                      onClick={() => setStatusFilter('needs_response')}
                       className={`px-3 py-1 rounded text-sm transition-colors ${
-                        statusFilter === 'new'
+                        statusFilter === 'needs_response'
                           ? 'bg-red-600 text-white'
                           : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                       }`}
                     >
-                      New ({supportMessages.filter(m => (m.status || 'new') === 'new').length})
-                    </button>
-                    <button
-                      onClick={() => setStatusFilter('in_progress')}
-                      className={`px-3 py-1 rounded text-sm transition-colors ${
-                        statusFilter === 'in_progress'
-                          ? 'bg-yellow-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      In Progress ({supportMessages.filter(m => m.status === 'in_progress').length})
+                      Needs Response ({supportMessages.filter(m => (m.status || 'needs_response') === 'needs_response').length})
                     </button>
                     <button
                       onClick={() => setStatusFilter('responded')}
                       className={`px-3 py-1 rounded text-sm transition-colors ${
                         statusFilter === 'responded'
-                          ? 'bg-blue-600 text-white'
+                          ? 'bg-emerald-600 text-white'
                           : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                       }`}
                     >
                       Responded ({supportMessages.filter(m => m.status === 'responded').length})
                     </button>
                     <button
-                      onClick={() => setStatusFilter('resolved')}
+                      onClick={() => setStatusFilter('not_resolved')}
                       className={`px-3 py-1 rounded text-sm transition-colors ${
-                        statusFilter === 'resolved'
-                          ? 'bg-emerald-600 text-white'
+                        statusFilter === 'not_resolved'
+                          ? 'bg-yellow-600 text-white'
                           : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                       }`}
                     >
-                      Resolved ({supportMessages.filter(m => m.status === 'resolved').length})
+                      Not Resolved ({supportMessages.filter(m => m.not_resolved === true).length})
                     </button>
                   </div>
                 </div>
@@ -1308,13 +1301,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                         {msg.support_type?.replace(/_/g, ' ')}
                       </span>
                       <span className={`px-2 py-1 text-xs rounded font-medium ${
-                        (msg.status || 'new') === 'new' ? 'bg-red-500/20 text-red-400' :
-                        msg.status === 'in_progress' ? 'bg-yellow-500/20 text-yellow-400' :
-                        msg.status === 'responded' ? 'bg-blue-500/20 text-blue-400' :
+                        (msg.status || 'needs_response') === 'needs_response' ? 'bg-red-500/20 text-red-400' :
                         'bg-emerald-500/20 text-emerald-400'
                       }`}>
-                        {(msg.status || 'new').replace(/_/g, ' ')}
+                        {(msg.status || 'needs_response').replace(/_/g, ' ')}
                       </span>
+                      {msg.not_resolved && (
+                        <span className="px-2 py-1 text-xs rounded font-medium bg-yellow-500/20 text-yellow-400">
+                          Not Resolved
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="text-xs text-gray-400">{format(new Date(msg.created_at), 'MMM d, yyyy h:mm a')}</div>
