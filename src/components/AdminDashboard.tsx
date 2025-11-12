@@ -102,8 +102,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [detailView, setDetailView] = useState<DetailView>(null);
   const [supportFilter, setSupportFilter] = useState<SupportFilter>('all');
-  const [teamsData, setTeamsData] = useState<Array<{ id: string; name: string; created_at: string; member_count: number }>>([]);
+  const [teamsData, setTeamsData] = useState<Array<{
+    id: string;
+    name: string;
+    created_at: string;
+    member_count: number;
+    documents_count: number;
+    strategy_docs_count: number;
+    meeting_docs_count: number;
+    financial_docs_count: number;
+    reports_count: number;
+    scheduled_reports_count: number;
+    manual_reports_count: number;
+    private_messages_count: number;
+    team_messages_count: number;
+    total_messages_count: number;
+  }>>([]);
   const [documentsData, setDocumentsData] = useState<any[]>([]);
+  const [teamsSortField, setTeamsSortField] = useState<'name' | 'created_at' | 'member_count' | 'documents_count' | 'reports_count' | 'total_messages_count'>('created_at');
+  const [teamsSortDirection, setTeamsSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const isSuperAdmin = user?.email === 'clay@rockethub.ai';
 
@@ -197,11 +214,40 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
     const enrichedTeams = teams.map((team: any) => {
       const memberCount = users.filter((u: any) => u.team_id === team.id).length;
+      const teamDocs = documents.filter((d: any) => d.team_id === team.id);
+      const strategyCount = teamDocs.filter((d: any) => d.folder_type === 'strategy').length;
+      const meetingCount = teamDocs.filter((d: any) => d.folder_type === 'meetings').length;
+      const financialCount = teamDocs.filter((d: any) => d.folder_type === 'financial').length;
+
+      const teamUsers = users.filter((u: any) => u.team_id === team.id);
+      const teamReports = reports.filter((r: any) =>
+        teamUsers.some((u: any) => u.id === r.user_id)
+      );
+      const scheduledReports = teamReports.filter((r: any) => r.schedule_frequency && r.schedule_frequency !== 'manual').length;
+      const manualReports = teamReports.filter((r: any) => !r.schedule_frequency || r.schedule_frequency === 'manual').length;
+
+      const privateMessages = chats.filter((c: any) =>
+        c.mode === 'private' && teamUsers.some((u: any) => u.id === c.user_id)
+      ).length;
+      const teamMessages = chats.filter((c: any) =>
+        c.mode === 'team' && teamUsers.some((u: any) => u.id === c.user_id)
+      ).length;
+
       return {
         id: team.id,
         name: team.name,
         created_at: team.created_at,
-        member_count: memberCount
+        member_count: memberCount,
+        documents_count: teamDocs.length,
+        strategy_docs_count: strategyCount,
+        meeting_docs_count: meetingCount,
+        financial_docs_count: financialCount,
+        reports_count: teamReports.length,
+        scheduled_reports_count: scheduledReports,
+        manual_reports_count: manualReports,
+        private_messages_count: privateMessages,
+        team_messages_count: teamMessages,
+        total_messages_count: privateMessages + teamMessages
       };
     });
 
@@ -621,6 +667,31 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     if (supportFilter === 'all') return supportMessages;
     return supportMessages.filter(msg => msg.support_type === supportFilter);
   }, [supportMessages, supportFilter]);
+
+  const sortedTeamsData = React.useMemo(() => {
+    const sorted = [...teamsData].sort((a, b) => {
+      let aValue: any = a[teamsSortField];
+      let bValue: any = b[teamsSortField];
+
+      if (aValue < bValue) return teamsSortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return teamsSortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return sorted;
+  }, [teamsData, teamsSortField, teamsSortDirection]);
+
+  const handleTeamsSort = (field: typeof teamsSortField) => {
+    if (teamsSortField === field) {
+      setTeamsSortDirection(teamsSortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setTeamsSortField(field);
+      setTeamsSortDirection('asc');
+    }
+  };
+
+  const averageDocsPerTeam = teamsData.length > 0
+    ? (teamsData.reduce((sum, t) => sum + t.documents_count, 0) / teamsData.length).toFixed(1)
+    : '0';
 
   if (!isOpen) {
     return null;
@@ -1117,20 +1188,112 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
             </div>
 
             {detailView === 'teams' && (
-              <div className="space-y-4">
-                {teamsData.map((team) => (
-                  <div key={team.id} className="bg-gray-700/50 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-lg font-semibold text-white">{team.name}</div>
-                      <div className="text-sm text-gray-400">
-                        {team.member_count} {team.member_count === 1 ? 'member' : 'members'}
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-400">
-                      Created: {format(new Date(team.created_at), 'MMM d, yyyy h:mm a')}
-                    </div>
+              <div className="space-y-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-blue-400">{averageDocsPerTeam}</div>
+                    <div className="text-sm text-gray-300">Avg Documents Per Team</div>
                   </div>
-                ))}
+                  <button
+                    onClick={() => exportToCSV(sortedTeamsData, 'team-details')}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    Export CSV
+                  </button>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-600">
+                        <th
+                          className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white whitespace-nowrap"
+                          onClick={() => handleTeamsSort('name')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Team Name
+                            <ArrowUpDown className="w-4 h-4" />
+                          </div>
+                        </th>
+                        <th
+                          className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white whitespace-nowrap"
+                          onClick={() => handleTeamsSort('member_count')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Members
+                            <ArrowUpDown className="w-4 h-4" />
+                          </div>
+                        </th>
+                        <th
+                          className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white whitespace-nowrap"
+                          onClick={() => handleTeamsSort('documents_count')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Documents
+                            <ArrowUpDown className="w-4 h-4" />
+                          </div>
+                        </th>
+                        <th
+                          className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white whitespace-nowrap"
+                          onClick={() => handleTeamsSort('reports_count')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Reports
+                            <ArrowUpDown className="w-4 h-4" />
+                          </div>
+                        </th>
+                        <th
+                          className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white whitespace-nowrap"
+                          onClick={() => handleTeamsSort('total_messages_count')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Messages
+                            <ArrowUpDown className="w-4 h-4" />
+                          </div>
+                        </th>
+                        <th
+                          className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white whitespace-nowrap"
+                          onClick={() => handleTeamsSort('created_at')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Created
+                            <ArrowUpDown className="w-4 h-4" />
+                          </div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedTeamsData.map((team) => (
+                        <tr key={team.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
+                          <td className="py-3 px-4 text-sm font-medium text-white">{team.name}</td>
+                          <td className="py-3 px-4 text-sm text-gray-300">{team.member_count}</td>
+                          <td className="py-3 px-4">
+                            <div className="text-sm font-semibold text-white">{team.documents_count}</div>
+                            <div className="text-xs text-gray-400">
+                              S:{team.strategy_docs_count} M:{team.meeting_docs_count} F:{team.financial_docs_count}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="text-sm font-semibold text-white">{team.reports_count}</div>
+                            <div className="text-xs text-gray-400">
+                              Scheduled:{team.scheduled_reports_count} Manual:{team.manual_reports_count}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="text-sm font-semibold text-white">{team.total_messages_count}</div>
+                            <div className="text-xs text-gray-400">
+                              Private:{team.private_messages_count} Team:{team.team_messages_count}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-sm text-gray-300 whitespace-nowrap">
+                            {format(new Date(team.created_at), 'MMM d, yyyy')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
