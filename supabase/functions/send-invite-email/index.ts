@@ -79,7 +79,7 @@ Deno.serve(async (req: Request) => {
     const inviterName = user.user_metadata?.full_name || user.email;
     const appUrl = supabaseUrl.replace('.supabase.co', '').replace('https://', 'https://app.');
 
-    const emailSubject = `You're invited to join ${teamName} on Astra Intelligence`;
+    const emailSubject = `Join ${teamName} on AI Rocket`;
 
     const emailHtml = `
       <!DOCTYPE html>
@@ -165,13 +165,22 @@ Deno.serve(async (req: Request) => {
               display: inline-block;
               background: linear-gradient(135deg, #f97316 0%, #84cc16 50%, #3b82f6 100%);
               color: white;
-              padding: 16px 40px;
-              border-radius: 8px;
+              padding: 20px 60px;
+              border-radius: 12px;
               text-decoration: none;
-              font-weight: 600;
-              font-size: 16px;
+              font-weight: 700;
+              font-size: 20px;
               margin: 20px 0;
               transition: transform 0.2s;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+            .cta-container {
+              background: #f9fafb;
+              border: 2px solid #e5e7eb;
+              border-radius: 12px;
+              padding: 30px;
+              margin: 30px 0;
+              text-align: center;
             }
             .steps {
               background: #eff6ff;
@@ -212,14 +221,14 @@ Deno.serve(async (req: Request) => {
         <body>
           <div class="container">
             <div class="header">
-              <h1>🚀 Welcome to Astra Intelligence</h1>
+              <h1>🚀 Welcome to AI Rocket + Astra Intelligence</h1>
             </div>
             <div class="content">
               <div class="greeting">
                 Hi there!
               </div>
               <div class="message">
-                <strong>${inviterName}</strong> has invited you to join <strong>${teamName}</strong> on Astra Intelligence,
+                <strong>${inviterName}</strong> has invited you to join <strong>${teamName}</strong> on AI Rocket + Astra Intelligence,
                 your team's AI-powered platform for insights and collaboration.
               </div>
 
@@ -231,7 +240,7 @@ Deno.serve(async (req: Request) => {
                 </div>
               </div>
 
-              <div style="text-align: center;">
+              <div class="cta-container">
                 <a href="${appUrl}" class="cta-button">
                   Create Your Account
                 </a>
@@ -240,7 +249,7 @@ Deno.serve(async (req: Request) => {
               <div class="steps">
                 <div class="steps-title">Getting Started:</div>
                 <ol>
-                  <li>Click the button above to visit Astra Intelligence</li>
+                  <li>Click the button above to visit AI Rocket</li>
                   <li>Select "Sign Up" and enter your email: <strong>${email}</strong></li>
                   <li>Create a password for your account</li>
                   <li>Enter your invite code: <strong>${inviteCode}</strong></li>
@@ -259,7 +268,7 @@ Deno.serve(async (req: Request) => {
                 If you have any questions, please contact your team administrator.
               </p>
               <p style="margin-top: 20px;">
-                <a href="${appUrl}">Astra Intelligence</a> - AI Connected to ALL Your Data
+                <a href="${appUrl}">AI Rocket + Astra</a> - AI Connected to ALL Your Data
               </p>
             </div>
           </div>
@@ -274,7 +283,7 @@ Deno.serve(async (req: Request) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Astra Invites <invite@rockethub.ai>",
+        from: "AI Rocket Invite <invite@rockethub.ai>",
         to: email,
         reply_to: user.email,
         subject: emailSubject,
