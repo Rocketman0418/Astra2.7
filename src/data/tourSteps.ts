@@ -9,9 +9,9 @@ export interface TourNavigation {
 
 export const memberTourSteps: TourStep[] = [
   {
-    id: 'saved-prompts',
-    title: 'Saved Prompts',
-    description: 'You can easily save your favorite prompts to use them again.',
+    id: 'chat-with-astra',
+    title: 'Chat with Astra',
+    description: 'Ask Astra questions about your data using the message box. Tip: You can save your favorite prompts by clicking the star icon next to the input!',
     targetSelector: '[data-tour="chat-input"]',
     position: 'top',
     navigation: { mode: 'private' }
@@ -60,9 +60,9 @@ export const memberTourSteps: TourStep[] = [
 
 export const adminTourSteps: TourStep[] = [
   {
-    id: 'saved-prompts',
-    title: 'Saved Prompts',
-    description: 'You can easily save your favorite prompts to use them again.',
+    id: 'chat-with-astra',
+    title: 'Chat with Astra',
+    description: 'Ask Astra questions about your data using the message box. Tip: You can save your favorite prompts by clicking the star icon next to the input!',
     targetSelector: '[data-tour="chat-input"]',
     position: 'top',
     navigation: { mode: 'private' }
