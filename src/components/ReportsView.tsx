@@ -204,9 +204,13 @@ export const ReportsView: React.FC = () => {
                     <div className="h-96 overflow-y-auto overflow-x-hidden bg-gray-900">
                       <iframe
                         srcDoc={message.visualization_data}
-                        className="w-full min-h-full"
+                        className="w-full h-full"
                         sandbox="allow-scripts"
-                        style={{ border: 'none', display: 'block' }}
+                        style={{
+                          border: 'none',
+                          display: 'block',
+                          minHeight: '384px'
+                        }}
                       />
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none"></div>
