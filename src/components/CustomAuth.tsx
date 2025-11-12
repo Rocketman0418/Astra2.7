@@ -221,35 +221,32 @@ export const CustomAuth: React.FC = () => {
 
       console.log('Auth user created successfully:', data.user.id);
 
-      // Step 2: Complete user setup
-      // If joining existing team, complete setup immediately
-      // If creating new team, skip setup (will be done in onboarding with team name)
+      // Step 2: For existing team joins, the trigger has already assigned the team
+      // We just need to wait a moment for the trigger to complete and then verify
       if (!isCreatingNewTeam) {
-        console.log('Joining existing team, completing setup now');
+        console.log('Joining existing team - trigger should have assigned team');
 
-        const { data: setupResult, error: setupError } = await supabase.rpc('complete_user_signup', {
-          p_invite_code: inviteCode.toUpperCase(),
-          p_new_team_name: null
-        });
+        // Wait a moment for trigger to complete
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-        console.log('Setup result:', setupResult);
+        // Verify the user was assigned to the team
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('team_id')
+          .eq('id', data.user.id)
+          .maybeSingle();
 
-        if (setupError) {
-          console.error('Setup error:', setupError);
-          throw new Error(`Failed to complete signup: ${setupError.message}`);
+        if (userError || !userData?.team_id) {
+          console.error('Team assignment failed:', userError);
+          throw new Error('Failed to assign team. Please try again.');
         }
 
-        if (!setupResult?.success) {
-          console.error('Setup failed:', setupResult);
-          throw new Error(setupResult?.error || 'Failed to complete user setup');
-        }
-
-        console.log('User setup completed successfully:', setupResult);
+        console.log('User successfully assigned to team:', userData.team_id);
 
         // Update auth metadata to include team_id so App.tsx knows user is onboarded
         const { error: metadataError } = await supabase.auth.updateUser({
           data: {
-            team_id: setupResult.team_id,
+            team_id: userData.team_id,
             pending_team_setup: false
           }
         });
