@@ -31,6 +31,7 @@ export const MainContainer: React.FC = () => {
   const [showTour, setShowTour] = useState(false);
   const [tourStep, setTourStep] = useState(0);
   const [showHelpCenter, setShowHelpCenter] = useState(false);
+  const [teamName, setTeamName] = useState<string>('');
 
   const isAdmin = user?.user_metadata?.role === 'admin';
   const tourSteps = getTourStepsForRole(isAdmin);
@@ -44,6 +45,20 @@ export const MainContainer: React.FC = () => {
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       if (!user) return;
+
+      // Fetch team name
+      const teamId = user.user_metadata?.team_id;
+      if (teamId) {
+        const { data: teamData } = await supabase
+          .from('teams')
+          .select('name')
+          .eq('id', teamId)
+          .maybeSingle();
+
+        if (teamData) {
+          setTeamName(teamData.name);
+        }
+      }
 
       const onboardingCompleted = user.user_metadata?.onboarding_completed;
       const onboardingDismissed = user.user_metadata?.onboarding_dismissed;
@@ -248,6 +263,7 @@ export const MainContainer: React.FC = () => {
       {showWelcomeModal && (
         <WelcomeModal
           userName={user?.user_metadata?.full_name || 'there'}
+          teamName={teamName}
           onStartTour={handleStartTour}
           onDismiss={handleDismissWelcome}
         />

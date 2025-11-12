@@ -2,11 +2,12 @@ import { X, Sparkles } from 'lucide-react';
 
 interface WelcomeModalProps {
   userName: string;
+  teamName: string;
   onStartTour: () => void;
   onDismiss: () => void;
 }
 
-export function WelcomeModal({ userName, onStartTour, onDismiss }: WelcomeModalProps) {
+export function WelcomeModal({ userName, teamName, onStartTour, onDismiss }: WelcomeModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="bg-gradient-to-br from-orange-500 via-green-500 to-blue-500 p-1 rounded-2xl shadow-2xl max-w-md w-full animate-in fade-in duration-300">
@@ -35,6 +36,13 @@ export function WelcomeModal({ userName, onStartTour, onDismiss }: WelcomeModalP
           </div>
 
           <div className="mb-8 space-y-4">
+            {teamName && (
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg px-4 py-2 mb-4">
+                <p className="text-sm text-blue-400 font-medium">
+                  Team: <span className="text-blue-300">{teamName}</span>
+                </p>
+              </div>
+            )}
             <p className="text-gray-300 text-lg">
               I'm Astra, your AI assistant connected to all your team's data.
             </p>
