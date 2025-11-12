@@ -111,19 +111,119 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const loadAllMetrics = async () => {
     setLoading(true);
     try {
-      await Promise.all([
-        loadOverviewMetrics(),
-        loadUserMetrics(),
-        loadFeedback(),
-        loadFeedbackStats(),
-        loadSupportMessages(),
-        loadTeams()
-      ]);
+      const { data, error } = await supabase.rpc('admin_get_dashboard_data');
+
+      if (error) throw error;
+
+      if (data) {
+        processAdminDashboardData(data);
+      }
     } catch (error) {
       console.error('Error loading metrics:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const processAdminDashboardData = (data: any) => {
+    const users = data.users || [];
+    const teams = data.teams || [];
+    const documents = data.documents || [];
+    const chats = data.chats || [];
+    const reports = data.reports || [];
+    const gmailConnections = data.gmail_connections || [];
+    const driveConnections = data.drive_connections || [];
+    const allFeedback = data.feedback || [];
+
+    const teamMap = new Map(teams.map((t: any) => [t.id, t.name]));
+    const gmailMap = new Map(gmailConnections.map((g: any) => [g.user_id, g.is_active]));
+    const driveMap = new Map(driveConnections.map((d: any) => [d.user_id, d.is_active]));
+
+    const enrichedUsers = users.map((user: any) => {
+      const userChats = chats.filter((c: any) => c.user_id === user.id);
+      const privateChats = userChats.filter((c: any) => c.mode === 'private').length;
+      const teamMessages = userChats.filter((c: any) => c.mode === 'team').length;
+
+      const userDocs = documents.filter((d: any) => d.team_id === user.team_id);
+      const strategyCount = userDocs.filter((d: any) => d.folder_type === 'strategy').length;
+      const meetingCount = userDocs.filter((d: any) => d.folder_type === 'meeting').length;
+      const financialCount = userDocs.filter((d: any) => d.folder_type === 'financial').length;
+      const totalDocs = strategyCount + meetingCount + financialCount;
+
+      const userReports = reports.filter((r: any) => r.user_id === user.id).length;
+
+      return {
+        id: user.id,
+        email: user.email,
+        created_at: user.created_at,
+        team_id: user.team_id,
+        team_name: teamMap.get(user.team_id) || 'No Team',
+        role: user.role || 'member',
+        last_sign_in_at: user.last_sign_in_at || user.created_at,
+        private_chats_count: privateChats,
+        team_messages_count: teamMessages,
+        documents_synced: totalDocs > 0,
+        strategy_docs_count: strategyCount,
+        meeting_docs_count: meetingCount,
+        financial_docs_count: financialCount,
+        total_docs_count: totalDocs,
+        reports_count: userReports,
+        gmail_connected: gmailMap.get(user.id) || false,
+        drive_connected: driveMap.get(user.id) || false
+      };
+    });
+
+    const enrichedTeams = teams.map((team: any) => {
+      const memberCount = users.filter((u: any) => u.team_id === team.id).length;
+      return {
+        id: team.id,
+        name: team.name,
+        created_at: team.created_at,
+        member_count: memberCount
+      };
+    });
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const active7Days = users.filter((u: any) =>
+      u.last_sign_in_at && new Date(u.last_sign_in_at) >= sevenDaysAgo
+    ).length;
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const active30Days = users.filter((u: any) =>
+      u.last_sign_in_at && new Date(u.last_sign_in_at) >= thirtyDaysAgo
+    ).length;
+
+    const feedbackSubmissions = allFeedback.filter((f: any) => !f.support_type);
+    const supportMsgs = allFeedback.filter((f: any) => f.support_type);
+
+    setUsers(enrichedUsers);
+    setTeamsData(enrichedTeams);
+    setOverviewMetrics({
+      totalUsers: users.length,
+      totalTeams: teams.length,
+      totalDocuments: documents.length,
+      totalChats: chats.length,
+      totalReports: reports.length,
+      activeUsersLast7Days: active7Days,
+      activeUsersLast30Days: active30Days
+    });
+    setSupportMessages(supportMsgs.map((msg: any) => ({
+      id: msg.id,
+      user_email: users.find((u: any) => u.id === msg.user_id)?.email || 'Unknown',
+      created_at: msg.created_at,
+      support_type: msg.support_type,
+      support_details: msg.support_details || {},
+      attachment_urls: msg.attachment_urls || []
+    })));
+    setFeedback(feedbackSubmissions.map((fb: any) => ({
+      id: fb.id,
+      user_email: users.find((u: any) => u.id === fb.user_id)?.email || 'Unknown',
+      created_at: fb.created_at,
+      answers: [],
+      general_feedback: fb.general_feedback
+    })));
   };
 
   const loadTeams = async () => {
