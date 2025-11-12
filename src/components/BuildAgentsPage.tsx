@@ -102,7 +102,11 @@ export const BuildAgentsPage: React.FC = () => {
       // Load workflows from N8N
       try {
         const n8nWorkflows = await fetchN8NWorkflows();
-        setWorkflows(n8nWorkflows);
+        // Deduplicate workflows by ID
+        const uniqueWorkflows = Array.from(
+          new Map(n8nWorkflows.map(w => [w.id, w])).values()
+        );
+        setWorkflows(uniqueWorkflows);
       } catch (n8nError: any) {
         console.error('N8N fetch error:', n8nError);
         // Don't fail completely if N8N is unavailable, just show the error
@@ -437,8 +441,8 @@ export const BuildAgentsPage: React.FC = () => {
                   </div>
 
                   <div className="flex items-center space-x-2 mb-4">
-                    {workflow.tags?.map((tag) => (
-                      <span key={tag} className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded">
+                    {workflow.tags?.map((tag, index) => (
+                      <span key={`${workflow.id}-tag-${index}`} className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded">
                         {tag}
                       </span>
                     ))}
