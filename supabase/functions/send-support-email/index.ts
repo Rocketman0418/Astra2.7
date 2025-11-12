@@ -132,32 +132,32 @@ Deno.serve(async (req: Request) => {
           </style>
         </head>
         <body>
-          <div class="container">
-            <div class="header">
-              <h2 style="margin: 0;">${typeLabel}</h2>
+          <div class=\"container\">
+            <div class=\"header\">
+              <h2 style=\"margin: 0;\">${typeLabel}</h2>
             </div>
-            <div class="content">
-              <div class="field">
-                <div class="label">From</div>
-                <div class="value">${userName} (${userEmail})</div>
+            <div class=\"content\">
+              <div class=\"field\">
+                <div class=\"label\">From</div>
+                <div class=\"value\">${userName} (${userEmail})</div>
               </div>
-              <div class="field">
-                <div class="label">Team</div>
-                <div class="value">${teamName}</div>
+              <div class=\"field\">
+                <div class=\"label\">Team</div>
+                <div class=\"value\">${teamName}</div>
               </div>
-              <div class="field">
-                <div class="label">Subject</div>
-                <div class="value">${subject}</div>
+              <div class=\"field\">
+                <div class=\"label\">Subject</div>
+                <div class=\"value\">${subject}</div>
               </div>
-              <div class="field">
-                <div class="label">Description</div>
-                <div class="value" style="white-space: pre-wrap;">${description}</div>
+              <div class=\"field\">
+                <div class=\"label\">Description</div>
+                <div class=\"value\" style=\"white-space: pre-wrap;\">${description}</div>
               </div>
-              <div class="field">
-                <div class="label">Submission ID</div>
-                <div class="value" style="font-family: monospace; font-size: 11px;">${submission.id}</div>
+              <div class=\"field\">
+                <div class=\"label\">Submission ID</div>
+                <div class=\"value\" style=\"font-family: monospace; font-size: 11px;\">${submission.id}</div>
               </div>
-              <div class="footer">
+              <div class=\"footer\">
                 <p>This ${typeLabel.toLowerCase()} was submitted via Astra Intelligence on ${new Date().toLocaleString()}.</p>
                 <p>Reply directly to this email to respond to the user.</p>
               </div>
@@ -184,9 +184,13 @@ Deno.serve(async (req: Request) => {
 
     if (!resendResponse.ok) {
       const errorText = await resendResponse.text();
-      console.error("Resend API error:", errorText);
+      console.error("Resend API error:", resendResponse.status, errorText);
       return new Response(
-        JSON.stringify({ error: "Failed to send email" }),
+        JSON.stringify({
+          error: "Failed to send email",
+          details: errorText,
+          status: resendResponse.status
+        }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
