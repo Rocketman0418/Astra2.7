@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   Users, Building2, FileText, MessageSquare, BarChart3, Download,
-  Calendar, TrendingUp, Mail, HardDrive, Clock, AlertCircle,
-  CheckCircle, XCircle, Filter, Search, ArrowUpDown, MessageCircleQuestion, Shield, X
+  TrendingUp, Mail, HardDrive, AlertCircle,
+  CheckCircle, XCircle, Search, ArrowUpDown, MessageCircleQuestion, Shield, X, ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -42,22 +42,35 @@ interface FeedbackItem {
   id: string;
   user_email: string;
   created_at: string;
-  question_1_answer: string;
-  question_2_answer: string;
-  question_3_answer: string;
-  general_feedback: string;
-  feedback_type: string;
+  answers: Array<{
+    question_text: string;
+    rating: number;
+    comment: string | null;
+  }>;
+  general_feedback: string | null;
 }
 
 interface SupportMessage {
   id: string;
   user_email: string;
   created_at: string;
-  subject: string;
-  message: string;
-  priority: string;
-  status: string;
-  category: string;
+  support_type: string;
+  support_details: {
+    subject?: string;
+    description?: string;
+    url_context?: string;
+  };
+  attachment_urls: string[];
+}
+
+interface FeedbackStats {
+  avgRatingByCategory: Record<string, number>;
+  totalResponses: number;
+  categoryBreakdown: Array<{
+    category: string;
+    avg_rating: number;
+    count: number;
+  }>;
 }
 
 type TimeFilter = '7days' | '30days' | '90days' | 'all';
@@ -75,6 +88,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const [overviewMetrics, setOverviewMetrics] = useState<OverviewMetrics | null>(null);
   const [users, setUsers] = useState<UserMetric[]>([]);
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
+  const [feedbackStats, setFeedbackStats] = useState<FeedbackStats | null>(null);
   const [supportMessages, setSupportMessages] = useState<SupportMessage[]>([]);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -96,6 +110,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
         loadOverviewMetrics(),
         loadUserMetrics(),
         loadFeedback(),
+        loadFeedbackStats(),
         loadSupportMessages()
       ]);
     } catch (error) {
@@ -115,24 +130,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
         .from('teams')
         .select('*', { count: 'exact', head: true });
 
-      const { count: strategyDocs } = await supabase
-        .from('document_chunks')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: meetingDocs } = await supabase
-        .from('document_chunks_meeting')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: financialDocs } = await supabase
-        .from('document_chunks_financial')
+      const { count: totalDocuments } = await supabase
+        .from('documents')
         .select('*', { count: 'exact', head: true });
 
       const { count: privateChats } = await supabase
         .from('astra_chats')
         .select('*', { count: 'exact', head: true });
 
-      const { count: teamChats } = await supabase
-        .from('astra_team_chats')
+      const { count: teamMessages } = await supabase
+        .from('astra_team_messages')
         .select('*', { count: 'exact', head: true });
 
       const { count: reports } = await supabase
@@ -142,27 +149,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      const { count: active7Days } = await supabase
+      const { data: active7Days } = await supabase
         .from('users')
-        .select('*', { count: 'exact', head: true })
+        .select('id')
         .gte('last_sign_in_at', sevenDaysAgo.toISOString());
 
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      const { count: active30Days } = await supabase
+      const { data: active30Days } = await supabase
         .from('users')
-        .select('*', { count: 'exact', head: true })
+        .select('id')
         .gte('last_sign_in_at', thirtyDaysAgo.toISOString());
 
       setOverviewMetrics({
         totalUsers: totalUsers || 0,
         totalTeams: totalTeams || 0,
-        totalDocuments: (strategyDocs || 0) + (meetingDocs || 0) + (financialDocs || 0),
-        totalChats: (privateChats || 0) + (teamChats || 0),
+        totalDocuments: totalDocuments || 0,
+        totalChats: (privateChats || 0) + (teamMessages || 0),
         totalReports: reports || 0,
-        activeUsersLast7Days: active7Days || 0,
-        activeUsersLast30Days: active30Days || 0
+        activeUsersLast7Days: active7Days?.length || 0,
+        activeUsersLast30Days: active30Days?.length || 0
       });
     } catch (error) {
       console.error('Error loading overview metrics:', error);
@@ -173,14 +180,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     try {
       const { data: usersData, error: usersError } = await supabase
         .from('users')
-        .select(`
-          id,
-          email,
-          created_at,
-          team_id,
-          role,
-          last_sign_in_at
-        `)
+        .select('id, email, created_at, team_id, role, last_sign_in_at')
         .order('created_at', { ascending: false });
 
       if (usersError) throw usersError;
@@ -195,26 +195,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
         const [
           { count: privateChats },
           { count: teamMessages },
-          { data: strategyDocs },
-          { data: meetingDocs },
-          { data: financialDocs },
+          { data: documents },
           { count: reports },
           { data: gmailAuth },
           { data: driveConn }
         ] = await Promise.all([
           supabase.from('astra_chats').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
           supabase.from('astra_team_messages').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-          supabase.from('documents').select('id').eq('team_id', user.team_id).eq('folder_type', 'strategy'),
-          supabase.from('documents').select('id').eq('team_id', user.team_id).eq('folder_type', 'meeting'),
-          supabase.from('documents').select('id').eq('team_id', user.team_id).eq('folder_type', 'financial'),
+          supabase.from('documents').select('id, folder_type').eq('team_id', user.team_id),
           supabase.from('user_reports').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
           supabase.from('gmail_auth').select('is_active').eq('user_id', user.id).maybeSingle(),
           supabase.from('user_drive_connections').select('is_active').eq('user_id', user.id).maybeSingle()
         ]);
 
-        const strategyCount = strategyDocs?.length || 0;
-        const meetingCount = meetingDocs?.length || 0;
-        const financialCount = financialDocs?.length || 0;
+        const strategyCount = documents?.filter(d => d.folder_type === 'strategy').length || 0;
+        const meetingCount = documents?.filter(d => d.folder_type === 'meeting').length || 0;
+        const financialCount = documents?.filter(d => d.folder_type === 'financial').length || 0;
         const totalDocs = strategyCount + meetingCount + financialCount;
 
         return {
@@ -246,32 +242,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
   const loadFeedback = async () => {
     try {
-      const { data, error } = await supabase
-        .from('feedback_submissions')
-        .select(`
-          id,
-          user_id,
-          created_at,
-          question_1_answer,
-          question_2_answer,
-          question_3_answer,
-          general_feedback,
-          feedback_type
-        `)
-        .order('created_at', { ascending: false });
+      const { data: submissions, error: submissionsError } = await supabase
+        .from('user_feedback_submissions')
+        .select('id, user_id, submitted_at, general_feedback')
+        .is('support_type', null)
+        .order('submitted_at', { ascending: false });
 
-      if (error) throw error;
+      if (submissionsError) throw submissionsError;
 
-      const enrichedFeedback = await Promise.all((data || []).map(async (fb) => {
-        const { data: userData } = await supabase
-          .from('users')
-          .select('email')
-          .eq('id', fb.user_id)
-          .maybeSingle();
+      const enrichedFeedback = await Promise.all((submissions || []).map(async (submission) => {
+        const [
+          { data: userData },
+          { data: answers }
+        ] = await Promise.all([
+          supabase.from('users').select('email').eq('id', submission.user_id).maybeSingle(),
+          supabase.from('user_feedback_answers')
+            .select(`
+              rating,
+              comment,
+              feedback_questions(question_text)
+            `)
+            .eq('submission_id', submission.id)
+        ]);
 
         return {
-          ...fb,
-          user_email: userData?.email || 'Unknown'
+          id: submission.id,
+          user_email: userData?.email || 'Unknown',
+          created_at: submission.submitted_at,
+          answers: (answers || []).map(a => ({
+            question_text: (a.feedback_questions as any)?.question_text || '',
+            rating: a.rating,
+            comment: a.comment
+          })),
+          general_feedback: submission.general_feedback
         };
       }));
 
@@ -281,22 +284,56 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     }
   };
 
+  const loadFeedbackStats = async () => {
+    try {
+      const { data: answers } = await supabase
+        .from('user_feedback_answers')
+        .select(`
+          rating,
+          feedback_questions(question_text, category)
+        `);
+
+      if (!answers || answers.length === 0) return;
+
+      const categoryStats: Record<string, { sum: number; count: number }> = {};
+
+      answers.forEach(answer => {
+        const category = (answer.feedback_questions as any)?.category || 'other';
+        if (!categoryStats[category]) {
+          categoryStats[category] = { sum: 0, count: 0 };
+        }
+        categoryStats[category].sum += answer.rating;
+        categoryStats[category].count += 1;
+      });
+
+      const avgRatingByCategory: Record<string, number> = {};
+      const categoryBreakdown = Object.entries(categoryStats).map(([category, stats]) => {
+        const avg = stats.sum / stats.count;
+        avgRatingByCategory[category] = avg;
+        return {
+          category,
+          avg_rating: avg,
+          count: stats.count
+        };
+      });
+
+      setFeedbackStats({
+        avgRatingByCategory,
+        totalResponses: answers.length,
+        categoryBreakdown: categoryBreakdown.sort((a, b) => b.avg_rating - a.avg_rating)
+      });
+    } catch (error) {
+      console.error('Error loading feedback stats:', error);
+    }
+  };
+
   const loadSupportMessages = async () => {
     try {
       const { data, error } = await supabase
-        .from('feedback_submissions')
-        .select(`
-          id,
-          user_id,
-          created_at,
-          support_subject,
-          support_message,
-          support_priority,
-          support_status,
-          support_category
-        `)
-        .not('support_message', 'is', null)
-        .order('created_at', { ascending: false });
+        .from('user_feedback_submissions')
+        .select('id, user_id, submitted_at, support_type, support_details, attachment_urls')
+        .not('support_type', 'is', null)
+        .order('submitted_at', { ascending: false });
 
       if (error) throw error;
 
@@ -310,12 +347,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
         return {
           id: msg.id,
           user_email: userData?.email || 'Unknown',
-          created_at: msg.created_at,
-          subject: msg.support_subject || 'No Subject',
-          message: msg.support_message,
-          priority: msg.support_priority || 'medium',
-          status: msg.support_status || 'open',
-          category: msg.support_category || 'general'
+          created_at: msg.submitted_at,
+          support_type: msg.support_type || 'general',
+          support_details: msg.support_details || {},
+          attachment_urls: msg.attachment_urls || []
         };
       }));
 
@@ -328,10 +363,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const exportToCSV = (data: any[], filename: string) => {
     if (data.length === 0) return;
 
-    const headers = Object.keys(data[0]);
+    const flattenObject = (obj: any, prefix = ''): any => {
+      const flattened: any = {};
+      Object.keys(obj).forEach(key => {
+        const value = obj[key];
+        const newKey = prefix ? `${prefix}_${key}` : key;
+        if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+          Object.assign(flattened, flattenObject(value, newKey));
+        } else if (Array.isArray(value)) {
+          flattened[newKey] = JSON.stringify(value);
+        } else {
+          flattened[newKey] = value;
+        }
+      });
+      return flattened;
+    };
+
+    const flatData = data.map(item => flattenObject(item));
+    const headers = Object.keys(flatData[0]);
+
     const csvContent = [
       headers.join(','),
-      ...data.map(row =>
+      ...flatData.map(row =>
         headers.map(header => {
           const value = row[header];
           if (value === null || value === undefined) return '';
@@ -404,7 +457,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="fixed inset-0 z-50 bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
           <p className="text-white text-lg">Authenticating...</p>
@@ -415,16 +468,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="fixed inset-0 z-50 bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <Shield className="w-16 h-16 text-red-400 mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-white mb-4">Authentication Required</h1>
           <p className="text-gray-400 mb-6">You must be logged in to access this page.</p>
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={onClose}
             className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
           >
-            Return to Login
+            Close
           </button>
         </div>
       </div>
@@ -433,17 +486,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
   if (!isSuperAdmin) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="fixed inset-0 z-50 bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <Shield className="w-16 h-16 text-red-400 mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-white mb-4">Access Denied</h1>
           <p className="text-gray-400 mb-2">This page is restricted to super administrators only.</p>
           <p className="text-gray-500 text-sm mb-6">Your account: {user.email}</p>
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={onClose}
             className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
           >
-            Return to Home
+            Close
           </button>
         </div>
       </div>
@@ -452,7 +505,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="fixed inset-0 z-50 bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
           <p className="text-white text-lg">Loading Admin Dashboard...</p>
@@ -462,20 +515,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-gray-900">
-      <div className="min-h-screen bg-gray-900 p-8 overflow-y-auto">
-        <div className="max-w-7xl mx-auto space-y-8">
-          {/* Header */}
-          <div className="flex items-center justify-between sticky top-0 bg-gray-900 pb-4 z-10">
+    <div className="fixed inset-0 z-50 bg-gray-900 overflow-y-auto">
+      <div className="min-h-screen p-4 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-6 md:space-y-8 pb-8">
+          <div className="flex items-center justify-between sticky top-0 bg-gray-900 py-4 z-10">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
-              <p className="text-gray-400">Comprehensive metrics and analytics for AI Rocket</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
+              <p className="text-sm md:text-base text-gray-400">Comprehensive metrics and analytics for AI Rocket</p>
             </div>
             <div className="flex items-center gap-3">
               <select
                 value={timeFilter}
                 onChange={(e) => setTimeFilter(e.target.value as TimeFilter)}
-                className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 md:px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Time</option>
                 <option value="7days">Last 7 Days</option>
@@ -492,281 +544,325 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
             </div>
           </div>
 
-        {/* Overview Cards */}
-        {overviewMetrics && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <Users className="w-8 h-8 text-blue-400" />
-                <TrendingUp className="w-5 h-5 text-emerald-400" />
+          {overviewMetrics && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="bg-gray-800 border border-gray-700 hover:border-blue-500 rounded-xl p-6 transition-all cursor-pointer hover:shadow-lg hover:shadow-blue-500/20">
+                <div className="flex items-center justify-between mb-4">
+                  <Users className="w-8 h-8 text-blue-400" />
+                  <TrendingUp className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div className="text-3xl font-bold text-white mb-1">{overviewMetrics.totalUsers}</div>
+                <div className="text-sm text-gray-400">Total Users</div>
+                <div className="mt-2 text-xs text-gray-500">
+                  Active: {overviewMetrics.activeUsersLast7Days} (7d) / {overviewMetrics.activeUsersLast30Days} (30d)
+                </div>
               </div>
-              <div className="text-3xl font-bold text-white mb-1">{overviewMetrics.totalUsers}</div>
-              <div className="text-sm text-gray-400">Total Users</div>
-              <div className="mt-2 text-xs text-gray-500">
-                Active: {overviewMetrics.activeUsersLast7Days} (7d) / {overviewMetrics.activeUsersLast30Days} (30d)
+
+              <div className="bg-gray-800 border border-gray-700 hover:border-emerald-500 rounded-xl p-6 transition-all cursor-pointer hover:shadow-lg hover:shadow-emerald-500/20">
+                <div className="flex items-center justify-between mb-4">
+                  <Building2 className="w-8 h-8 text-emerald-400" />
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+                <div className="text-3xl font-bold text-white mb-1">{overviewMetrics.totalTeams}</div>
+                <div className="text-sm text-gray-400">Total Teams</div>
+              </div>
+
+              <div className="bg-gray-800 border border-gray-700 hover:border-purple-500 rounded-xl p-6 transition-all cursor-pointer hover:shadow-lg hover:shadow-purple-500/20">
+                <div className="flex items-center justify-between mb-4">
+                  <FileText className="w-8 h-8 text-purple-400" />
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+                <div className="text-3xl font-bold text-white mb-1">{overviewMetrics.totalDocuments}</div>
+                <div className="text-sm text-gray-400">Total Documents</div>
+              </div>
+
+              <div className="bg-gray-800 border border-gray-700 hover:border-orange-500 rounded-xl p-6 transition-all cursor-pointer hover:shadow-lg hover:shadow-orange-500/20">
+                <div className="flex items-center justify-between mb-4">
+                  <MessageSquare className="w-8 h-8 text-orange-400" />
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+                <div className="text-3xl font-bold text-white mb-1">{overviewMetrics.totalChats}</div>
+                <div className="text-sm text-gray-400">Total Messages</div>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 md:p-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                <Users className="w-6 h-6 text-blue-400" />
+                User Metrics ({users.length})
+              </h2>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="relative flex-1 sm:flex-initial">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search users..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <button
+                  onClick={() => exportToCSV(filteredAndSortedUsers, 'user-metrics')}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Export CSV</span>
+                </button>
               </div>
             </div>
 
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <Building2 className="w-8 h-8 text-emerald-400" />
-              </div>
-              <div className="text-3xl font-bold text-white mb-1">{overviewMetrics.totalTeams}</div>
-              <div className="text-sm text-gray-400">Total Teams</div>
-            </div>
-
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <FileText className="w-8 h-8 text-purple-400" />
-              </div>
-              <div className="text-3xl font-bold text-white mb-1">{overviewMetrics.totalDocuments}</div>
-              <div className="text-sm text-gray-400">Total Documents</div>
-            </div>
-
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <MessageSquare className="w-8 h-8 text-orange-400" />
-              </div>
-              <div className="text-3xl font-bold text-white mb-1">{overviewMetrics.totalChats}</div>
-              <div className="text-sm text-gray-400">Total Chats</div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-700">
+                    <th
+                      className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white whitespace-nowrap"
+                      onClick={() => handleSort('email')}
+                    >
+                      <div className="flex items-center gap-2">
+                        Email
+                        <ArrowUpDown className="w-4 h-4" />
+                      </div>
+                    </th>
+                    <th
+                      className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white whitespace-nowrap"
+                      onClick={() => handleSort('team_name')}
+                    >
+                      <div className="flex items-center gap-2">
+                        Team
+                        <ArrowUpDown className="w-4 h-4" />
+                      </div>
+                    </th>
+                    <th
+                      className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white whitespace-nowrap"
+                      onClick={() => handleSort('created_at')}
+                    >
+                      <div className="flex items-center gap-2">
+                        Joined
+                        <ArrowUpDown className="w-4 h-4" />
+                      </div>
+                    </th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400 whitespace-nowrap">Last Active</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400 whitespace-nowrap">Documents</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400 whitespace-nowrap">Messages</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400 whitespace-nowrap">Reports</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400 whitespace-nowrap">Integrations</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredAndSortedUsers.map((user) => (
+                    <tr key={user.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
+                      <td className="py-3 px-4">
+                        <div className="text-sm text-white">{user.email}</div>
+                        {user.role === 'admin' && (
+                          <span className="inline-block mt-1 px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded">
+                            Admin
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-gray-300 whitespace-nowrap">{user.team_name}</td>
+                      <td className="py-3 px-4 text-sm text-gray-300 whitespace-nowrap">
+                        {format(new Date(user.created_at), 'MMM d, yyyy')}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-gray-300 whitespace-nowrap">
+                        {format(new Date(user.last_sign_in_at), 'MMM d, yyyy')}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          {user.documents_synced ? (
+                            <CheckCircle className="w-4 h-4 text-emerald-400" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-gray-500" />
+                          )}
+                          <span className="text-sm text-white">{user.total_docs_count}</span>
+                        </div>
+                        {user.documents_synced && (
+                          <div className="text-xs text-gray-400 mt-1">
+                            S:{user.strategy_docs_count} M:{user.meeting_docs_count} F:{user.financial_docs_count}
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="text-sm text-white">{user.private_chats_count + user.team_messages_count}</div>
+                        <div className="text-xs text-gray-400">
+                          P:{user.private_chats_count} T:{user.team_messages_count}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-sm text-white">{user.reports_count}</td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          {user.gmail_connected && (
+                            <Mail className="w-4 h-4 text-emerald-400" title="Gmail Connected" />
+                          )}
+                          {user.drive_connected && (
+                            <HardDrive className="w-4 h-4 text-blue-400" title="Drive Connected" />
+                          )}
+                          {!user.gmail_connected && !user.drive_connected && (
+                            <span className="text-xs text-gray-500">None</span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
-        )}
 
-        {/* Users Table */}
-        <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-              <Users className="w-6 h-6 text-blue-400" />
-              User Metrics
-            </h2>
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search users..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+          {feedbackStats && feedbackStats.categoryBreakdown.length > 0 && (
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 md:p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                  <BarChart3 className="w-6 h-6 text-purple-400" />
+                  Feedback Analytics
+                </h2>
+                <div className="text-sm text-gray-400">
+                  {feedbackStats.totalResponses} total responses
+                </div>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {feedbackStats.categoryBreakdown.map((cat) => (
+                  <div key={cat.category} className="bg-gray-700/50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-sm font-medium text-gray-300 capitalize">
+                        {cat.category.replace(/_/g, ' ')}
+                      </div>
+                      <div className="text-2xl font-bold text-white">
+                        {cat.avg_rating.toFixed(1)}
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-600 rounded-full h-2 mb-2">
+                      <div
+                        className={`h-2 rounded-full ${
+                          cat.avg_rating >= 8 ? 'bg-emerald-500' :
+                          cat.avg_rating >= 6 ? 'bg-yellow-500' :
+                          'bg-red-500'
+                        }`}
+                        style={{ width: `${(cat.avg_rating / 10) * 100}%` }}
+                      />
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {cat.count} {cat.count === 1 ? 'response' : 'responses'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                <MessageCircleQuestion className="w-6 h-6 text-purple-400" />
+                User Feedback ({feedback.length})
+              </h2>
               <button
-                onClick={() => exportToCSV(filteredAndSortedUsers, 'user-metrics')}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                onClick={() => exportToCSV(feedback, 'user-feedback')}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
               >
                 <Download className="w-4 h-4" />
                 Export CSV
               </button>
             </div>
-          </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-700">
-                  <th
-                    className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white"
-                    onClick={() => handleSort('email')}
-                  >
-                    <div className="flex items-center gap-2">
-                      Email
-                      <ArrowUpDown className="w-4 h-4" />
-                    </div>
-                  </th>
-                  <th
-                    className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white"
-                    onClick={() => handleSort('team_name')}
-                  >
-                    <div className="flex items-center gap-2">
-                      Team
-                      <ArrowUpDown className="w-4 h-4" />
-                    </div>
-                  </th>
-                  <th
-                    className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white"
-                    onClick={() => handleSort('created_at')}
-                  >
-                    <div className="flex items-center gap-2">
-                      Joined
-                      <ArrowUpDown className="w-4 h-4" />
-                    </div>
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Last Active</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Documents</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Messages</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Reports</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Integrations</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredAndSortedUsers.map((user) => (
-                  <tr key={user.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
-                    <td className="py-3 px-4">
-                      <div className="text-sm text-white">{user.email}</div>
-                      {user.role === 'admin' && (
-                        <span className="inline-block mt-1 px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded">
-                          Admin
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-gray-300">{user.team_name}</td>
-                    <td className="py-3 px-4 text-sm text-gray-300">
-                      {format(new Date(user.created_at), 'MMM d, yyyy')}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-gray-300">
-                      {format(new Date(user.last_sign_in_at), 'MMM d, yyyy')}
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        {user.documents_synced ? (
-                          <CheckCircle className="w-4 h-4 text-emerald-400" />
-                        ) : (
-                          <XCircle className="w-4 h-4 text-gray-500" />
-                        )}
-                        <span className="text-sm text-white">{user.total_docs_count}</span>
-                      </div>
-                      {user.documents_synced && (
-                        <div className="text-xs text-gray-400 mt-1">
-                          S:{user.strategy_docs_count} M:{user.meeting_docs_count} F:{user.financial_docs_count}
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {feedback.map((fb) => (
+                <div key={fb.id} className="bg-gray-700/50 rounded-lg p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                    <div className="text-sm text-white font-medium">{fb.user_email}</div>
+                    <div className="text-xs text-gray-400">{format(new Date(fb.created_at), 'MMM d, yyyy h:mm a')}</div>
+                  </div>
+                  {fb.answers.map((answer, idx) => (
+                    <div key={idx} className="mb-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="text-sm text-gray-300">{answer.question_text}</div>
+                        <div className={`text-sm font-semibold px-2 py-1 rounded ${
+                          answer.rating >= 8 ? 'bg-emerald-500/20 text-emerald-400' :
+                          answer.rating >= 6 ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-red-500/20 text-red-400'
+                        }`}>
+                          {answer.rating}/10
                         </div>
+                      </div>
+                      {answer.comment && (
+                        <div className="text-sm text-gray-400 italic ml-4">&quot;{answer.comment}&quot;</div>
                       )}
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="text-sm text-white">{user.private_chats_count + user.team_messages_count}</div>
+                    </div>
+                  ))}
+                  {fb.general_feedback && (
+                    <div className="mt-3 pt-3 border-t border-gray-600">
+                      <div className="text-xs text-gray-400 mb-1">Additional Feedback:</div>
+                      <div className="text-sm text-gray-300">{fb.general_feedback}</div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              {feedback.length === 0 && (
+                <div className="text-center py-8 text-gray-400">No feedback submissions yet</div>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                <AlertCircle className="w-6 h-6 text-orange-400" />
+                Support Messages ({supportMessages.length})
+              </h2>
+              <button
+                onClick={() => exportToCSV(supportMessages, 'support-messages')}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
+              >
+                <Download className="w-4 h-4" />
+                Export CSV
+              </button>
+            </div>
+
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {supportMessages.map((msg) => (
+                <div key={msg.id} className="bg-gray-700/50 rounded-lg p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <div className="text-sm text-white font-medium">{msg.user_email}</div>
+                      <span className={`px-2 py-1 text-xs rounded ${
+                        msg.support_type === 'bug_report' ? 'bg-red-500/20 text-red-400' :
+                        msg.support_type === 'feature_request' ? 'bg-blue-500/20 text-blue-400' :
+                        'bg-yellow-500/20 text-yellow-400'
+                      }`}>
+                        {msg.support_type?.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-400">{format(new Date(msg.created_at), 'MMM d, yyyy h:mm a')}</div>
+                  </div>
+                  {msg.support_details.subject && (
+                    <div className="text-sm text-gray-300 font-medium mb-2">{msg.support_details.subject}</div>
+                  )}
+                  {msg.support_details.description && (
+                    <div className="text-sm text-gray-400 mb-2">{msg.support_details.description}</div>
+                  )}
+                  {msg.support_details.url_context && (
+                    <div className="text-xs text-gray-500 mb-2">Page: {msg.support_details.url_context}</div>
+                  )}
+                  {msg.attachment_urls.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-gray-600">
                       <div className="text-xs text-gray-400">
-                        P:{user.private_chats_count} T:{user.team_messages_count}
+                        {msg.attachment_urls.length} attachment{msg.attachment_urls.length > 1 ? 's' : ''}
                       </div>
-                    </td>
-                    <td className="py-3 px-4 text-sm text-white">{user.reports_count}</td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        {user.gmail_connected && (
-                          <Mail className="w-4 h-4 text-emerald-400" title="Gmail Connected" />
-                        )}
-                        {user.drive_connected && (
-                          <HardDrive className="w-4 h-4 text-blue-400" title="Drive Connected" />
-                        )}
-                        {!user.gmail_connected && !user.drive_connected && (
-                          <span className="text-xs text-gray-500">None</span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Feedback Section */}
-        <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-              <MessageCircleQuestion className="w-6 h-6 text-purple-400" />
-              User Feedback ({feedback.length})
-            </h2>
-            <button
-              onClick={() => exportToCSV(feedback, 'user-feedback')}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Export CSV
-            </button>
-          </div>
-
-          <div className="space-y-4 max-h-96 overflow-y-auto">
-            {feedback.map((fb) => (
-              <div key={fb.id} className="bg-gray-700/50 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="text-sm text-white font-medium">{fb.user_email}</div>
-                  <div className="text-xs text-gray-400">{format(new Date(fb.created_at), 'MMM d, yyyy h:mm a')}</div>
+                    </div>
+                  )}
                 </div>
-                {fb.feedback_type && (
-                  <div className="mb-2">
-                    <span className="inline-block px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded">
-                      {fb.feedback_type}
-                    </span>
-                  </div>
-                )}
-                {fb.question_1_answer && (
-                  <div className="text-sm text-gray-300 mb-2">
-                    <span className="text-gray-400">Q1:</span> {fb.question_1_answer}
-                  </div>
-                )}
-                {fb.question_2_answer && (
-                  <div className="text-sm text-gray-300 mb-2">
-                    <span className="text-gray-400">Q2:</span> {fb.question_2_answer}
-                  </div>
-                )}
-                {fb.question_3_answer && (
-                  <div className="text-sm text-gray-300 mb-2">
-                    <span className="text-gray-400">Q3:</span> {fb.question_3_answer}
-                  </div>
-                )}
-                {fb.general_feedback && (
-                  <div className="text-sm text-gray-300 mt-2 pt-2 border-t border-gray-600">
-                    <span className="text-gray-400">Additional Feedback:</span> {fb.general_feedback}
-                  </div>
-                )}
-              </div>
-            ))}
-            {feedback.length === 0 && (
-              <div className="text-center py-8 text-gray-400">No feedback submissions yet</div>
-            )}
-          </div>
-        </div>
-
-        {/* Support Messages Section */}
-        <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-              <AlertCircle className="w-6 h-6 text-orange-400" />
-              Support Messages ({supportMessages.length})
-            </h2>
-            <button
-              onClick={() => exportToCSV(supportMessages, 'support-messages')}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Export CSV
-            </button>
-          </div>
-
-          <div className="space-y-4 max-h-96 overflow-y-auto">
-            {supportMessages.map((msg) => (
-              <div key={msg.id} className="bg-gray-700/50 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="text-sm text-white font-medium">{msg.user_email}</div>
-                    <span className={`px-2 py-1 text-xs rounded ${
-                      msg.priority === 'high' ? 'bg-red-500/20 text-red-400' :
-                      msg.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                      'bg-blue-500/20 text-blue-400'
-                    }`}>
-                      {msg.priority}
-                    </span>
-                    <span className={`px-2 py-1 text-xs rounded ${
-                      msg.status === 'open' ? 'bg-emerald-500/20 text-emerald-400' :
-                      'bg-gray-500/20 text-gray-400'
-                    }`}>
-                      {msg.status}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-400">{format(new Date(msg.created_at), 'MMM d, yyyy h:mm a')}</div>
-                </div>
-                <div className="text-sm text-gray-300 font-medium mb-2">{msg.subject}</div>
-                <div className="text-sm text-gray-400">{msg.message}</div>
-                <div className="mt-2 text-xs text-gray-500">Category: {msg.category}</div>
-              </div>
-            ))}
-            {supportMessages.length === 0 && (
-              <div className="text-center py-8 text-gray-400">No support messages yet</div>
-            )}
+              ))}
+              {supportMessages.length === 0 && (
+                <div className="text-center py-8 text-gray-400">No support messages yet</div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
     </div>
   );
 };
