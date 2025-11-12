@@ -245,6 +245,19 @@ export const CustomAuth: React.FC = () => {
         }
 
         console.log('User setup completed successfully:', setupResult);
+
+        // Update auth metadata to include team_id so App.tsx knows user is onboarded
+        const { error: metadataError } = await supabase.auth.updateUser({
+          data: {
+            team_id: setupResult.team_id,
+            pending_team_setup: false
+          }
+        });
+
+        if (metadataError) {
+          console.error('Failed to update auth metadata:', metadataError);
+          // Don't throw - user is still setup, just log the error
+        }
       } else {
         console.log('New team signup - will complete setup during onboarding');
       }
