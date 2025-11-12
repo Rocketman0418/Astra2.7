@@ -109,7 +109,11 @@ export function SupportMenu() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to submit support request');
+        console.error('Full error response:', errorData);
+        const errorMessage = errorData.details
+          ? `${errorData.error}: ${errorData.details}`
+          : errorData.error || 'Failed to submit support request';
+        throw new Error(errorMessage);
       }
 
       setSuccess(true);
