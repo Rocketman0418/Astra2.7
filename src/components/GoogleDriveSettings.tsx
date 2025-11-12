@@ -92,6 +92,9 @@ export const GoogleDriveSettings: React.FC = () => {
               )
             `)
             .eq('team_id', teamId)
+            .eq('is_active', true)
+            .order('created_at', { ascending: false })
+            .limit(1)
             .maybeSingle();
 
           if (!teamConnError && existingTeamConnection) {
