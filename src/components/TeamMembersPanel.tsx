@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Shield, Edit2, Trash2, Save, X, UserPlus, Key, Info } from 'lucide-react';
+import { Users, Shield, Edit2, Trash2, Save, X, UserPlus, Key, Info, Mail, Copy } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -34,6 +34,7 @@ export const TeamMembersPanel: React.FC = () => {
   const [inviteError, setInviteError] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
   const [showInviteMessage, setShowInviteMessage] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   const isAdmin = currentUserData?.role === 'admin';
   const teamId = currentUserData?.team_id;
@@ -240,6 +241,54 @@ export const TeamMembersPanel: React.FC = () => {
       setInviteError(err.message || 'Failed to create invite');
     } finally {
       setInviting(false);
+    }
+  };
+
+  const sendInviteEmail = async () => {
+    if (!generatedCode || !inviteEmail) {
+      setInviteError('Missing invite code or email');
+      return;
+    }
+
+    setSendingEmail(true);
+    setInviteError('');
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-invite-email`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: inviteEmail,
+            inviteCode: generatedCode,
+            teamName: teamName || 'your team',
+            role: inviteRole,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send invite email');
+      }
+
+      setInviteSuccess(`Invite email sent successfully to ${inviteEmail}!`);
+    } catch (err: any) {
+      console.error('Error sending invite email:', err);
+      setInviteError(err.message || 'Failed to send invite email');
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -590,11 +639,28 @@ Sign up here: ${window.location.origin}`;
                 </div>
                 <div className="flex gap-2">
                   <button
+                    onClick={sendInviteEmail}
+                    disabled={sendingEmail}
+                    className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors flex items-center justify-center space-x-2"
+                  >
+                    {sendingEmail ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Sending...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-4 h-4" />
+                        <span>Send Invite Email</span>
+                      </>
+                    )}
+                  </button>
+                  <button
                     onClick={copyInviteMessage}
                     className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors flex items-center justify-center space-x-2"
                   >
-                    <Key className="w-4 h-4" />
-                    <span>Copy Invite Message</span>
+                    <Copy className="w-4 h-4" />
+                    <span>Copy Invite</span>
                   </button>
                   <button
                     onClick={resetInviteForm}
@@ -608,9 +674,9 @@ Sign up here: ${window.location.origin}`;
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
                 <p className="text-blue-400 text-sm font-medium mb-2">Next Steps:</p>
                 <ul className="text-gray-400 text-xs space-y-1">
-                  <li>• Copy the invite message above</li>
-                  <li>• Send it to {inviteEmail} via email or message</li>
-                  <li>• They'll use the code and their email to sign up</li>
+                  <li>• Send the invite email or copy the invite message to share</li>
+                  <li>• {inviteEmail} will receive instructions to sign up</li>
+                  <li>• They'll use the code and their email to create an account</li>
                   <li>• They'll automatically join your team with the assigned role</li>
                 </ul>
               </div>
