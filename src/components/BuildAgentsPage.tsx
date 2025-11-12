@@ -106,7 +106,9 @@ export const BuildAgentsPage: React.FC = () => {
     );
 
     if (!response.ok) {
-      throw new Error('Failed to fetch workflows from N8N');
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      console.error('N8N API Error:', { status: response.status, errorData });
+      throw new Error(errorData.error || `Failed to fetch workflows (${response.status})`);
     }
 
     const data = await response.json();
