@@ -733,6 +733,18 @@ export const GoogleDriveSettings: React.FC = () => {
               </div>
             </div>
 
+            {/* Sync Info Note */}
+            {(selectedMeetingsFolder || selectedStrategyFolder || selectedFinancialFolder) && (
+              <div className="mt-4 bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                <div className="flex items-start space-x-2">
+                  <Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-blue-300 text-xs">
+                    Document sync can take up to 30 minutes. See the Synced Documents section below to see what files are synced.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Admin Controls Info for Members */}
             {!isAdmin && (
               <div className="mt-4 bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
