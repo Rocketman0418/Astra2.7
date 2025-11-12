@@ -606,6 +606,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     }
   };
 
+  const toggleNotResolved = async (messageId: string, currentValue: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('user_feedback_submissions')
+        .update({ not_resolved: !currentValue })
+        .eq('id', messageId);
+
+      if (error) throw error;
+
+      // Update local state immediately for responsive UI
+      setSupportMessages(prev => prev.map(msg =>
+        msg.id === messageId ? { ...msg, not_resolved: !currentValue } : msg
+      ));
+    } catch (error) {
+      console.error('Error toggling not_resolved status:', error);
+    }
+  };
+
   const exportToCSV = (data: any[], filename: string) => {
     if (data.length === 0) return;
 
@@ -1316,10 +1334,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                       }`}>
                         {(msg.status || 'needs_response').replace(/_/g, ' ')}
                       </span>
-                      {msg.not_resolved && (
-                        <span className="px-2 py-1 text-xs rounded font-medium bg-yellow-500/20 text-yellow-400">
-                          Not Resolved
-                        </span>
+                      {msg.status === 'responded' && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleNotResolved(msg.id, msg.not_resolved || false);
+                          }}
+                          className={`px-2 py-1 text-xs rounded font-medium transition-all hover:scale-105 ${
+                            msg.not_resolved
+                              ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30'
+                              : 'bg-gray-600/50 text-gray-400 hover:bg-gray-600/70 border border-gray-500/50'
+                          }`}
+                          title={msg.not_resolved ? 'Click to mark as resolved' : 'Click to mark as not resolved'}
+                        >
+                          {msg.not_resolved ? '⚠️ Not Resolved' : '✓ Resolved'}
+                        </button>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
