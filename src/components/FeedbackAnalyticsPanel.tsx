@@ -30,16 +30,18 @@ export function FeedbackAnalyticsPanel() {
   const [dateRange, setDateRange] = useState<'7days' | '30days' | 'all'>('7days');
 
   const isAdmin = user?.user_metadata?.role === 'admin';
+  const isSuperAdmin = user?.email === 'clay@rockethub.ai';
   const teamId = user?.user_metadata?.team_id;
 
   useEffect(() => {
-    if (isAdmin && teamId) {
+    if (isSuperAdmin || (isAdmin && teamId)) {
       loadFeedbackStats();
     }
-  }, [isAdmin, teamId, dateRange]);
+  }, [isAdmin, isSuperAdmin, teamId, dateRange]);
 
   const loadFeedbackStats = async () => {
-    if (!teamId) return;
+    // Super-admin can view all teams, regular admin needs teamId
+    if (!isSuperAdmin && !teamId) return;
 
     try {
       setLoading(true);
@@ -63,8 +65,12 @@ export function FeedbackAnalyticsPanel() {
           user_id,
           submitted_at,
           general_feedback
-        `)
-        .eq('team_id', teamId);
+        `);
+
+      // Only filter by team if not super-admin
+      if (!isSuperAdmin && teamId) {
+        query = query.eq('team_id', teamId);
+      }
 
       if (dateFilter) {
         query = query.gte('submitted_at', dateFilter);

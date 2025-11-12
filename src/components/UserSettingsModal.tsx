@@ -40,6 +40,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
   const [dbTeamId, setDbTeamId] = useState<string | null>(null);
 
   const isAdmin = user?.user_metadata?.role === 'admin';
+  const isSuperAdmin = user?.email === 'clay@rockethub.ai';
   const teamId = user?.user_metadata?.team_id;
 
   React.useEffect(() => {
@@ -570,7 +571,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
             </div>
           )}
 
-          {isAdmin && (
+          {isSuperAdmin && (
             <>
               <FeedbackAnalyticsPanel />
               <AdminInviteCodesPanel />
