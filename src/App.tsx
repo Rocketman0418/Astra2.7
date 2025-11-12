@@ -8,6 +8,7 @@ import { GoogleDriveCallback } from './components/GoogleDriveCallback';
 import { OnboardingScreen } from './components/OnboardingScreen';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { FeedbackModal } from './components/FeedbackModal';
+import { VersionChecker } from './components/VersionChecker';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
 import { useFeedbackPrompt } from './hooks/useFeedbackPrompt';
 import { supabase } from './lib/supabase';
@@ -105,6 +106,7 @@ const AppContent: React.FC = () => {
 
   return (
     <>
+      <VersionChecker />
       <MainContainer />
       <PWAInstallPrompt />
       {shouldShowFeedback && questions.length > 0 && (
