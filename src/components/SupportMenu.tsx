@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Bug, MessageSquare, Lightbulb, X, Send } from 'lucide-react';
+import { Plus, Bug, MessageSquare, Lightbulb, X, Send, Upload, Paperclip, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 type SupportType = 'bug_report' | 'support_message' | 'feature_request';
@@ -41,9 +41,12 @@ export function SupportMenu() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [uploadingFile, setUploadingFile] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -74,8 +77,43 @@ export function SupportMenu() {
     setSelectedType(null);
     setSubject('');
     setDescription('');
+    setAttachments([]);
     setError(null);
     setSuccess(false);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+
+    // Validate file types and sizes
+    const validFiles = files.filter(file => {
+      const isValidType = file.type.startsWith('image/') || file.type === 'application/pdf';
+      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB limit
+
+      if (!isValidType) {
+        setError('Only images and PDFs are allowed');
+        return false;
+      }
+      if (!isValidSize) {
+        setError('File size must be less than 10MB');
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length > 0) {
+      setAttachments(prev => [...prev, ...validFiles].slice(0, 3)); // Max 3 files
+      setError(null);
+    }
+
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,6 +129,38 @@ export function SupportMenu() {
         throw new Error('Not authenticated');
       }
 
+      // Upload attachments if any
+      const attachmentUrls: string[] = [];
+      if (attachments.length > 0) {
+        setUploadingFile(true);
+
+        for (const file of attachments) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${session.user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('support-attachments')
+            .upload(fileName, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
+
+          if (uploadError) {
+            console.error('Upload error:', uploadError);
+            throw new Error(`Failed to upload ${file.name}`);
+          }
+
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('support-attachments')
+            .getPublicUrl(uploadData.path);
+
+          attachmentUrls.push(publicUrl);
+        }
+
+        setUploadingFile(false);
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-support-email`,
         {
@@ -103,6 +173,7 @@ export function SupportMenu() {
             supportType: selectedType,
             subject: subject.trim(),
             description: description.trim(),
+            attachmentUrls,
           }),
         }
       );
@@ -227,6 +298,63 @@ export function SupportMenu() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  Attachments (Optional)
+                </label>
+                <div className="space-y-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,.pdf"
+                    multiple
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    disabled={isSubmitting || success || attachments.length >= 3}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isSubmitting || success || attachments.length >= 3}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#0f0f1e] border border-white/10 rounded-lg text-white/70 hover:text-white hover:border-blue-500/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Paperclip className="w-4 h-4" />
+                    <span className="text-sm">
+                      {attachments.length >= 3 ? 'Maximum 3 files' : 'Attach files (images or PDFs, max 10MB each)'}
+                    </span>
+                  </button>
+
+                  {attachments.length > 0 && (
+                    <div className="space-y-2">
+                      {attachments.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between px-3 py-2 bg-[#0f0f1e] border border-white/10 rounded-lg"
+                        >
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <Paperclip className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                            <span className="text-sm text-white/80 truncate">
+                              {file.name}
+                            </span>
+                            <span className="text-xs text-white/40 flex-shrink-0">
+                              ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeAttachment(index)}
+                            disabled={isSubmitting || success}
+                            className="p-1 text-red-400 hover:text-red-300 transition-colors disabled:opacity-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   type="button"
@@ -241,7 +369,12 @@ export function SupportMenu() {
                   disabled={isSubmitting || success || !subject.trim() || !description.trim()}
                   className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-orange-500 via-green-500 to-blue-500 text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? (
+                  {uploadingFile ? (
+                    <>
+                      <Upload className="w-4 h-4 animate-bounce" />
+                      <span>Uploading files...</span>
+                    </>
+                  ) : isSubmitting ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       <span>Submitting...</span>

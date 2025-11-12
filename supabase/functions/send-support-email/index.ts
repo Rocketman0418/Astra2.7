@@ -11,6 +11,7 @@ interface SupportRequest {
   supportType: 'bug_report' | 'support_message' | 'feature_request';
   subject: string;
   description: string;
+  attachmentUrls?: string[];
 }
 
 Deno.serve(async (req: Request) => {
@@ -66,7 +67,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { supportType, subject, description }: SupportRequest = await req.json();
+    const { supportType, subject, description, attachmentUrls = [] }: SupportRequest = await req.json();
 
     if (!supportType || !subject || !description) {
       return new Response(
@@ -95,6 +96,7 @@ Deno.serve(async (req: Request) => {
           subject,
           description,
         },
+        attachment_urls: attachmentUrls,
       })
       .select()
       .single();
@@ -153,6 +155,20 @@ Deno.serve(async (req: Request) => {
                 <div class=\"label\">Description</div>
                 <div class=\"value\" style=\"white-space: pre-wrap;\">${description}</div>
               </div>
+              ${attachmentUrls.length > 0 ? `
+              <div class=\"field\">
+                <div class=\"label\">Attachments (${attachmentUrls.length})</div>
+                <div class=\"value\">
+                  ${attachmentUrls.map((url, index) => `
+                    <div style=\"margin-bottom: 10px;\">
+                      <a href=\"${url}\" target=\"_blank\" style=\"color: #3b82f6; text-decoration: none;\">
+                        📎 Attachment ${index + 1}
+                      </a>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+              ` : ''}
               <div class=\"field\">
                 <div class=\"label\">Submission ID</div>
                 <div class=\"value\" style=\"font-family: monospace; font-size: 11px;\">${submission.id}</div>
