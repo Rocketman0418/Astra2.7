@@ -11,6 +11,7 @@ interface N8NWorkflow {
   createdAt?: string;
   updatedAt?: string;
   nodes?: any[];
+  executionCount?: number;
 }
 
 interface WorkflowMetadata {
@@ -37,7 +38,8 @@ export const BuildAgentsPage: React.FC = () => {
   const [newWorkflowDescription, setNewWorkflowDescription] = useState('');
   const [criticalError, setCriticalError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'name' | 'updated' | 'nodes'>('name');
+  const [sortBy, setSortBy] = useState<'name' | 'updated' | 'nodes' | 'executions'>('name');
+  const [loadingExecutions, setLoadingExecutions] = useState(false);
 
   useEffect(() => {
     try {
@@ -109,6 +111,9 @@ export const BuildAgentsPage: React.FC = () => {
           new Map(n8nWorkflows.map(w => [w.id, w])).values()
         );
         setWorkflows(uniqueWorkflows);
+
+        // Load execution counts in the background
+        loadExecutionCounts(uniqueWorkflows);
       } catch (n8nError: any) {
         console.error('N8N fetch error:', n8nError);
         // Don't fail completely if N8N is unavailable, just show the error
@@ -144,6 +149,47 @@ export const BuildAgentsPage: React.FC = () => {
 
     const data = await response.json();
     return data.data || [];
+  };
+
+  const fetchWorkflowExecutionCount = async (workflowId: string): Promise<number> => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/n8n-proxy?path=/executions?workflowId=${workflowId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        return 0;
+      }
+
+      const data = await response.json();
+      return data.count || data.data?.length || 0;
+    } catch (error) {
+      console.error(`Failed to fetch execution count for workflow ${workflowId}:`, error);
+      return 0;
+    }
+  };
+
+  const loadExecutionCounts = async (workflows: N8NWorkflow[]) => {
+    try {
+      setLoadingExecutions(true);
+      const workflowsWithCounts = await Promise.all(
+        workflows.map(async (workflow) => {
+          const executionCount = await fetchWorkflowExecutionCount(workflow.id);
+          return { ...workflow, executionCount };
+        })
+      );
+      setWorkflows(workflowsWithCounts);
+    } catch (error) {
+      console.error('Error loading execution counts:', error);
+    } finally {
+      setLoadingExecutions(false);
+    }
   };
 
   const createWorkflow = async () => {
@@ -335,6 +381,10 @@ export const BuildAgentsPage: React.FC = () => {
           const aNodes = a.nodes?.length || 0;
           const bNodes = b.nodes?.length || 0;
           return bNodes - aNodes;
+        case 'executions':
+          const aExecs = a.executionCount || 0;
+          const bExecs = b.executionCount || 0;
+          return bExecs - aExecs;
         default:
           return 0;
       }
@@ -403,7 +453,7 @@ export const BuildAgentsPage: React.FC = () => {
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
               >
                 <Plus className="w-4 h-4" />
-                <span>Create Workflow</span>
+                <span>Create</span>
               </button>
             </div>
           </div>
@@ -447,12 +497,13 @@ export const BuildAgentsPage: React.FC = () => {
               <ArrowUpDown className="w-5 h-5 text-gray-400" />
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'name' | 'updated' | 'nodes')}
+                onChange={(e) => setSortBy(e.target.value as 'name' | 'updated' | 'nodes' | 'executions')}
                 className="px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="name">Sort by Name</option>
                 <option value="updated">Sort by Updated</option>
                 <option value="nodes">Sort by Nodes</option>
+                <option value="executions">Sort by Executions</option>
               </select>
             </div>
           </div>
@@ -505,7 +556,7 @@ export const BuildAgentsPage: React.FC = () => {
                     <div className={`ml-3 w-2 h-2 rounded-full flex-shrink-0 mt-2 ${workflow.active ? 'bg-green-500' : 'bg-gray-500'}`} />
                   </div>
 
-                  <div className="flex items-center space-x-2 mb-4">
+                  <div className="flex items-center flex-wrap gap-2 mb-4">
                     {workflow.tags?.map((tag, index) => (
                       <span key={`${workflow.id}-tag-${index}`} className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded">
                         {typeof tag === 'string' ? tag : (tag?.name || 'Tag')}
@@ -514,6 +565,15 @@ export const BuildAgentsPage: React.FC = () => {
                     {workflow.nodes && (
                       <span className="text-xs text-gray-400">
                         {workflow.nodes.length} nodes
+                      </span>
+                    )}
+                    {workflow.executionCount !== undefined ? (
+                      <span className="text-xs text-gray-400">
+                        {workflow.executionCount} executions
+                      </span>
+                    ) : loadingExecutions && (
+                      <span className="text-xs text-gray-500 italic">
+                        Loading...
                       </span>
                     )}
                   </div>
