@@ -35,9 +35,16 @@ export const BuildAgentsPage: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [newWorkflowDescription, setNewWorkflowDescription] = useState('');
+  const [criticalError, setCriticalError] = useState<string | null>(null);
 
   useEffect(() => {
-    checkAccess();
+    try {
+      checkAccess();
+    } catch (err: any) {
+      console.error('Critical error in checkAccess:', err);
+      setCriticalError(err?.message || 'Failed to initialize Build Agents');
+      setLoading(false);
+    }
   }, [user]);
 
   const checkAccess = async () => {
@@ -58,12 +65,13 @@ export const BuildAgentsPage: React.FC = () => {
       setHasAccess(!!accessRecord);
 
       if (accessRecord) {
-        loadWorkflows();
+        await loadWorkflows();
+      } else {
+        setLoading(false);
       }
     } catch (err: any) {
       console.error('Error checking N8N access:', err);
-      setError(err.message);
-    } finally {
+      setError(err?.message || 'Unknown error occurred');
       setLoading(false);
     }
   };
@@ -73,22 +81,39 @@ export const BuildAgentsPage: React.FC = () => {
       setLoading(true);
       setError('');
 
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       // Load workflows from our database
       const { data: dbWorkflows, error: dbError } = await supabase
         .from('n8n_workflows')
         .select('*')
-        .eq('user_id', user!.id)
+        .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('Database error:', dbError);
+        throw new Error(`Database error: ${dbError.message}`);
+      }
+
       setSavedWorkflows(dbWorkflows || []);
 
       // Load workflows from N8N
-      const n8nWorkflows = await fetchN8NWorkflows();
-      setWorkflows(n8nWorkflows);
+      try {
+        const n8nWorkflows = await fetchN8NWorkflows();
+        setWorkflows(n8nWorkflows);
+      } catch (n8nError: any) {
+        console.error('N8N fetch error:', n8nError);
+        // Don't fail completely if N8N is unavailable, just show the error
+        setError(`Failed to load workflows: ${n8nError.message}`);
+        setWorkflows([]);
+      }
     } catch (err: any) {
       console.error('Error loading workflows:', err);
-      setError(err.message);
+      setError(err?.message || 'Failed to load workflows');
+      setSavedWorkflows([]);
+      setWorkflows([]);
     } finally {
       setLoading(false);
     }
@@ -256,6 +281,36 @@ export const BuildAgentsPage: React.FC = () => {
       window.open(`${n8nUrl}/workflow/${workflowId}`, '_blank');
     }
   };
+
+  if (criticalError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
+        <div className="bg-gray-800/50 backdrop-blur-sm border border-red-700 rounded-lg p-8 max-w-md w-full text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-2">Critical Error</h2>
+          <p className="text-gray-300 mb-4">{criticalError}</p>
+          <div className="space-y-2">
+            <button
+              onClick={() => {
+                setCriticalError(null);
+                setLoading(true);
+                checkAccess();
+              }}
+              className="w-full px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => window.location.href = '/'}
+              className="w-full px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+            >
+              Return to Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
