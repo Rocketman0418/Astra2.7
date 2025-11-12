@@ -90,6 +90,21 @@
     }
   }
 
+  /* Shimmer animation for AI suggestions button */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+
+  .animate-shimmer {
+    background-size: 200% auto;
+    animation: shimmer 3s linear infinite;
+  }
+
   /* Message highlight animation */
   .message-highlight {
     animation: messageHighlight 3s ease-in-out;

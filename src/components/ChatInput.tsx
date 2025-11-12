@@ -1,6 +1,7 @@
-import React, { KeyboardEvent } from 'react';
-import { Send, Bookmark, X, Reply } from 'lucide-react';
+import React, { KeyboardEvent, useState } from 'react';
+import { Send, Bookmark, X, Reply, Sparkles } from 'lucide-react';
 import { FavoritesDropdown } from './FavoritesDropdown';
+import { SuggestedPromptsModal } from './SuggestedPromptsModal';
 import { FavoriteMessage, ReplyState } from '../types';
 
 interface ChatInputProps {
@@ -37,8 +38,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     }
   };
 
+  const [showSuggestedPrompts, setShowSuggestedPrompts] = useState(false);
+
   const handleSelectFavorite = (text: string) => {
     onChange(text);
+  };
+
+  const handleSelectSuggestedPrompt = (prompt: string) => {
+    onChange(prompt);
   };
 
   return (
@@ -68,8 +75,20 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       )}
       
       <div className="flex items-end space-x-2 md:space-x-3 max-w-4xl mx-auto">
-        {/* Bookmark button */}
+        {/* AI Suggestions and Bookmark buttons */}
         <div className="flex-shrink-0 mb-2 flex flex-col space-y-2">
+          {/* AI Suggestions button */}
+          <button
+            onClick={() => setShowSuggestedPrompts(true)}
+            className="group relative p-3 bg-gradient-to-br from-orange-500 via-green-500 to-blue-500 text-white rounded-xl hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300 animate-shimmer"
+            title="View suggested prompts"
+            data-tour="suggested-prompts"
+          >
+            <Sparkles className="w-5 h-5" />
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          </button>
+
+          {/* Bookmark button */}
           {onRemoveFavorite && (
             <FavoritesDropdown
               favorites={favorites}
@@ -106,6 +125,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           </div>
         </div>
       </div>
+
+      <SuggestedPromptsModal
+        isOpen={showSuggestedPrompts}
+        onClose={() => setShowSuggestedPrompts(false)}
+        onSelectPrompt={handleSelectSuggestedPrompt}
+      />
     </div>
   );
 };

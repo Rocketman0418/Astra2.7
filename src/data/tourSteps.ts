@@ -9,11 +9,19 @@ export interface TourNavigation {
 
 export const memberTourSteps: TourStep[] = [
   {
-    id: 'welcome-chat',
-    title: 'Meet Astra, Your AI Assistant',
-    description: 'Type any question here and I\'ll help you find answers from your team\'s data. Try asking me to create visualizations or search through your documents!',
+    id: 'saved-prompts',
+    title: 'Saved Prompts',
+    description: 'You can easily save your favorite prompts to use them again.',
     targetSelector: '[data-tour="chat-input"]',
     position: 'top',
+    navigation: { mode: 'private' }
+  },
+  {
+    id: 'suggested-prompts',
+    title: 'AI Suggested Prompts',
+    description: 'Click the sparkle icon to see powerful suggested prompts that help you get the most out of Astra. These prompts are designed to analyze your mission, meetings, financials, and team alignment.',
+    targetSelector: '[data-tour="suggested-prompts"]',
+    position: 'right',
     navigation: { mode: 'private' }
   },
   {
@@ -52,11 +60,19 @@ export const memberTourSteps: TourStep[] = [
 
 export const adminTourSteps: TourStep[] = [
   {
-    id: 'welcome-chat',
-    title: 'Meet Astra, Your AI Assistant',
-    description: 'Type any question here and I\'ll help you find answers from your team\'s data. Try asking me to create visualizations or search through your documents!',
+    id: 'saved-prompts',
+    title: 'Saved Prompts',
+    description: 'You can easily save your favorite prompts to use them again.',
     targetSelector: '[data-tour="chat-input"]',
     position: 'top',
+    navigation: { mode: 'private' }
+  },
+  {
+    id: 'suggested-prompts',
+    title: 'AI Suggested Prompts',
+    description: 'Click the sparkle icon to see powerful suggested prompts that help you get the most out of Astra. These prompts are designed to analyze your mission, meetings, financials, and team alignment.',
+    targetSelector: '[data-tour="suggested-prompts"]',
+    position: 'right',
     navigation: { mode: 'private' }
   },
   {
