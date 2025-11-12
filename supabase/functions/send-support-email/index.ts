@@ -174,7 +174,7 @@ Deno.serve(async (req: Request) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "support@rockethub.ai",
+        from: "Astra Support <onboarding@resend.dev>",
         to: "clay@rockethub.ai",
         reply_to: userEmail,
         subject: emailSubject,
