@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Users, Building2, FileText, MessageSquare, BarChart3, Download,
-  TrendingUp, Mail, HardDrive, AlertCircle,
+  TrendingUp, TrendingDown, Minus, Mail, HardDrive, AlertCircle,
   CheckCircle, XCircle, Search, ArrowUpDown, MessageCircleQuestion, Shield, X, ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -505,25 +505,32 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
           feedback_questions(question_text, category)
         `);
 
-      if (!answers || answers.length === 0) return;
+      if (!answers || answers.length === 0) {
+        setFeedbackStats({
+          avgRatingByCategory: {},
+          totalResponses: 0,
+          categoryBreakdown: []
+        });
+        return;
+      }
 
-      const categoryStats: Record<string, { sum: number; count: number }> = {};
+      const questionStats: Record<string, { sum: number; count: number }> = {};
 
       answers.forEach(answer => {
-        const category = (answer.feedback_questions as any)?.category || 'other';
-        if (!categoryStats[category]) {
-          categoryStats[category] = { sum: 0, count: 0 };
+        const questionText = (answer.feedback_questions as any)?.question_text || 'Unknown Question';
+        if (!questionStats[questionText]) {
+          questionStats[questionText] = { sum: 0, count: 0 };
         }
-        categoryStats[category].sum += answer.rating;
-        categoryStats[category].count += 1;
+        questionStats[questionText].sum += answer.rating;
+        questionStats[questionText].count += 1;
       });
 
       const avgRatingByCategory: Record<string, number> = {};
-      const categoryBreakdown = Object.entries(categoryStats).map(([category, stats]) => {
+      const categoryBreakdown = Object.entries(questionStats).map(([question, stats]) => {
         const avg = stats.sum / stats.count;
-        avgRatingByCategory[category] = avg;
+        avgRatingByCategory[question] = avg;
         return {
-          category,
+          category: question,
           avg_rating: avg,
           count: stats.count
         };
@@ -536,6 +543,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
       });
     } catch (error) {
       console.error('Error loading feedback stats:', error);
+      setFeedbackStats({
+        avgRatingByCategory: {},
+        totalResponses: 0,
+        categoryBreakdown: []
+      });
     }
   };
 
@@ -1012,7 +1024,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <h2 className="text-xl font-semibold text-white flex items-center gap-2">
                 <MessageCircleQuestion className="w-6 h-6 text-purple-400" />
-                User Feedback ({feedback.length})
+                User Feedback Analytics
               </h2>
               <button
                 onClick={() => exportToCSV(feedback, 'user-feedback')}
@@ -1023,42 +1035,121 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
               </button>
             </div>
 
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {feedback.map((fb) => (
-                <div key={fb.id} className="bg-gray-700/50 rounded-lg p-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-                    <div className="text-sm text-white font-medium">{fb.user_email}</div>
-                    <div className="text-xs text-gray-400">{format(new Date(fb.created_at), 'MMM d, yyyy h:mm a')}</div>
+            {feedback.length === 0 && feedbackStats?.totalResponses === 0 && (
+              <div className="text-center py-12">
+                <MessageCircleQuestion className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-400 text-lg">No feedback submissions yet</p>
+                <p className="text-gray-500 text-sm mt-2">
+                  Users will start receiving feedback prompts 24 hours after onboarding
+                </p>
+              </div>
+            )}
+
+            {feedbackStats && feedbackStats.totalResponses > 0 && (
+              <>
+                <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
+                    <p className="text-sm text-gray-400 mb-1">Total Responses</p>
+                    <p className="text-3xl font-bold text-white">{feedbackStats.totalResponses}</p>
                   </div>
-                  {fb.answers.map((answer, idx) => (
-                    <div key={idx} className="mb-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="text-sm text-gray-300">{answer.question_text}</div>
-                        <div className={`text-sm font-semibold px-2 py-1 rounded ${
-                          answer.rating >= 8 ? 'bg-emerald-500/20 text-emerald-400' :
-                          answer.rating >= 6 ? 'bg-yellow-500/20 text-yellow-400' :
-                          'bg-red-500/20 text-red-400'
-                        }`}>
-                          {answer.rating}/10
+                  <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
+                    <p className="text-sm text-gray-400 mb-1">Questions Answered</p>
+                    <p className="text-3xl font-bold text-white">{feedbackStats.categoryBreakdown.length}</p>
+                  </div>
+                  <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
+                    <p className="text-sm text-gray-400 mb-1">Avg Overall Rating</p>
+                    <p className={`text-3xl font-bold ${
+                      feedbackStats.categoryBreakdown.reduce((sum, c) => sum + c.avg_rating, 0) / feedbackStats.categoryBreakdown.length >= 8
+                        ? 'text-emerald-400'
+                        : feedbackStats.categoryBreakdown.reduce((sum, c) => sum + c.avg_rating, 0) / feedbackStats.categoryBreakdown.length >= 6
+                        ? 'text-yellow-400'
+                        : 'text-red-400'
+                    }`}>
+                      {(feedbackStats.categoryBreakdown.reduce((sum, c) => sum + c.avg_rating, 0) / feedbackStats.categoryBreakdown.length).toFixed(1)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <h4 className="text-white font-semibold mb-4">Average Ratings by Question</h4>
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {feedbackStats.categoryBreakdown.map((cat) => (
+                      <div key={cat.category} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
+                        <div className="flex items-start justify-between mb-2">
+                          <p className="text-sm text-gray-300 flex-1">{cat.category}</p>
+                          <div className="flex items-center gap-2 ml-3">
+                            {cat.avg_rating >= 8 ? (
+                              <TrendingUp className="w-4 h-4 text-emerald-400" />
+                            ) : cat.avg_rating >= 6 ? (
+                              <Minus className="w-4 h-4 text-yellow-400" />
+                            ) : (
+                              <TrendingDown className="w-4 h-4 text-red-400" />
+                            )}
+                            <span className={`text-lg font-bold ${
+                              cat.avg_rating >= 8 ? 'text-emerald-400' :
+                              cat.avg_rating >= 6 ? 'text-yellow-400' :
+                              'text-red-400'
+                            }`}>
+                              {cat.avg_rating.toFixed(1)}
+                            </span>
+                            <span className="text-xs text-gray-500">({cat.count})</span>
+                          </div>
+                        </div>
+                        <div className="w-full bg-gray-600 rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full transition-all ${
+                              cat.avg_rating >= 8 ? 'bg-emerald-500' :
+                              cat.avg_rating >= 6 ? 'bg-yellow-500' :
+                              'bg-red-500'
+                            }`}
+                            style={{ width: `${(cat.avg_rating / 10) * 100}%` }}
+                          />
                         </div>
                       </div>
-                      {answer.comment && (
-                        <div className="text-sm text-gray-400 italic ml-4">&quot;{answer.comment}&quot;</div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {feedback.length > 0 && (
+              <div>
+                <h4 className="text-white font-semibold mb-4">User Comments & Feedback</h4>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {feedback.map((fb) => (
+                    <div key={fb.id} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                        <div className="text-sm text-white font-medium">{fb.user_email}</div>
+                        <div className="text-xs text-gray-400">{format(new Date(fb.created_at), 'MMM d, yyyy h:mm a')}</div>
+                      </div>
+                      {fb.answers.map((answer, idx) => (
+                        answer.comment && (
+                          <div key={idx} className="mb-3">
+                            <div className="flex items-start justify-between mb-1">
+                              <div className="text-xs text-gray-400 flex-1">{answer.question_text}</div>
+                              <div className={`text-xs font-semibold px-2 py-0.5 rounded ml-2 ${
+                                answer.rating >= 8 ? 'bg-emerald-500/20 text-emerald-400' :
+                                answer.rating >= 6 ? 'bg-yellow-500/20 text-yellow-400' :
+                                'bg-red-500/20 text-red-400'
+                              }`}>
+                                {answer.rating}/10
+                              </div>
+                            </div>
+                            <div className="text-sm text-gray-300 ml-2">&quot;{answer.comment}&quot;</div>
+                          </div>
+                        )
+                      ))}
+                      {fb.general_feedback && (
+                        <div className="mt-3 pt-3 border-t border-gray-600">
+                          <div className="text-xs text-gray-400 mb-1">Additional Feedback:</div>
+                          <div className="text-sm text-gray-300">{fb.general_feedback}</div>
+                        </div>
                       )}
                     </div>
                   ))}
-                  {fb.general_feedback && (
-                    <div className="mt-3 pt-3 border-t border-gray-600">
-                      <div className="text-xs text-gray-400 mb-1">Additional Feedback:</div>
-                      <div className="text-sm text-gray-300">{fb.general_feedback}</div>
-                    </div>
-                  )}
                 </div>
-              ))}
-              {feedback.length === 0 && (
-                <div className="text-center py-8 text-gray-400">No feedback submissions yet</div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 md:p-6">
