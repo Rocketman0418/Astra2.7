@@ -67,7 +67,18 @@ Deno.serve(async (req: Request) => {
     const n8nPath = url.searchParams.get('path') || '/workflows';
     const n8nEndpoint = `${n8nUrl}/api/v1${n8nPath}`;
 
-    const requestBody = req.method !== 'GET' ? await req.json() : null;
+    // Only parse JSON body for POST/PUT/PATCH requests
+    let requestBody = null;
+    if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
+      try {
+        const text = await req.text();
+        if (text) {
+          requestBody = JSON.parse(text);
+        }
+      } catch (e) {
+        // No body or invalid JSON, that's okay for some requests
+      }
+    }
 
     const n8nResponse = await fetch(n8nEndpoint, {
       method: req.method,
@@ -86,7 +97,18 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const n8nData = await n8nResponse.json();
+    // N8N DELETE responses may not have a JSON body
+    let n8nData;
+    const responseText = await n8nResponse.text();
+    if (responseText) {
+      try {
+        n8nData = JSON.parse(responseText);
+      } catch (e) {
+        n8nData = { success: true, message: 'Operation completed' };
+      }
+    } else {
+      n8nData = { success: true, message: 'Operation completed' };
+    }
 
     return new Response(
       JSON.stringify(n8nData),
