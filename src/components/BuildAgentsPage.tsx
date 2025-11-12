@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Workflow, Play, Pause, Trash2, Plus, ExternalLink, RefreshCw, Settings, Eye, Download, Upload, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import { Workflow, Play, Pause, Trash2, Plus, ExternalLink, RefreshCw, Settings, Eye, Download, Upload, AlertCircle, CheckCircle, Loader, Search, ArrowUpDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface N8NWorkflow {
@@ -36,6 +36,8 @@ export const BuildAgentsPage: React.FC = () => {
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [newWorkflowDescription, setNewWorkflowDescription] = useState('');
   const [criticalError, setCriticalError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'name' | 'updated' | 'nodes'>('name');
 
   useEffect(() => {
     try {
@@ -316,6 +318,31 @@ export const BuildAgentsPage: React.FC = () => {
     );
   }
 
+  const filteredAndSortedWorkflows = useMemo(() => {
+    let filtered = workflows.filter(workflow =>
+      workflow.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'updated':
+          const aDate = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+          const bDate = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+          return bDate - aDate;
+        case 'nodes':
+          const aNodes = a.nodes?.length || 0;
+          const bNodes = b.nodes?.length || 0;
+          return bNodes - aNodes;
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [workflows, searchQuery, sortBy]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
@@ -403,6 +430,32 @@ export const BuildAgentsPage: React.FC = () => {
               <button onClick={() => setSuccess('')} className="text-green-400 hover:text-green-300">×</button>
             </div>
           )}
+
+          {/* Search and Sort Controls */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search workflows by name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <ArrowUpDown className="w-5 h-5 text-gray-400" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'name' | 'updated' | 'nodes')}
+                className="px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="name">Sort by Name</option>
+                <option value="updated">Sort by Updated</option>
+                <option value="nodes">Sort by Nodes</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         {/* Workflows Grid */}
@@ -420,8 +473,20 @@ export const BuildAgentsPage: React.FC = () => {
                 <span>Create Your First Workflow</span>
               </button>
             </div>
+          ) : filteredAndSortedWorkflows.length === 0 ? (
+            <div className="col-span-full bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-12 text-center">
+              <Search className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-2">No Workflows Found</h3>
+              <p className="text-gray-400 mb-6">No workflows match your search criteria</p>
+              <button
+                onClick={() => setSearchQuery('')}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                Clear Search
+              </button>
+            </div>
           ) : (
-            workflows.map((workflow) => {
+            filteredAndSortedWorkflows.map((workflow) => {
               const metadata = savedWorkflows.find(w => w.n8n_workflow_id === workflow.id);
               return (
                 <div
