@@ -371,7 +371,7 @@ export const CustomAuth: React.FC = () => {
           {/* Powered By Section */}
           <div className="mt-6 pt-6 border-t border-gray-700">
             <p className="text-center text-gray-400 text-xs mb-3">Powered by</p>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="flex justify-center items-center gap-6">
               <div className="flex flex-col items-center">
                 <div className="w-12 h-12 mb-1 flex items-center justify-center">
                   <img
