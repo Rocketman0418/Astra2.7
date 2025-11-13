@@ -226,11 +226,27 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
     setEmailError('');
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        email: newEmail.trim()
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-user-email`;
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ newEmail: newEmail.trim() }),
       });
 
-      if (error) throw error;
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update email');
+      }
 
       // Sign out the user
       await supabase.auth.signOut();
