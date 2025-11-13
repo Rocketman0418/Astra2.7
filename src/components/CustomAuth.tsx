@@ -412,10 +412,10 @@ export const CustomAuth: React.FC = () => {
   if (step === 'email') {
     return (
       <div className="w-full">
-        <div className="text-center mb-4">
-          <h1 className="text-2xl md:text-3xl font-bold flex items-center justify-center gap-3 whitespace-nowrap">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-400 shadow-lg flex-shrink-0">
-              <span className="text-2xl">🚀</span>
+        <div className="text-center mb-6">
+          <h1 className="text-3xl md:text-5xl font-bold flex items-center justify-center gap-4 flex-wrap">
+            <div className="flex items-center justify-center w-20 h-20 rounded-full bg-blue-400 shadow-lg flex-shrink-0">
+              <span className="text-5xl">🚀</span>
             </div>
             <span className="text-blue-400">AI Rocket</span>
             <span className="text-white font-normal">+</span>
