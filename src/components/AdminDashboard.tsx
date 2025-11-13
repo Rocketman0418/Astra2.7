@@ -1383,6 +1383,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
                       <button
                         type="button"
                         onClick={(e) => {
+                          console.log('Status button clicked!', msg.id, msg.status);
                           e.stopPropagation();
                           toggleResponseStatus(msg.id, msg.status || 'needs_response');
                         }}
