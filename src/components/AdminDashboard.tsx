@@ -1360,7 +1360,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
                       </span>
                       {msg.status === 'responded' && (
                         <button
+                          type="button"
                           onClick={(e) => {
+                            console.log('Button clicked!', msg.id, msg.not_resolved);
                             e.stopPropagation();
                             toggleNotResolved(msg.id, msg.not_resolved || false);
                           }}
