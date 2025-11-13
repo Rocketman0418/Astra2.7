@@ -57,11 +57,11 @@ export const memberTourSteps: TourStep[] = [
     navigation: { mode: 'private', openUserSettings: true }
   },
   {
-    id: 'visualizations',
-    title: 'Data Visualizations',
-    description: 'Click "Create Visualization" button in any conversation to generate charts from your data. Your visualizations are private to you. Use "Retry" to generate different versions, or save your favorites!',
-    targetSelector: '[data-tour="visualization-button"]',
-    position: 'top',
+    id: 'start-chatting',
+    title: 'Start Chatting with Astra',
+    description: 'This is Astra\'s welcome message! Start asking questions about your business, strategy, meetings, or financials. Astra learns from your connected data to provide personalized insights.',
+    targetSelector: '[data-tour="astra-welcome-message"]',
+    position: 'bottom',
     navigation: { mode: 'private', closeUserSettings: true }
   }
 ];
@@ -124,11 +124,11 @@ export const adminTourSteps: TourStep[] = [
     navigation: { mode: 'private', openUserSettings: true }
   },
   {
-    id: 'visualizations',
-    title: 'Data Visualizations',
-    description: 'Click "Create Visualization" button in any conversation to generate charts from your data. Your visualizations are private to you. Use "Retry" to generate different versions, or save your favorites!',
-    targetSelector: '[data-tour="visualization-button"]',
-    position: 'top',
+    id: 'start-chatting',
+    title: 'Start Chatting with Astra',
+    description: 'This is Astra\'s welcome message! Start asking questions about your business, strategy, meetings, or financials. Astra learns from your connected data to provide personalized insights.',
+    targetSelector: '[data-tour="astra-welcome-message"]',
+    position: 'bottom',
     navigation: { mode: 'private', closeUserSettings: true }
   }
 ];

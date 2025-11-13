@@ -145,7 +145,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   if (message.isCentered) {
     return (
       <div className="flex justify-center items-center min-h-[50vh]">
-        <div className="flex items-start w-full max-w-3xl">
+        <div className="flex items-start w-full max-w-3xl" data-tour="astra-welcome-message">
           <div className="flex-shrink-0 mr-2 md:mr-3 mt-1">
             <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-sm md:text-lg">
               🚀

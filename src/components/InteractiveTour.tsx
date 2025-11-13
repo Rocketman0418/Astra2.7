@@ -70,7 +70,7 @@ export function InteractiveTour({
       }
     };
 
-    // Longer delay to ensure modal is fully rendered
+    // Small delay to ensure element is rendered
     const scrollTimeoutId = setTimeout(() => {
       const targetElement = document.querySelector(step.targetSelector) as HTMLElement;
       if (targetElement) {
@@ -84,11 +84,11 @@ export function InteractiveTour({
         targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
         // Wait for scroll animation to complete before updating position
-        setTimeout(updatePosition, 600);
+        setTimeout(updatePosition, 300);
       } else {
         console.warn(`Tour target not found for scrolling: ${step.targetSelector}`);
       }
-    }, 400);
+    }, 150);
 
     window.addEventListener('resize', updatePosition);
 
