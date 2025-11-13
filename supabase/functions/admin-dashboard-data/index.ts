@@ -90,8 +90,7 @@ Deno.serve(async (req: Request) => {
       reportsResult,
       gmailConnectionsResult,
       driveConnectionsResult,
-      feedbackResult,
-      supportMessagesResult
+      feedbackResult
     ] = await Promise.all([
       supabaseAdmin.from('users').select('*'),
       supabaseAdmin.from('teams').select('*'),
@@ -100,8 +99,7 @@ Deno.serve(async (req: Request) => {
       supabaseAdmin.from('scheduled_reports').select('*'),
       supabaseAdmin.from('gmail_auth').select('*'),
       supabaseAdmin.from('user_drive_connections').select('*'),
-      supabaseAdmin.from('feedback_submissions').select('*'),
-      supabaseAdmin.from('feedback_submissions').select('id, user_id, created_at, support_type, support_details, attachment_urls, status, admin_response, responded_at, internal_notes, not_resolved')
+      supabaseAdmin.from('user_feedback_submissions').select('*')
     ]);
 
     if (usersResult.error) {
@@ -115,6 +113,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Return feedback as a single array - the frontend will split it by support_type
     const responseData = {
       users: usersResult.data || [],
       teams: teamsResult.data || [],
@@ -123,8 +122,7 @@ Deno.serve(async (req: Request) => {
       reports: reportsResult.data || [],
       gmail_connections: gmailConnectionsResult.data || [],
       drive_connections: driveConnectionsResult.data || [],
-      feedback: feedbackResult.data || [],
-      support_messages: supportMessagesResult.data || []
+      feedback: feedbackResult.data || []
     };
 
     return new Response(
