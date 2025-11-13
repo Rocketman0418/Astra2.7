@@ -10,6 +10,7 @@ import { UserSettingsModal } from './UserSettingsModal';
 import { WelcomeModal } from './WelcomeModal';
 import { InteractiveTour } from './InteractiveTour';
 import { HelpCenter } from './HelpCenter';
+import { NoFoldersSelectedModal } from './NoFoldersSelectedModal';
 import { ChatMode } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useSavedVisualizations } from '../hooks/useSavedVisualizations';
@@ -288,6 +289,9 @@ export const MainContainer: React.FC = () => {
         onStartTour={handleRestartTour}
         isAdmin={isAdmin}
       />
+
+      {/* No Folders Selected Modal */}
+      <NoFoldersSelectedModal onOpenSettings={handleOpenUserSettings} />
     </div>
   );
 };
