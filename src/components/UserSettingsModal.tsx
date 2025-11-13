@@ -730,7 +730,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
           {FEATURES.GOOGLE_DRIVE_SYNC_ENABLED ? (
             <GoogleDriveSettings />
           ) : (
-            <div className="bg-gray-700/50 rounded-lg p-6 border border-gray-600">
+            <div className="bg-gray-700/50 rounded-lg p-6 border border-gray-600" data-tour="google-drive-sync">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
                   <HardDrive className="w-5 h-5 text-gray-400" />

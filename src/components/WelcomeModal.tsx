@@ -59,12 +59,6 @@ export function WelcomeModal({ userName, teamName, onStartTour, onDismiss }: Wel
               <Sparkles className="w-5 h-5" />
               Start Interactive Tour
             </button>
-            <button
-              onClick={onDismiss}
-              className="w-full bg-gray-800 text-gray-300 font-semibold py-3 px-6 rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              I'll Explore on My Own
-            </button>
           </div>
 
           <p className="text-xs text-gray-500 text-center mt-6">

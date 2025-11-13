@@ -41,6 +41,14 @@ export const memberTourSteps: TourStep[] = [
     navigation: { mode: 'reports' }
   },
   {
+    id: 'sync-your-data',
+    title: 'Sync Your Data',
+    description: 'Connect your team documents in User Settings to sync Strategy, Meetings or Financial data. This is KEY to Astra delivering ROI.',
+    targetSelector: '[data-tour="google-drive-sync"]',
+    position: 'top',
+    navigation: { mode: 'private', openUserSettings: true }
+  },
+  {
     id: 'user-settings',
     title: 'Your Profile & Settings',
     description: 'Click here to manage your profile, adjust notification preferences, and access team settings. You can also restart this tour anytime from here!',
@@ -90,6 +98,14 @@ export const adminTourSteps: TourStep[] = [
     targetSelector: '[data-tour="reports-button"]',
     position: 'right',
     navigation: { mode: 'reports' }
+  },
+  {
+    id: 'sync-your-data',
+    title: 'Sync Your Data',
+    description: 'Connect your team documents in User Settings to sync Strategy, Meetings or Financial data. This is KEY to Astra delivering ROI.',
+    targetSelector: '[data-tour="google-drive-sync"]',
+    position: 'top',
+    navigation: { mode: 'private', openUserSettings: true }
   },
   {
     id: 'team-members',
