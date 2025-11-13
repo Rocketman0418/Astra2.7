@@ -10,7 +10,7 @@ const corsHeaders = {
 /**
  * Edge Function: Refresh Google Tokens (Gmail + Drive)
  *
- * This function runs automatically via pg_cron every 30 minutes to ensure
+ * This function runs automatically via pg_cron every 10 minutes to ensure
  * all active Google OAuth tokens (Gmail and Drive) are refreshed BEFORE they expire.
  * This ensures n8n workflows always have valid tokens to work with.
  *
