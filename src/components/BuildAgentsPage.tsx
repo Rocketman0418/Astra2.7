@@ -153,31 +153,53 @@ export const BuildAgentsPage: React.FC = () => {
 
   const fetchWorkflowExecutionCount = async (workflowId: string): Promise<number> => {
     try {
-      // Request with a large limit to get accurate count
-      // N8N API typically returns count metadata or we can count from a large page
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/n8n-proxy?path=/executions?workflowId=${workflowId}&limit=10000`,
-        {
-          headers: {
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            'Content-Type': 'application/json',
-          },
+      let totalCount = 0;
+      let cursor: string | undefined = undefined;
+      let hasMore = true;
+
+      // N8N API has a max limit of 100 per request, so we need to paginate
+      // We'll fetch up to 10 pages (1000 executions) for performance
+      const maxPages = 10;
+      let pageCount = 0;
+
+      while (hasMore && pageCount < maxPages) {
+        const cursorParam = cursor ? `&cursor=${cursor}` : '';
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/n8n-proxy?path=/executions?workflowId=${workflowId}&limit=100${cursorParam}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (!response.ok) {
+          break;
         }
-      );
 
-      if (!response.ok) {
-        return 0;
+        const data = await response.json();
+
+        // Add count from this page
+        const pageResults = data.data?.length || 0;
+        totalCount += pageResults;
+
+        // Check if there are more pages
+        if (data.nextCursor && pageResults === 100) {
+          cursor = data.nextCursor;
+          pageCount++;
+        } else {
+          hasMore = false;
+        }
       }
 
-      const data = await response.json();
-
-      // N8N API may return count metadata
-      if (data.count !== undefined && data.count !== null) {
-        return data.count;
+      // If we hit max pages, add a "+" indicator by returning a negative number
+      // The UI can interpret negative numbers as "at least this many"
+      if (hasMore && pageCount >= maxPages) {
+        return -(totalCount); // Negative indicates "1000+"
       }
 
-      // Otherwise count the actual executions returned
-      return data.data?.length || 0;
+      return totalCount;
     } catch (error) {
       console.error(`Failed to fetch execution count for workflow ${workflowId}:`, error);
       return 0;
@@ -391,8 +413,8 @@ export const BuildAgentsPage: React.FC = () => {
           const bNodes = b.nodes?.length || 0;
           return bNodes - aNodes;
         case 'executions':
-          const aExecs = a.executionCount || 0;
-          const bExecs = b.executionCount || 0;
+          const aExecs = Math.abs(a.executionCount || 0);
+          const bExecs = Math.abs(b.executionCount || 0);
           return bExecs - aExecs;
         default:
           return 0;
@@ -578,7 +600,10 @@ export const BuildAgentsPage: React.FC = () => {
                     )}
                     {workflow.executionCount !== undefined ? (
                       <span className="text-xs text-gray-400">
-                        {workflow.executionCount} executions
+                        {workflow.executionCount < 0
+                          ? `${Math.abs(workflow.executionCount)}+ executions`
+                          : `${workflow.executionCount} executions`
+                        }
                       </span>
                     ) : loadingExecutions && (
                       <span className="text-xs text-gray-500 italic">
