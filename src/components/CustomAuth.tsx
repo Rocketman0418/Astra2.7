@@ -455,6 +455,9 @@ export const CustomAuth: React.FC = () => {
                   )}
                 </button>
               </div>
+              <p className="mt-2 text-center text-sm text-gray-400">
+                Invite Code or Free Preview Signup
+              </p>
             </div>
           </form>
 
