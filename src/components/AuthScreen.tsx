@@ -6,7 +6,7 @@ export const AuthScreen: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
       <div className="max-w-6xl w-full space-y-8 py-6">
-        <div className="max-w-md mx-auto">
+        <div className="w-full max-w-2xl mx-auto">
           <CustomAuth />
         </div>
 

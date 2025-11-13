@@ -323,8 +323,8 @@ export const CustomAuth: React.FC = () => {
     return (
       <div className="w-full">
         <div className="text-center mb-4">
-          <h1 className="text-2xl md:text-3xl font-bold flex items-center justify-center gap-3 flex-nowrap">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-400 shadow-lg">
+          <h1 className="text-2xl md:text-3xl font-bold flex items-center justify-center gap-3 whitespace-nowrap">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-400 shadow-lg flex-shrink-0">
               <span className="text-2xl">🚀</span>
             </div>
             <span className="text-blue-400">AI Rocket</span>
