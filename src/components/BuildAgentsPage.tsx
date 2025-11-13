@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Workflow, Play, Pause, Trash2, Plus, ExternalLink, RefreshCw, Settings, Eye, Download, Upload, AlertCircle, CheckCircle, Loader, Search, ArrowUpDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { Header } from './Header';
 
 interface N8NWorkflow {
   id: string;
@@ -465,14 +466,19 @@ export const BuildAgentsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 via-green-500 to-blue-500 flex items-center justify-center">
-                <Workflow className="w-6 h-6 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <Header
+        onToggleSidebar={() => window.location.href = '/'}
+        showSidebarToggle={false}
+      />
+      <div className="p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                  <Workflow className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-white">Build Agents</h1>
@@ -730,6 +736,7 @@ export const BuildAgentsPage: React.FC = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };
