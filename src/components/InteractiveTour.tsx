@@ -47,9 +47,16 @@ export function InteractiveTour({
 
   useEffect(() => {
     const updatePosition = () => {
-      const targetElement = document.querySelector(step.targetSelector);
+      const targetElement = document.querySelector(step.targetSelector) as HTMLElement;
       if (!targetElement) {
         console.warn(`Tour target not found: ${step.targetSelector}`);
+        return;
+      }
+
+      // Check if element is actually visible
+      const isVisible = targetElement.offsetParent !== null;
+      if (!isVisible) {
+        console.warn(`Tour target not visible: ${step.targetSelector}`, targetElement);
         return;
       }
 
@@ -63,16 +70,25 @@ export function InteractiveTour({
       }
     };
 
-    // First, scroll the element into view
+    // Longer delay to ensure modal is fully rendered
     const scrollTimeoutId = setTimeout(() => {
-      const targetElement = document.querySelector(step.targetSelector);
+      const targetElement = document.querySelector(step.targetSelector) as HTMLElement;
       if (targetElement) {
+        // Check if element is visible before scrolling
+        const isVisible = targetElement.offsetParent !== null;
+        if (!isVisible) {
+          console.warn(`Tour target not visible for scrolling: ${step.targetSelector}`, targetElement);
+          return;
+        }
+
         targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
         // Wait for scroll animation to complete before updating position
-        setTimeout(updatePosition, 500);
+        setTimeout(updatePosition, 600);
+      } else {
+        console.warn(`Tour target not found for scrolling: ${step.targetSelector}`);
       }
-    }, 100);
+    }, 400);
 
     window.addEventListener('resize', updatePosition);
 
