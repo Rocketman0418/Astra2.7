@@ -53,6 +53,9 @@ export function InteractiveTour({
         return;
       }
 
+      // Scroll the target element into view
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
       const rect = targetElement.getBoundingClientRect();
       setHighlightRect(rect);
 
