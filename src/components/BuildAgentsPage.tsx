@@ -38,7 +38,7 @@ export const BuildAgentsPage: React.FC = () => {
   const [newWorkflowDescription, setNewWorkflowDescription] = useState('');
   const [criticalError, setCriticalError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'name' | 'updated' | 'nodes' | 'executions'>('name');
+  const [sortBy, setSortBy] = useState<'name' | 'updated' | 'nodes' | 'executions'>('executions');
   const [loadingExecutions, setLoadingExecutions] = useState(false);
 
   useEffect(() => {
@@ -153,8 +153,10 @@ export const BuildAgentsPage: React.FC = () => {
 
   const fetchWorkflowExecutionCount = async (workflowId: string): Promise<number> => {
     try {
+      // Request with a large limit to get accurate count
+      // N8N API typically returns count metadata or we can count from a large page
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/n8n-proxy?path=/executions?workflowId=${workflowId}`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/n8n-proxy?path=/executions?workflowId=${workflowId}&limit=10000`,
         {
           headers: {
             'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
@@ -168,7 +170,14 @@ export const BuildAgentsPage: React.FC = () => {
       }
 
       const data = await response.json();
-      return data.count || data.data?.length || 0;
+
+      // N8N API may return count metadata
+      if (data.count !== undefined && data.count !== null) {
+        return data.count;
+      }
+
+      // Otherwise count the actual executions returned
+      return data.data?.length || 0;
     } catch (error) {
       console.error(`Failed to fetch execution count for workflow ${workflowId}:`, error);
       return 0;
