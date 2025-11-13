@@ -634,6 +634,34 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
     }
   };
 
+  const toggleResponseStatus = async (messageId: string, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === 'needs_response' ? 'responded' : 'needs_response';
+      console.log('Toggling status:', { messageId, currentStatus, newStatus });
+
+      const { data, error } = await supabase
+        .from('user_feedback_submissions')
+        .update({ status: newStatus })
+        .eq('id', messageId)
+        .select();
+
+      if (error) {
+        console.error('Database update error:', error);
+        throw error;
+      }
+
+      console.log('Database update successful:', data);
+
+      // Update local state immediately for responsive UI
+      setSupportMessages(prev => prev.map(msg =>
+        msg.id === messageId ? { ...msg, status: newStatus } : msg
+      ));
+    } catch (error) {
+      console.error('Error toggling status:', error);
+      alert('Failed to update status. Please check the console for details.');
+    }
+  };
+
   const exportToCSV = (data: any[], filename: string) => {
     if (data.length === 0) return;
 
@@ -1352,12 +1380,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
                       }`}>
                         {msg.support_type?.replace(/_/g, ' ')}
                       </span>
-                      <span className={`px-2 py-1 text-xs rounded font-medium ${
-                        (msg.status || 'needs_response') === 'needs_response' ? 'bg-red-500/20 text-red-400' :
-                        'bg-emerald-500/20 text-emerald-400'
-                      }`}>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleResponseStatus(msg.id, msg.status || 'needs_response');
+                        }}
+                        className={`px-2 py-1 text-xs rounded font-medium transition-all hover:scale-105 cursor-pointer ${
+                          (msg.status || 'needs_response') === 'needs_response' ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' :
+                          'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
+                        }`}
+                        title="Click to toggle response status"
+                      >
                         {(msg.status || 'needs_response').replace(/_/g, ' ')}
-                      </span>
+                      </button>
                       {msg.status === 'responded' && (
                         <button
                           type="button"
