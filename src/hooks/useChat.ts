@@ -319,7 +319,7 @@ export const useChat = () => {
         if (jsonResponse.output) {
           messageText = jsonResponse.output;
         }
-        
+
         // Extract additional metadata if available from n8n response
         if (jsonResponse.metadata) {
           metadata = jsonResponse.metadata;
@@ -336,6 +336,12 @@ export const useChat = () => {
       } catch (e) {
         // If it's not JSON, use the raw text
         messageText = responseText;
+      }
+
+      // Check if the response is empty or invalid
+      if (!messageText || messageText.trim() === '' || messageText.trim() === '""') {
+        console.error('❌ Received empty or invalid response from Astra');
+        messageText = "I apologize, but I wasn't able to generate a response. Please try asking your question again. If this issue continues, please contact support through the app's help menu.";
       }
 
       console.log('✅ Received Astra response:', { messageText: messageText.substring(0, 100) + '...' });

@@ -348,7 +348,7 @@ export const useGroupChat = () => {
           const requestEndTime = Date.now();
           const responseTimeMs = requestEndTime - requestStartTime;
           let astraResponse = responseText;
-          
+
           // Try to parse JSON response
           try {
             const jsonResponse = JSON.parse(responseText);
@@ -358,7 +358,13 @@ export const useGroupChat = () => {
           } catch (e) {
             // Use raw text if not JSON
           }
-          
+
+          // Check if the response is empty or invalid
+          if (!astraResponse || astraResponse.trim() === '' || astraResponse.trim() === '""') {
+            console.error('❌ Received empty or invalid response from Astra');
+            astraResponse = "I apologize, but I wasn't able to generate a response. Please try asking your question again. If this issue continues, please contact support through the app's help menu.";
+          }
+
           console.log('🤖 useGroupChat: About to log Astra response...');
           // Log Astra's response to astra_chats table
           const astraMessageId = await logChatMessage(
