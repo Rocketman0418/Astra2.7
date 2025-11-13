@@ -81,15 +81,33 @@ Deno.serve(async (req: Request) => {
       dateThreshold = new Date('2000-01-01');
     }
 
-    // Execute comprehensive admin dashboard query
-    const { data, error } = await supabaseAdmin.rpc('get_admin_dashboard_data', {
-      time_filter: timeFilter
-    });
+    // Fetch all data directly using service role
+    const [
+      usersResult,
+      teamsResult,
+      documentsResult,
+      chatsResult,
+      reportsResult,
+      gmailConnectionsResult,
+      driveConnectionsResult,
+      feedbackResult,
+      supportMessagesResult
+    ] = await Promise.all([
+      supabaseAdmin.from('users').select('*'),
+      supabaseAdmin.from('teams').select('*'),
+      supabaseAdmin.from('documents').select('*'),
+      supabaseAdmin.from('astra_chats').select('*'),
+      supabaseAdmin.from('scheduled_reports').select('*'),
+      supabaseAdmin.from('gmail_auth').select('*'),
+      supabaseAdmin.from('user_drive_connections').select('*'),
+      supabaseAdmin.from('feedback_submissions').select('*'),
+      supabaseAdmin.from('feedback_submissions').select('id, user_id, created_at, support_type, support_details, attachment_urls, status, admin_response, responded_at, internal_notes, not_resolved')
+    ]);
 
-    if (error) {
-      console.error('Error fetching admin dashboard data:', error);
+    if (usersResult.error) {
+      console.error('Error fetching users:', usersResult.error);
       return new Response(
-        JSON.stringify({ error: error.message }),
+        JSON.stringify({ error: 'Failed to fetch users' }),
         {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -97,8 +115,20 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    const responseData = {
+      users: usersResult.data || [],
+      teams: teamsResult.data || [],
+      documents: documentsResult.data || [],
+      chats: chatsResult.data || [],
+      reports: reportsResult.data || [],
+      gmail_connections: gmailConnectionsResult.data || [],
+      drive_connections: driveConnectionsResult.data || [],
+      feedback: feedbackResult.data || [],
+      support_messages: supportMessagesResult.data || []
+    };
+
     return new Response(
-      JSON.stringify(data),
+      JSON.stringify(responseData),
       {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
