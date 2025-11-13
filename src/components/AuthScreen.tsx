@@ -91,7 +91,7 @@ export const AuthScreen: React.FC = () => {
 
             {/* 7. Agent Builder - Coming Soon */}
             <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-pink-500/50 transition-all duration-300 relative">
-              <div className="absolute top-3 right-3 px-2 py-1 bg-pink-500/20 border border-pink-500/50 rounded text-xs font-semibold text-pink-400">
+              <div className="absolute top-3 right-3 px-2 py-1 bg-blue-500/20 border border-blue-500/50 rounded text-xs font-semibold text-blue-400">
                 Coming Soon
               </div>
               <div className="w-12 h-12 rounded-lg bg-pink-500/10 flex items-center justify-center mb-4">
@@ -105,7 +105,7 @@ export const AuthScreen: React.FC = () => {
 
             {/* 8. Email Control - Coming Soon */}
             <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-indigo-500/50 transition-all duration-300 relative">
-              <div className="absolute top-3 right-3 px-2 py-1 bg-indigo-500/20 border border-indigo-500/50 rounded text-xs font-semibold text-indigo-400">
+              <div className="absolute top-3 right-3 px-2 py-1 bg-blue-500/20 border border-blue-500/50 rounded text-xs font-semibold text-blue-400">
                 Coming Soon
               </div>
               <div className="w-12 h-12 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-4">
@@ -119,7 +119,7 @@ export const AuthScreen: React.FC = () => {
 
             {/* 9. AI Job Roles - Coming Soon */}
             <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-teal-500/50 transition-all duration-300 relative">
-              <div className="absolute top-3 right-3 px-2 py-1 bg-teal-500/20 border border-teal-500/50 rounded text-xs font-semibold text-teal-400">
+              <div className="absolute top-3 right-3 px-2 py-1 bg-blue-500/20 border border-blue-500/50 rounded text-xs font-semibold text-blue-400">
                 Coming Soon
               </div>
               <div className="w-12 h-12 rounded-lg bg-teal-500/10 flex items-center justify-center mb-4">
