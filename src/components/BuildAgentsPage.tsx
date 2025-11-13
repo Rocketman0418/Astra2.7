@@ -290,20 +290,45 @@ export const BuildAgentsPage: React.FC = () => {
   const toggleWorkflowStatus = async (workflowId: string, currentStatus: boolean) => {
     try {
       setError('');
-      const response = await fetch(
+
+      // First, fetch the complete workflow
+      const getResponse = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/n8n-proxy?path=/workflows/${workflowId}`,
         {
-          method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ active: !currentStatus }),
         }
       );
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      if (!getResponse.ok) {
+        throw new Error('Failed to fetch workflow details');
+      }
+
+      const workflowData = await getResponse.json();
+
+      // Update the active status in the workflow data
+      const updatedWorkflow = {
+        ...workflowData.data,
+        active: !currentStatus
+      };
+
+      // Send the complete workflow back with updated status
+      const putResponse = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/n8n-proxy?path=/workflows/${workflowId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedWorkflow),
+        }
+      );
+
+      if (!putResponse.ok) {
+        const errorData = await putResponse.json().catch(() => ({ error: 'Unknown error' }));
         console.error('Failed to update workflow status:', errorData);
         throw new Error(errorData.error || 'Failed to update workflow status');
       }
