@@ -123,6 +123,18 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Also update public.users table to keep emails in sync
+    const { error: publicUpdateError } = await adminClient
+      .from('users')
+      .update({ email: newEmail.trim() })
+      .eq('id', user.id);
+
+    if (publicUpdateError) {
+      console.error("Error updating public.users email:", publicUpdateError);
+      // Don't fail the request - auth.users is updated, we'll log the error
+      // The user can still log in with the new email
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
