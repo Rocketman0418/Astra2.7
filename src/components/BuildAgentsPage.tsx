@@ -471,7 +471,7 @@ export const BuildAgentsPage: React.FC = () => {
         onToggleSidebar={() => window.location.href = '/'}
         showSidebarToggle={false}
       />
-      <div className="p-6">
+      <div className="pt-24 p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
