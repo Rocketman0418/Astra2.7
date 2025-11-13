@@ -401,7 +401,7 @@ export const CustomAuth: React.FC = () => {
             }}
             className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
           >
-            Back to Login
+            Close
           </button>
         </div>
       </div>
