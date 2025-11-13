@@ -1,18 +1,18 @@
 import React from 'react';
 import { CustomAuth } from './CustomAuth';
-import { Brain, Users, BarChart3, MessageSquare, FileText, Lock } from 'lucide-react';
+import { Brain, Users, BarChart3, MessageSquare, FileText, Lock, Bot, Mail, UserCircle } from 'lucide-react';
 
 export const AuthScreen: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
-      <div className="max-w-6xl w-full space-y-16 py-8">
+      <div className="max-w-6xl w-full space-y-8 py-6">
         <div className="max-w-md mx-auto">
           <CustomAuth />
         </div>
 
         {/* Preview Section */}
         <div className="max-w-5xl mx-auto px-4">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
               AI that Works for You
             </h2>
@@ -22,7 +22,7 @@ export const AuthScreen: React.FC = () => {
           </div>
 
           {/* Features Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {/* 1. All Your Data Connected */}
             <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-orange-500/50 transition-all duration-300">
               <div className="w-12 h-12 rounded-lg bg-orange-500/10 flex items-center justify-center mb-4">
@@ -86,6 +86,48 @@ export const AuthScreen: React.FC = () => {
               <h3 className="text-xl font-semibold text-white mb-2">Secure & Private</h3>
               <p className="text-gray-400 text-sm">
                 Your data is encrypted and secure. Control who sees what with team-based permissions and private conversations.
+              </p>
+            </div>
+
+            {/* 7. Agent Builder - Coming Soon */}
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-pink-500/50 transition-all duration-300 relative">
+              <div className="absolute top-3 right-3 px-2 py-1 bg-pink-500/20 border border-pink-500/50 rounded text-xs font-semibold text-pink-400">
+                Coming Soon
+              </div>
+              <div className="w-12 h-12 rounded-lg bg-pink-500/10 flex items-center justify-center mb-4">
+                <Bot className="w-6 h-6 text-pink-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Agent Builder</h3>
+              <p className="text-gray-400 text-sm">
+                Design and deploy custom AI Agents to complete tasks autonomously.
+              </p>
+            </div>
+
+            {/* 8. Email Control - Coming Soon */}
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-indigo-500/50 transition-all duration-300 relative">
+              <div className="absolute top-3 right-3 px-2 py-1 bg-indigo-500/20 border border-indigo-500/50 rounded text-xs font-semibold text-indigo-400">
+                Coming Soon
+              </div>
+              <div className="w-12 h-12 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-4">
+                <Mail className="w-6 h-6 text-indigo-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Email Control</h3>
+              <p className="text-gray-400 text-sm">
+                Allow Astra to understand, analyze and manage your incoming and outgoing emails.
+              </p>
+            </div>
+
+            {/* 9. AI Job Roles - Coming Soon */}
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-teal-500/50 transition-all duration-300 relative">
+              <div className="absolute top-3 right-3 px-2 py-1 bg-teal-500/20 border border-teal-500/50 rounded text-xs font-semibold text-teal-400">
+                Coming Soon
+              </div>
+              <div className="w-12 h-12 rounded-lg bg-teal-500/10 flex items-center justify-center mb-4">
+                <UserCircle className="w-6 h-6 text-teal-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">AI Job Roles</h3>
+              <p className="text-gray-400 text-sm">
+                Create roles such as Business Coach, Finance Director, Marketing Manager and more.
               </p>
             </div>
           </div>
