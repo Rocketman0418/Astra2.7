@@ -14,7 +14,7 @@ export const AuthScreen: React.FC = () => {
         <div className="max-w-5xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-              Your AI-Powered Business Command Center
+              AI that Works for You
             </h2>
             <p className="text-lg text-gray-400 max-w-2xl mx-auto">
               Built for Entrepreneurs and their Teams
