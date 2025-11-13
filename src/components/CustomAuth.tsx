@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Mail, Lock, Key, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-type AuthStep = 'email' | 'signup' | 'login';
+type AuthStep = 'email' | 'signup' | 'login' | 'preview-confirmation';
 
 export const CustomAuth: React.FC = () => {
   const [step, setStep] = useState<AuthStep>('email');
@@ -15,6 +15,7 @@ export const CustomAuth: React.FC = () => {
   const [isNewTeam, setIsNewTeam] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -284,6 +285,54 @@ export const CustomAuth: React.FC = () => {
     }
   };
 
+  const handlePreviewRequest = async () => {
+    setError('');
+    setPreviewLoading(true);
+
+    try {
+      // Validate both email fields are filled and match
+      if (!email || !confirmEmail) {
+        setError('Please enter and confirm your email address');
+        setPreviewLoading(false);
+        return;
+      }
+
+      if (!validateEmail(email)) {
+        setError('Please enter a valid email address');
+        setPreviewLoading(false);
+        return;
+      }
+
+      if (email.toLowerCase() !== confirmEmail.toLowerCase()) {
+        setError('Email addresses do not match');
+        setPreviewLoading(false);
+        return;
+      }
+
+      // Submit preview request to database
+      const { error: insertError } = await supabase
+        .from('preview_requests')
+        .insert({
+          email: email.toLowerCase()
+        });
+
+      if (insertError) {
+        console.error('Error submitting preview request:', insertError);
+        setError('Failed to submit preview request. Please try again.');
+        setPreviewLoading(false);
+        return;
+      }
+
+      // Show confirmation screen
+      setStep('preview-confirmation');
+    } catch (err: any) {
+      console.error('Preview request error:', err);
+      setError('An error occurred. Please try again.');
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -317,6 +366,47 @@ export const CustomAuth: React.FC = () => {
     setConfirmPassword('');
     setInviteCode('');
   };
+
+  // Preview Confirmation Screen
+  if (step === 'preview-confirmation') {
+    return (
+      <div className="w-full">
+        <div className="text-center mb-6">
+          <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-400 shadow-lg">
+            <span className="text-4xl">✓</span>
+          </div>
+          <h1 className="text-2xl md:text-3xl font-bold flex items-center justify-center gap-3 flex-wrap">
+            <span className="text-emerald-400">Preview Access Requested</span>
+          </h1>
+        </div>
+
+        <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-2xl p-6">
+          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-6 mb-6">
+            <p className="text-white text-lg mb-4 text-center">
+              You have signed up for Free Preview Access!
+            </p>
+            <p className="text-gray-300 text-sm text-center leading-relaxed">
+              We estimate invitations being sent out in early December from{' '}
+              <span className="text-blue-400 font-medium">Invite@RocketHub.ai</span>.
+              We look forward to you joining then!
+            </p>
+          </div>
+
+          <button
+            onClick={() => {
+              setStep('email');
+              setEmail('');
+              setConfirmEmail('');
+              setError('');
+            }}
+            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+          >
+            Back to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Step 1: Email Entry
   if (step === 'email') {
@@ -525,9 +615,6 @@ export const CustomAuth: React.FC = () => {
                     required
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Need an invite code? Contact your administrator
-                </p>
               </div>
 
               {isNewTeam && (
@@ -555,6 +642,24 @@ export const CustomAuth: React.FC = () => {
             )}
           </button>
         </form>
+
+        {step === 'signup' && (
+          <button
+            type="button"
+            onClick={handlePreviewRequest}
+            disabled={previewLoading || !email || !confirmEmail}
+            className="w-full py-3 mt-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center space-x-2 border border-gray-600"
+          >
+            {previewLoading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Submitting...</span>
+              </>
+            ) : (
+              <span>No Invite Code? Request Free Preview Access Here</span>
+            )}
+          </button>
+        )}
 
         {step === 'signup' && (
           <div className="mt-6 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
