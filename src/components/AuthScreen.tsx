@@ -1,12 +1,12 @@
 import React from 'react';
 import { CustomAuth } from './CustomAuth';
-import { Brain, Users, BarChart3, MessageSquare, FileText, Lock, Bot, Mail, UserCircle } from 'lucide-react';
+import { Brain, Users, BarChart3, RefreshCw, FileText, Lock, Bot, Mail, UserCircle } from 'lucide-react';
 
 export const AuthScreen: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
       <div className="max-w-6xl w-full space-y-8 py-6">
-        <div className="w-full max-w-2xl mx-auto">
+        <div className="max-w-md mx-auto">
           <CustomAuth />
         </div>
 
@@ -26,7 +26,7 @@ export const AuthScreen: React.FC = () => {
             {/* 1. All Your Data Connected */}
             <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-orange-500/50 transition-all duration-300">
               <div className="w-12 h-12 rounded-lg bg-orange-500/10 flex items-center justify-center mb-4">
-                <MessageSquare className="w-6 h-6 text-orange-400" />
+                <RefreshCw className="w-6 h-6 text-orange-400" />
               </div>
               <h3 className="text-xl font-semibold text-white mb-2">All Your Data Connected</h3>
               <p className="text-gray-400 text-sm">
