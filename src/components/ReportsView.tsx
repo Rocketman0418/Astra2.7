@@ -195,6 +195,26 @@ export const ReportsView: React.FC = () => {
                         )}
                       </p>
                     </div>
+                    {message.reportMetadata?.reportId && (
+                      <button
+                        onClick={() => runReportNow(message.reportMetadata.reportId)}
+                        disabled={runningReports.has(message.reportMetadata.reportId)}
+                        className="flex items-center space-x-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm min-h-[44px]"
+                        title="Run this report again"
+                      >
+                        {runningReports.has(message.reportMetadata.reportId) ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>Running...</span>
+                          </>
+                        ) : (
+                          <>
+                            <RotateCcw className="w-4 h-4" />
+                            <span>Retry</span>
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -282,19 +302,19 @@ export const ReportsView: React.FC = () => {
                   )}
                   <button
                     onClick={() => handleRetry(message.id)}
-                    disabled={retryingReportId === message.id || runningReports.has(message.reportMetadata?.reportId)}
+                    disabled={retryingReportId === message.id}
                     className="flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm min-h-[44px]"
-                    title="Retry visualization"
+                    title="Refresh visualization"
                   >
-                    {(retryingReportId === message.id || runningReports.has(message.reportMetadata?.reportId)) ? (
+                    {retryingReportId === message.id ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        <span>Retrying...</span>
+                        <span>Refreshing...</span>
                       </>
                     ) : (
                       <>
                         <RotateCcw className="w-4 h-4" />
-                        <span>Retry</span>
+                        <span>Refresh</span>
                       </>
                     )}
                   </button>
