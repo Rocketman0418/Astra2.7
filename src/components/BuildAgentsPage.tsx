@@ -38,7 +38,7 @@ export const BuildAgentsPage: React.FC = () => {
   const [newWorkflowDescription, setNewWorkflowDescription] = useState('');
   const [criticalError, setCriticalError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'name' | 'updated' | 'nodes' | 'executions'>('executions');
+  const [sortBy, setSortBy] = useState<'active' | 'name' | 'updated' | 'nodes' | 'executions'>('active');
   const [loadingExecutions, setLoadingExecutions] = useState(false);
 
   useEffect(() => {
@@ -402,6 +402,15 @@ export const BuildAgentsPage: React.FC = () => {
 
     filtered.sort((a, b) => {
       switch (sortBy) {
+        case 'active':
+          // Sort by active status first (active = true comes first)
+          if (a.active !== b.active) {
+            return a.active ? -1 : 1;
+          }
+          // Then by execution count
+          const aExecsActive = Math.abs(a.executionCount || 0);
+          const bExecsActive = Math.abs(b.executionCount || 0);
+          return bExecsActive - aExecsActive;
         case 'name':
           return a.name.localeCompare(b.name);
         case 'updated':
@@ -528,9 +537,10 @@ export const BuildAgentsPage: React.FC = () => {
               <ArrowUpDown className="w-5 h-5 text-gray-400" />
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'name' | 'updated' | 'nodes' | 'executions')}
+                onChange={(e) => setSortBy(e.target.value as 'active' | 'name' | 'updated' | 'nodes' | 'executions')}
                 className="px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
+                <option value="active">Sort by Active</option>
                 <option value="name">Sort by Name</option>
                 <option value="updated">Sort by Updated</option>
                 <option value="nodes">Sort by Nodes</option>
