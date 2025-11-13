@@ -609,12 +609,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
 
   const toggleNotResolved = async (messageId: string, currentValue: boolean) => {
     try {
-      const { error } = await supabase
+      console.log('Toggling not_resolved:', { messageId, currentValue, newValue: !currentValue });
+
+      const { data, error } = await supabase
         .from('user_feedback_submissions')
         .update({ not_resolved: !currentValue })
-        .eq('id', messageId);
+        .eq('id', messageId)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database update error:', error);
+        throw error;
+      }
+
+      console.log('Database update successful:', data);
 
       // Update local state immediately for responsive UI
       setSupportMessages(prev => prev.map(msg =>
@@ -622,6 +630,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
       ));
     } catch (error) {
       console.error('Error toggling not_resolved status:', error);
+      alert('Failed to update status. Please check the console for details.');
     }
   };
 
