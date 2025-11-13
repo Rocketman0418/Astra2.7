@@ -37,6 +37,16 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
   const [needsSessionRefresh, setNeedsSessionRefresh] = useState(false);
   const [refreshingSession, setRefreshingSession] = useState(false);
   const [dbTeamId, setDbTeamId] = useState<string | null>(null);
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  const [changingEmail, setChangingEmail] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [isEditingTeamName, setIsEditingTeamName] = useState(false);
+  const [editedTeamName, setEditedTeamName] = useState('');
+  const [savingTeamName, setSavingTeamName] = useState(false);
+  const [teamNameError, setTeamNameError] = useState('');
+  const [teamNameSuccess, setTeamNameSuccess] = useState('');
 
   const isAdmin = user?.user_metadata?.role === 'admin';
   const superAdminEmails = ['clay@rockethub.ai', 'derek@rockethub.ai', 'marshall@rockethub.ai'];
@@ -54,6 +64,12 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
       loadTeamName();
     }
   }, [teamId]);
+
+  React.useEffect(() => {
+    if (teamName) {
+      setEditedTeamName(teamName);
+    }
+  }, [teamName]);
 
   React.useEffect(() => {
     checkSessionSync();
@@ -183,6 +199,74 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
 
     if (!result.success) {
       setError(result.error || 'Failed to delete avatar');
+    }
+  };
+
+  const handleEmailChange = () => {
+    if (!newEmail.trim()) {
+      setEmailError('Email cannot be empty');
+      return;
+    }
+
+    if (!newEmail.includes('@')) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
+
+    if (newEmail === user?.email) {
+      setEmailError('New email must be different from current email');
+      return;
+    }
+
+    setShowEmailConfirmation(true);
+  };
+
+  const handleConfirmEmailChange = async () => {
+    setChangingEmail(true);
+    setEmailError('');
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        email: newEmail.trim()
+      });
+
+      if (error) throw error;
+
+      // Sign out the user
+      await supabase.auth.signOut();
+      onClose();
+    } catch (err: any) {
+      setEmailError(err.message || 'Failed to update email');
+      setShowEmailConfirmation(false);
+      setChangingEmail(false);
+    }
+  };
+
+  const handleSaveTeamName = async () => {
+    if (!editedTeamName.trim()) {
+      setTeamNameError('Team name cannot be empty');
+      return;
+    }
+
+    setSavingTeamName(true);
+    setTeamNameError('');
+    setTeamNameSuccess('');
+
+    try {
+      const { error } = await supabase
+        .from('teams')
+        .update({ name: editedTeamName.trim() })
+        .eq('id', teamId || dbTeamId);
+
+      if (error) throw error;
+
+      setTeamName(editedTeamName.trim());
+      setTeamNameSuccess('Team name updated successfully');
+      setIsEditingTeamName(false);
+    } catch (err: any) {
+      setTeamNameError(err.message || 'Failed to update team name');
+    } finally {
+      setSavingTeamName(false);
     }
   };
 
@@ -404,13 +488,121 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
 
                   <div>
                     <label className="text-sm text-gray-400 mb-1 block">Email</label>
-                    <p className="text-white">{user?.email}</p>
+                    {isEditingEmail ? (
+                      <div className="space-y-2">
+                        <input
+                          type="email"
+                          value={newEmail}
+                          onChange={(e) => setNewEmail(e.target.value)}
+                          placeholder="Enter new email address"
+                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                        />
+                        {emailError && (
+                          <p className="text-red-400 text-xs">{emailError}</p>
+                        )}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleEmailChange}
+                            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors flex items-center justify-center space-x-2"
+                          >
+                            <Save className="w-4 h-4" />
+                            <span>Update Email</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setIsEditingEmail(false);
+                              setNewEmail('');
+                              setEmailError('');
+                            }}
+                            className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-lg transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <p className="text-white">{user?.email}</p>
+                        <button
+                          onClick={() => {
+                            setIsEditingEmail(true);
+                            setNewEmail('');
+                            setEmailError('');
+                          }}
+                          disabled={loading}
+                          className="px-3 py-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {teamName && (
                     <div>
                       <label className="text-sm text-gray-400 mb-1 block">Team</label>
-                      <p className="text-white">{teamName}</p>
+                      {isAdmin && isEditingTeamName ? (
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={editedTeamName}
+                            onChange={(e) => setEditedTeamName(e.target.value)}
+                            placeholder="Enter team name"
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                          />
+                          {teamNameError && (
+                            <p className="text-red-400 text-xs">{teamNameError}</p>
+                          )}
+                          {teamNameSuccess && (
+                            <p className="text-green-400 text-xs">{teamNameSuccess}</p>
+                          )}
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleSaveTeamName}
+                              disabled={savingTeamName}
+                              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors flex items-center justify-center space-x-2"
+                            >
+                              {savingTeamName ? (
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              ) : (
+                                <>
+                                  <Save className="w-4 h-4" />
+                                  <span>Save</span>
+                                </>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setIsEditingTeamName(false);
+                                setEditedTeamName(teamName);
+                                setTeamNameError('');
+                                setTeamNameSuccess('');
+                              }}
+                              disabled={savingTeamName}
+                              className="px-4 py-2 bg-gray-600 hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <p className="text-white">{teamName}</p>
+                          {isAdmin && (
+                            <button
+                              onClick={() => {
+                                setIsEditingTeamName(true);
+                                setTeamNameError('');
+                                setTeamNameSuccess('');
+                              }}
+                              disabled={loading}
+                              className="px-3 py-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                            >
+                              Edit
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -584,6 +776,62 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
           teamId={teamId}
           isOnboarding={false}
         />
+      )}
+
+      {showEmailConfirmation && (
+        <div className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4">
+          <div className="bg-gray-800 rounded-lg shadow-2xl w-full max-w-md border border-gray-700">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-blue-500/20">
+                <Mail className="w-8 h-8 text-blue-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white text-center mb-2">Confirm Email Change</h3>
+              <p className="text-gray-300 text-center mb-4">
+                You are about to change your email to:
+              </p>
+              <div className="bg-gray-700/50 rounded-lg p-4 mb-6 border border-gray-600">
+                <p className="text-white font-semibold text-center break-all">{newEmail}</p>
+              </div>
+              <p className="text-gray-400 text-sm text-center mb-6">
+                After confirming, you will be logged out and need to log back in with your new email address.
+              </p>
+              {emailError && (
+                <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3 mb-4">
+                  <p className="text-red-400 text-sm text-center">{emailError}</p>
+                </div>
+              )}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowEmailConfirmation(false);
+                    setEmailError('');
+                  }}
+                  disabled={changingEmail}
+                  className="flex-1 px-4 py-3 bg-gray-600 hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmEmailChange}
+                  disabled={changingEmail}
+                  className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center space-x-2"
+                >
+                  {changingEmail ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Updating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <LogOut className="w-5 h-5" />
+                      <span>Confirm & Log Out</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
