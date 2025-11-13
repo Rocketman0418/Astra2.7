@@ -648,7 +648,7 @@ export const CustomAuth: React.FC = () => {
             type="button"
             onClick={handlePreviewRequest}
             disabled={previewLoading || !email || !confirmEmail}
-            className="w-full py-3 mt-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center space-x-2 border border-gray-600"
+            className="w-full py-3 mt-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center space-x-2 border border-purple-500"
           >
             {previewLoading ? (
               <>
