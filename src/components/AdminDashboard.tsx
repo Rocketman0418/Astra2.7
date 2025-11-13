@@ -731,7 +731,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
       filtered = filtered.filter(msg => (msg.status || 'needs_response') === statusFilter);
     }
 
-    return filtered;
+    // Sort by created_at descending (newest first)
+    return [...filtered].sort((a, b) => {
+      const dateA = new Date(a.created_at).getTime();
+      const dateB = new Date(b.created_at).getTime();
+      return dateB - dateA;
+    });
   }, [supportMessages, supportFilter, statusFilter]);
 
   const sortedTeamsData = React.useMemo(() => {
