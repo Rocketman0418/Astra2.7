@@ -372,10 +372,10 @@ export const CustomAuth: React.FC = () => {
     return (
       <div className="w-full">
         <div className="text-center mb-6">
-          <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-400 shadow-lg">
-            <span className="text-4xl">✓</span>
+          <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 rounded-full bg-emerald-400 shadow-lg">
+            <span className="text-6xl">✓</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold flex items-center justify-center gap-3 flex-wrap">
+          <h1 className="text-3xl md:text-4xl font-bold flex items-center justify-center gap-3 flex-wrap">
             <span className="text-emerald-400">Preview Access Requested</span>
           </h1>
         </div>
