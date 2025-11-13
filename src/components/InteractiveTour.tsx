@@ -53,9 +53,6 @@ export function InteractiveTour({
         return;
       }
 
-      // Scroll the target element into view
-      targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
       const rect = targetElement.getBoundingClientRect();
       setHighlightRect(rect);
 
@@ -66,16 +63,31 @@ export function InteractiveTour({
       }
     };
 
-    // Add a small delay to ensure DOM is ready after navigation
-    const timeoutId = setTimeout(updatePosition, 100);
+    // First, scroll the element into view
+    const scrollTimeoutId = setTimeout(() => {
+      const targetElement = document.querySelector(step.targetSelector);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // Wait for scroll animation to complete before updating position
+        setTimeout(updatePosition, 500);
+      }
+    }, 100);
 
     window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition);
+
+    // Listen for scroll on modal containers
+    const modalElement = document.querySelector('[role="dialog"]');
+    if (modalElement) {
+      modalElement.addEventListener('scroll', updatePosition);
+    }
 
     return () => {
-      clearTimeout(timeoutId);
+      clearTimeout(scrollTimeoutId);
       window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition);
+      if (modalElement) {
+        modalElement.removeEventListener('scroll', updatePosition);
+      }
     };
   }, [step, currentStep]);
 
