@@ -10,19 +10,48 @@ export const InstallAppButton: React.FC = () => {
                          window.matchMedia('(display-mode: fullscreen)').matches ||
                          (window.navigator as any).standalone === true;
 
+  console.log('PWA Button render:', { isRunningInApp, isInstallable, isInstalled, isIOS });
+
   if (isRunningInApp) {
+    console.log('Hiding button - already in app mode');
+    return null;
+  }
+
+  if (!isInstallable && !isInstalled) {
+    console.log('Hiding button - not installable and not installed');
     return null;
   }
 
   const handleClick = async () => {
-    if (isInstalled) {
+    console.log('PWA Button clicked:', { isInstalled, isIOS, isInstallable });
+
+    if (isInstalled && !isIOS) {
+      console.log('Opening in app (Chrome/Edge)');
       const currentPath = window.location.pathname + window.location.search + window.location.hash;
       const appUrl = window.location.origin + currentPath;
-      window.open(appUrl, '_blank');
+
+      // Try to open in the installed app
+      try {
+        // Create a temporary link with target for the app
+        const link = document.createElement('a');
+        link.href = appUrl;
+        link.target = '_blank';
+        link.rel = 'opener';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        console.log('Opened link to app');
+      } catch (error) {
+        console.error('Error opening in app:', error);
+        window.open(appUrl, '_blank');
+      }
     } else if (isIOS) {
+      console.log('iOS detected - showing instructions');
       setShowIOSInstructions(true);
     } else if (isInstallable) {
+      console.log('Prompting to install');
       const installed = await install();
+      console.log('Install result:', installed);
       if (installed) {
         setTimeout(() => {
           const currentPath = window.location.pathname + window.location.search + window.location.hash;
@@ -30,10 +59,12 @@ export const InstallAppButton: React.FC = () => {
           window.open(appUrl, '_blank');
         }, 1000);
       }
+    } else {
+      console.log('Button clicked but no action available');
     }
   };
 
-  const buttonText = isInstalled ? 'Open In App' : 'Install & Open App';
+  const buttonText = (isInstalled && !isIOS) ? 'Open In App' : (isIOS ? 'Install App' : 'Install & Open App');
 
   return (
     <>
