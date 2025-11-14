@@ -18,7 +18,11 @@ export const InstallAppButton: React.FC = () => {
     return null;
   }
 
-  // Always show button in web browser
+  // Hide button if app is already installed on Chrome/Edge (Chrome provides native "Open in App" button)
+  if (isInstalled && !isIOS) {
+    console.log('Hiding button - app installed, Chrome provides native Open in App');
+    return null;
+  }
 
   const handleClick = async () => {
     console.log('PWA Button clicked:', { isInstalled, isIOS, isInstallable });
@@ -30,16 +34,6 @@ export const InstallAppButton: React.FC = () => {
       return;
     }
 
-    // If app is already installed (Chrome/Edge), open it
-    if (isInstalled) {
-      console.log('Opening in installed app (Chrome/Edge)');
-      const currentPath = window.location.pathname + window.location.search + window.location.hash;
-      const appUrl = window.location.origin + currentPath;
-
-      // Simple navigation - Chrome will open in the installed app automatically
-      window.location.href = appUrl;
-      return;
-    }
 
     // If installable but not installed, prompt to install
     if (isInstallable) {
@@ -60,7 +54,7 @@ export const InstallAppButton: React.FC = () => {
     setShowIOSInstructions(true);
   };
 
-  const buttonText = (isInstalled && !isIOS) ? 'Open In App' : (isIOS ? 'Install App' : 'Install & Open App');
+  const buttonText = isIOS ? 'Install App' : 'Install & Open App';
 
   return (
     <>
@@ -117,8 +111,8 @@ export const InstallAppButton: React.FC = () => {
                       2
                     </div>
                     <div>
-                      <p className="text-white font-medium mb-1">Select "Add to Home Screen"</p>
-                      <p className="text-gray-400 text-sm">Scroll down in the share menu to find this option</p>
+                      <p className="text-white font-medium mb-1">Select "Add to Dock" or "Add to Home Screen"</p>
+                      <p className="text-gray-400 text-sm">On Mac, select "Add to Dock". On mobile, select "Add to Home Screen"</p>
                     </div>
                   </div>
 
