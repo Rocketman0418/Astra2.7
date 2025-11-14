@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle, Info, CheckCircle } from 'lucide-react';
+import { AlertTriangle, X } from 'lucide-react';
 import { validateAIResponse } from '../lib/hallucination-detector';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -20,7 +20,7 @@ interface ValidatedAIMessageProps {
 }
 
 /**
- * Wrapper component that validates AI responses and shows warnings if needed
+ * Wrapper component that validates AI responses and shows a subtle warning indicator if needed
  */
 export function ValidatedAIMessage({
   message,
@@ -67,132 +67,137 @@ export function ValidatedAIMessage({
       }
     } catch (error) {
       console.error('Validation error:', error);
-      // On error, allow the message to show but with low confidence
+      // On error, assume valid and don't show warning
       setValidation({
         isValid: true,
-        confidence: 'low',
+        confidence: 'high',
         issues: [],
-        warnings: ['Unable to validate response']
+        warnings: []
       });
     } finally {
       setIsValidating(false);
     }
   };
 
-  // Don't show anything while validating
+  // Show message normally while validating
   if (isValidating) {
-    return <div className="opacity-50">{children}</div>;
+    return <div>{children}</div>;
   }
 
-  // If validation failed critically, show error instead of message
-  if (validation && !validation.isValid && validation.issues.length > 0) {
-    return (
-      <div className="border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 p-4 rounded">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="font-semibold text-red-800 dark:text-red-200 mb-2">
-              Response Validation Failed
-            </p>
-            <p className="text-sm text-red-700 dark:text-red-300 mb-3">
-              This response contains information that doesn't match your team's data and may be
-              inaccurate. The response has been hidden for your protection.
-            </p>
-            <button
-              onClick={() => setShowDetails(!showDetails)}
-              className="text-sm text-red-600 dark:text-red-400 hover:underline"
-            >
-              {showDetails ? 'Hide' : 'Show'} validation details
-            </button>
-            {showDetails && (
-              <div className="mt-3 space-y-2">
-                {validation.issues.map((issue, idx) => (
-                  <div key={idx} className="text-sm text-red-700 dark:text-red-300">
-                    • {issue}
-                  </div>
-                ))}
-                <div className="mt-4 pt-3 border-t border-red-200 dark:border-red-800">
-                  <p className="text-xs text-red-600 dark:text-red-400 mb-2">
-                    Original response (use with caution):
-                  </p>
-                  <div className="text-sm text-red-700 dark:text-red-300 opacity-75 max-h-40 overflow-y-auto">
-                    {message}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show warnings for medium/low confidence
-  const hasWarnings = validation && (validation.warnings.length > 0 || validation.confidence !== 'high');
+  // Check if we have any issues or warnings
+  const hasIssues = validation && (!validation.isValid || validation.issues.length > 0);
+  const hasWarnings = validation && validation.warnings.length > 0;
+  const shouldShowIndicator = hasIssues || hasWarnings;
 
   return (
-    <div>
-      {hasWarnings && (
-        <div className={`border-l-4 mb-3 p-3 rounded ${
-          validation!.confidence === 'low'
-            ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
-            : 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
-        }`}>
-          <div className="flex items-start gap-3">
-            {validation!.confidence === 'low' ? (
-              <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
-            ) : (
-              <Info className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
-            )}
-            <div className="flex-1">
-              <p className={`text-sm font-medium ${
-                validation!.confidence === 'low'
-                  ? 'text-orange-800 dark:text-orange-200'
-                  : 'text-yellow-800 dark:text-yellow-200'
-              }`}>
-                {validation!.confidence === 'low'
-                  ? 'This response may contain unverified information'
-                  : 'Some details couldn\'t be verified'}
-              </p>
-              {validation!.warnings.length > 0 && (
-                <>
-                  <button
-                    onClick={() => setShowDetails(!showDetails)}
-                    className={`text-xs mt-1 hover:underline ${
-                      validation!.confidence === 'low'
-                        ? 'text-orange-700 dark:text-orange-300'
-                        : 'text-yellow-700 dark:text-yellow-300'
-                    }`}
-                  >
-                    {showDetails ? 'Hide' : 'Show'} details
-                  </button>
-                  {showDetails && (
-                    <div className="mt-2 space-y-1">
-                      {validation!.warnings.map((warning, idx) => (
-                        <div
-                          key={idx}
-                          className={`text-xs ${
-                            validation!.confidence === 'low'
-                              ? 'text-orange-700 dark:text-orange-300'
-                              : 'text-yellow-700 dark:text-yellow-300'
-                          }`}
-                        >
-                          • {warning}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
+    <div className="relative">
+      {/* Subtle warning indicator in top-right corner */}
+      {shouldShowIndicator && (
+        <div className="absolute -top-2 -right-2 z-10">
+          <button
+            onClick={() => setShowDetails(!showDetails)}
+            className={`flex items-center justify-center w-6 h-6 rounded-full shadow-lg transition-all duration-200 hover:scale-110 ${
+              hasIssues
+                ? 'bg-red-500 hover:bg-red-600'
+                : 'bg-yellow-500 hover:bg-yellow-600'
+            }`}
+            title={hasIssues ? 'Validation warning - click for details' : 'Minor warning - click for details'}
+          >
+            <AlertTriangle className="w-4 h-4 text-white" />
+          </button>
         </div>
       )}
 
-      {/* Show the actual message content */}
-      <div className={hasWarnings && validation!.confidence === 'low' ? 'opacity-75' : ''}>
-        {children}
-      </div>
+      {/* Show the actual message content - ALWAYS visible */}
+      <div>{children}</div>
+
+      {/* Details modal/popup when user clicks the indicator */}
+      {showDetails && shouldShowIndicator && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowDetails(false)}>
+          <div
+            className={`bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6 ${
+              hasIssues ? 'border-2 border-red-500' : 'border-2 border-yellow-500'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-full ${
+                  hasIssues ? 'bg-red-500/20' : 'bg-yellow-500/20'
+                }`}>
+                  <AlertTriangle className={`w-6 h-6 ${
+                    hasIssues ? 'text-red-400' : 'text-yellow-400'
+                  }`} />
+                </div>
+                <div>
+                  <h3 className={`text-lg font-semibold ${
+                    hasIssues ? 'text-red-400' : 'text-yellow-400'
+                  }`}>
+                    {hasIssues ? 'Validation Warning' : 'Minor Notice'}
+                  </h3>
+                  <p className="text-sm text-gray-400">
+                    {hasIssues ? 'This response may contain inaccurate information' : 'Some details in this response'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowDetails(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Issues */}
+            {validation!.issues.length > 0 && (
+              <div className="mb-4">
+                <h4 className="text-sm font-semibold text-red-400 mb-2">Issues Detected:</h4>
+                <div className="space-y-2">
+                  {validation!.issues.map((issue, idx) => (
+                    <div key={idx} className="flex items-start gap-2 text-sm text-gray-300">
+                      <span className="text-red-400 mt-0.5">•</span>
+                      <span>{issue}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Warnings */}
+            {validation!.warnings.length > 0 && (
+              <div className="mb-4">
+                <h4 className="text-sm font-semibold text-yellow-400 mb-2">Warnings:</h4>
+                <div className="space-y-2">
+                  {validation!.warnings.map((warning, idx) => (
+                    <div key={idx} className="flex items-start gap-2 text-sm text-gray-300">
+                      <span className="text-yellow-400 mt-0.5">•</span>
+                      <span>{warning}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recommendation */}
+            <div className="mt-4 p-3 bg-gray-700/50 rounded border border-gray-600">
+              <p className="text-xs text-gray-400">
+                <strong className="text-white">Recommendation:</strong> {hasIssues
+                  ? 'Please verify this information before taking action. The response may reference incorrect data.'
+                  : 'This information appears generally accurate but contains some details we couldn\'t verify against your team data.'}
+              </p>
+            </div>
+
+            {/* Close button */}
+            <button
+              onClick={() => setShowDetails(false)}
+              className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors font-medium"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
