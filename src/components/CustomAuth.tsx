@@ -632,10 +632,28 @@ export const CustomAuth: React.FC = () => {
             </>
           )}
 
+          {step === 'signup' && (
+            <button
+              type="button"
+              onClick={handlePreviewRequest}
+              disabled={previewLoading}
+              className="w-full py-3 mt-6 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center space-x-2 border border-purple-500"
+            >
+              {previewLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Submitting...</span>
+                </>
+              ) : (
+                <span>No Invite Code? Request Free Preview Access Here</span>
+              )}
+            </button>
+          )}
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center space-x-2 mt-6"
+            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center space-x-2 mt-3"
           >
             {loading ? (
               <>
@@ -647,24 +665,6 @@ export const CustomAuth: React.FC = () => {
             )}
           </button>
         </form>
-
-        {step === 'signup' && (
-          <button
-            type="button"
-            onClick={handlePreviewRequest}
-            disabled={previewLoading}
-            className="w-full py-3 mt-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center space-x-2 border border-purple-500"
-          >
-            {previewLoading ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>Submitting...</span>
-              </>
-            ) : (
-              <span>No Invite Code? Request Free Preview Access Here</span>
-            )}
-          </button>
-        )}
 
         {step === 'signup' && (
           <div className="mt-6 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
