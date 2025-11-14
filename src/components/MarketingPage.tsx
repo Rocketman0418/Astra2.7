@@ -4,7 +4,7 @@ import { Brain, Users, BarChart3, RefreshCw, FileText, Bot, Mail, UserCircle } f
 export const MarketingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-8">
-      <div className="max-w-[1400px] w-full space-y-10 py-8">
+      <div className="max-w-[1600px] w-full space-y-10 py-8">
         {/* Header with Branding - Using actual branding images */}
         <div className="text-center mb-8">
           <div className="flex flex-col items-center gap-6 mb-8">
@@ -37,10 +37,10 @@ export const MarketingPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Features Grid - 8 boxes in 2 rows of 4 - 25% bigger proportionally */}
+        {/* Features Grid - 8 boxes in 2 rows of 4 - 25% bigger proportionally with thicker borders */}
         <div className="grid grid-cols-4 gap-7 mb-10">
             {/* 1. All Your Data Connected */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-orange-500/50 transition-all duration-300">
+            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-6 hover:border-orange-500/50 transition-all duration-300">
               <div className="w-12 h-12 rounded-lg bg-orange-500/10 flex items-center justify-center mb-4">
                 <RefreshCw className="w-6 h-6 text-orange-400" />
               </div>
@@ -51,7 +51,7 @@ export const MarketingPage: React.FC = () => {
             </div>
 
             {/* 2. Smart Visualizations */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-purple-500/50 transition-all duration-300">
+            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-6 hover:border-purple-500/50 transition-all duration-300">
               <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
                 <BarChart3 className="w-6 h-6 text-purple-400" />
               </div>
@@ -62,7 +62,7 @@ export const MarketingPage: React.FC = () => {
             </div>
 
             {/* 3. Private AI Assistant */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-blue-500/50 transition-all duration-300">
+            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-6 hover:border-blue-500/50 transition-all duration-300">
               <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4">
                 <Brain className="w-6 h-6 text-blue-400" />
               </div>
@@ -73,7 +73,7 @@ export const MarketingPage: React.FC = () => {
             </div>
 
             {/* 4. Team Collaboration */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-emerald-500/50 transition-all duration-300">
+            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-6 hover:border-emerald-500/50 transition-all duration-300">
               <div className="w-12 h-12 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-4">
                 <Users className="w-6 h-6 text-emerald-400" />
               </div>
@@ -84,7 +84,7 @@ export const MarketingPage: React.FC = () => {
             </div>
 
             {/* 5. Automated Reports */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-yellow-500/50 transition-all duration-300">
+            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-6 hover:border-yellow-500/50 transition-all duration-300">
               <div className="w-12 h-12 rounded-lg bg-yellow-500/10 flex items-center justify-center mb-4">
                 <FileText className="w-6 h-6 text-yellow-400" />
               </div>
@@ -95,7 +95,7 @@ export const MarketingPage: React.FC = () => {
             </div>
 
             {/* 6. Agent Builder */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-pink-500/50 transition-all duration-300">
+            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-6 hover:border-pink-500/50 transition-all duration-300">
               <div className="w-12 h-12 rounded-lg bg-pink-500/10 flex items-center justify-center mb-4">
                 <Bot className="w-6 h-6 text-pink-400" />
               </div>
@@ -106,7 +106,7 @@ export const MarketingPage: React.FC = () => {
             </div>
 
             {/* 7. Email Control */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-indigo-500/50 transition-all duration-300">
+            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-6 hover:border-indigo-500/50 transition-all duration-300">
               <div className="w-12 h-12 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-4">
                 <Mail className="w-6 h-6 text-indigo-400" />
               </div>
@@ -117,7 +117,7 @@ export const MarketingPage: React.FC = () => {
             </div>
 
             {/* 8. AI Job Roles */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-teal-500/50 transition-all duration-300">
+            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-6 hover:border-teal-500/50 transition-all duration-300">
               <div className="w-12 h-12 rounded-lg bg-teal-500/10 flex items-center justify-center mb-4">
                 <UserCircle className="w-6 h-6 text-teal-400" />
               </div>
