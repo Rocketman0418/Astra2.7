@@ -7,6 +7,7 @@ import { NotificationBell } from './NotificationBell';
 import { UserSettingsModal } from './UserSettingsModal';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { SupportMenu } from './SupportMenu';
+import { InstallAppButton } from './InstallAppButton';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -145,6 +146,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right side - User info */}
         <div className="flex items-center space-x-2">
+          <InstallAppButton />
           <NotificationBell onOpenSettings={() => setShowSettings(true)} />
 
           {/* Help Menu */}
