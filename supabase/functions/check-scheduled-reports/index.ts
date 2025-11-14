@@ -91,53 +91,43 @@ Deno.serve(async (req: Request) => {
           continue;
         }
 
-        // Fetch team information from the public.users table
+        // Fetch team information directly from public.users and teams tables
         let teamId: string | null = null;
         let teamName = '';
         let role = 'member';
         let viewFinancial = true;
         let userName = userData.user.user_metadata?.full_name || userData.user.email || '';
 
-        try {
-          console.log(`🔍 Fetching team info for user ${report.user_id}...`);
-          const { data: userTeamData, error: teamError } = await supabase.rpc('get_user_team_info_service', {
-            p_user_id: report.user_id
-          });
+        console.log(`🔍 Fetching team info for user ${report.user_id}...`);
 
-          if (teamError) {
-            console.error(`❌ RPC error fetching team info:`, teamError);
-            console.error(`Error details:`, JSON.stringify(teamError, null, 2));
-          }
+        // Query public.users table directly (service role bypasses RLS)
+        const { data: userRecord, error: userError } = await supabase
+          .from('users')
+          .select('team_id, role, view_financial, name, teams(name)')
+          .eq('id', report.user_id)
+          .single();
 
-          if (!userTeamData || userTeamData.length === 0) {
-            console.warn(`⚠️ No team data returned for user ${report.user_id}`);
-          }
-
-          if (teamError || !userTeamData || userTeamData.length === 0) {
-            console.warn(`⚠️ Using fallback to user_metadata`);
-            console.log(`User metadata:`, JSON.stringify(userData.user.user_metadata, null, 2));
-            // Fallback to user_metadata
-            teamId = userData.user.user_metadata?.team_id || null;
-            role = userData.user.user_metadata?.role || 'member';
-            viewFinancial = userData.user.user_metadata?.view_financial !== false;
-          } else {
-            const userInfo = userTeamData[0];
-            console.log(`✅ Team data fetched successfully:`, JSON.stringify(userInfo, null, 2));
-            teamId = userInfo.team_id || null;
-            teamName = userInfo.team_name || '';
-            role = userInfo.role || 'member';
-            viewFinancial = userInfo.view_financial !== false;
-            userName = userInfo.user_name || userName;
-            console.log(`📋 Extracted values: teamId=${teamId}, teamName=${teamName}, role=${role}`);
-          }
-        } catch (err) {
-          console.error('❌ Exception fetching team info:', err);
-          console.error('Exception details:', JSON.stringify(err, null, 2));
+        if (userError) {
+          console.error(`❌ Error fetching user record:`, userError);
+          console.log(`⚠️ Falling back to user_metadata`);
+          // Fallback to user_metadata from auth.users
+          teamId = userData.user.user_metadata?.team_id || null;
+          role = userData.user.user_metadata?.role || 'member';
+          viewFinancial = userData.user.user_metadata?.view_financial !== false;
+        } else if (!userRecord) {
+          console.warn(`⚠️ User record not found in public.users table`);
           // Fallback to user_metadata
           teamId = userData.user.user_metadata?.team_id || null;
           role = userData.user.user_metadata?.role || 'member';
           viewFinancial = userData.user.user_metadata?.view_financial !== false;
-          console.log(`⚠️ Using fallback after exception: teamId=${teamId}, role=${role}`);
+        } else {
+          console.log(`✅ User record fetched:`, JSON.stringify(userRecord, null, 2));
+          teamId = userRecord.team_id;
+          teamName = userRecord.teams?.name || '';
+          role = userRecord.role || 'member';
+          viewFinancial = userRecord.view_financial !== false;
+          userName = userRecord.name || userName;
+          console.log(`📋 Extracted values: teamId=${teamId}, teamName=${teamName}, role=${role}, userName=${userName}`);
         }
 
         // Call n8n webhook to generate report
