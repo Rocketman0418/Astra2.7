@@ -10,17 +10,43 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>
 );
 
-// Register service worker for PWA functionality - with safe error handling
+// Register service worker for PWA functionality with update detection
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js', { scope: '/' })
+      .register('/sw.js', { scope: '/', updateViaCache: 'none' })
       .then((registration) => {
-        console.log('Service Worker registered:', registration.scope);
+        console.log('[PWA] Service Worker registered:', registration.scope);
+
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          console.log('[PWA] New service worker installing...');
+
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[PWA] New service worker installed, update available');
+                window.dispatchEvent(new CustomEvent('sw-update-available'));
+              }
+            });
+          }
+        });
+
+        setInterval(() => {
+          registration.update();
+        }, 60000);
       })
       .catch((error) => {
-        // Log but don't block app if SW fails
-        console.warn('Service Worker registration failed:', error);
+        console.warn('[PWA] Service Worker registration failed:', error);
       });
+
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        console.log('[PWA] Controller changed, reloading...');
+        window.location.reload();
+      }
+    });
   });
 }

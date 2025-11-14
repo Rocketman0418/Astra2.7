@@ -1,65 +1,43 @@
 {
-  "name": "AI Rocket",
+  "name": "AI Rocket + Astra Intelligence",
   "short_name": "AI Rocket",
-  "description": "AI-powered platform connecting all your data for intelligent insights",
+  "description": "AI-powered platform connecting all your data for intelligent insights and team collaboration",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#111827",
   "theme_color": "#2563eb",
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "48x48",
-      "type": "image/svg+xml"
-    },
-    {
-      "src": "/favicon.svg",
-      "sizes": "72x72",
-      "type": "image/svg+xml"
-    },
-    {
-      "src": "/favicon.svg",
-      "sizes": "96x96",
-      "type": "image/svg+xml"
-    },
-    {
-      "src": "/favicon.svg",
-      "sizes": "144x144",
-      "type": "image/svg+xml"
-    },
-    {
-      "src": "/favicon.svg",
+      "src": "/RocketHub Favicon.png",
       "sizes": "192x192",
-      "type": "image/svg+xml"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "/favicon.svg",
-      "sizes": "256x256",
-      "type": "image/svg+xml"
-    },
-    {
-      "src": "/favicon.svg",
-      "sizes": "384x384",
-      "type": "image/svg+xml"
-    },
-    {
-      "src": "/favicon.svg",
+      "src": "/RocketHub Favicon.png",
       "sizes": "512x512",
-      "type": "image/svg+xml"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "/favicon.svg",
+      "src": "/RocketHub Favicon.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/favicon.svg",
+      "src": "/RocketHub Favicon.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],
-  "categories": ["productivity", "business"],
-  "prefer_related_applications": false
+  "categories": ["productivity", "business", "utilities"],
+  "prefer_related_applications": false,
+  "display_override": ["window-controls-overlay", "standalone"],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
 }

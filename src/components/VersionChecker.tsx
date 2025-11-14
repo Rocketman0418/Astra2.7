@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
 const CURRENT_VERSION = '1.0.0';
-const VERSION_CHECK_INTERVAL = 5 * 60 * 1000; // Check every 5 minutes
+const VERSION_CHECK_INTERVAL = 5 * 60 * 1000;
 
 export const VersionChecker: React.FC = () => {
   const [newVersionAvailable, setNewVersionAvailable] = useState(false);
@@ -10,7 +10,6 @@ export const VersionChecker: React.FC = () => {
 
   const checkVersion = async () => {
     try {
-      // Add a cache-busting parameter to ensure we get the latest version
       const response = await fetch(`/version.json?t=${Date.now()}`, {
         cache: 'no-cache',
         headers: {
@@ -23,42 +22,56 @@ export const VersionChecker: React.FC = () => {
         const data = await response.json();
         const serverVersion = data.version;
 
-        // Compare versions
         if (serverVersion && serverVersion !== CURRENT_VERSION) {
-          console.log(`New version available: ${serverVersion} (current: ${CURRENT_VERSION})`);
+          console.log(`[Version] New version available: ${serverVersion} (current: ${CURRENT_VERSION})`);
           setNewVersionAvailable(true);
         }
       }
     } catch (error) {
-      // Silently fail - don't bother the user if version check fails
-      console.error('Version check failed:', error);
+      console.error('[Version] Check failed:', error);
     }
   };
 
   useEffect(() => {
-    // Check version on mount
     checkVersion();
 
-    // Set up periodic version checks
     const interval = setInterval(checkVersion, VERSION_CHECK_INTERVAL);
 
-    return () => clearInterval(interval);
+    const handleSWUpdate = () => {
+      console.log('[Version] Service worker update detected');
+      setNewVersionAvailable(true);
+    };
+
+    window.addEventListener('sw-update-available', handleSWUpdate);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('sw-update-available', handleSWUpdate);
+    };
   }, []);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
 
-    // Clear all caches and reload
-    if ('caches' in window) {
-      caches.keys().then(names => {
-        names.forEach(name => {
-          caches.delete(name);
-        });
-      });
+    if ('serviceWorker' in navigator) {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration && registration.waiting) {
+        console.log('[Version] Activating new service worker');
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      } else {
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.map(name => caches.delete(name)));
+        }
+        window.location.reload();
+      }
+    } else {
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+      }
+      window.location.reload();
     }
-
-    // Force a hard reload
-    window.location.reload();
   };
 
   if (!newVersionAvailable) {
