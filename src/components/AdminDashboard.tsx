@@ -94,7 +94,7 @@ interface FeedbackStats {
 type TimeFilter = '7days' | '30days' | '90days' | 'all';
 type SortField = 'email' | 'created_at' | 'team_name' | 'documents' | 'messages';
 type SortDirection = 'asc' | 'desc';
-type DetailView = 'users' | 'teams' | 'documents' | 'chats' | 'preview_requests' | 'support' | 'feedback' | null;
+type DetailView = 'users' | 'teams' | 'documents' | 'chats' | 'preview_requests' | 'support' | 'feedback' | 'active_users' | null;
 type SupportFilter = 'all' | 'bug_report' | 'support_message' | 'feature_request';
 
 interface AdminDashboardProps {
@@ -144,6 +144,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
   const [teamsSortDirection, setTeamsSortDirection] = useState<'asc' | 'desc'>('desc');
   const [responseModalMessage, setResponseModalMessage] = useState<SupportMessage | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'needs_response' | 'responded' | 'not_resolved'>('all');
+  const [activeUsersToday, setActiveUsersToday] = useState<Array<{
+    id: string;
+    email: string;
+    team_name: string;
+    private_messages_today: number;
+    team_messages_today: number;
+    reports_today: number;
+    total_actions_today: number;
+  }>>([]);
 
   const superAdminEmails = ['clay@rockethub.ai', 'derek@rockethub.ai', 'marshall@rockethub.ai'];
   const isSuperAdmin = user?.email && superAdminEmails.includes(user.email);
@@ -152,6 +161,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
     if (isOpen && user && isSuperAdmin) {
       loadAllMetrics();
       loadPreviewRequests();
+      loadActiveUsersToday();
     }
   }, [isOpen, timeFilter, user, isSuperAdmin]);
 
@@ -423,7 +433,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
 
   const loadPreviewRequests = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error} = await supabase
         .from('preview_requests')
         .select('*')
         .order('created_at', { ascending: false });
@@ -433,6 +443,74 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
       setPreviewRequests(data || []);
     } catch (error) {
       console.error('Error loading preview requests:', error);
+    }
+  };
+
+  const loadActiveUsersToday = async () => {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayISO = today.toISOString();
+
+      // Get users with teams
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('id, email, team_id');
+
+      if (usersError) throw usersError;
+
+      const { data: teamsData } = await supabase
+        .from('teams')
+        .select('id, name');
+
+      const teamMap = new Map(teamsData?.map(t => [t.id, t.name]) || []);
+
+      // Get today's activity
+      const activeUsers = await Promise.all((usersData || []).map(async (user) => {
+        const [
+          { count: privateMessages },
+          { count: teamMessages },
+          { count: reportsToday }
+        ] = await Promise.all([
+          supabase
+            .from('astra_chats')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .gte('created_at', todayISO),
+          supabase
+            .from('astra_team_messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .gte('created_at', todayISO),
+          supabase
+            .from('user_reports')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('report_type', 'manual')
+            .gte('created_at', todayISO)
+        ]);
+
+        const totalActions = (privateMessages || 0) + (teamMessages || 0) + (reportsToday || 0);
+
+        return {
+          id: user.id,
+          email: user.email,
+          team_name: teamMap.get(user.team_id) || 'No Team',
+          private_messages_today: privateMessages || 0,
+          team_messages_today: teamMessages || 0,
+          reports_today: reportsToday || 0,
+          total_actions_today: totalActions
+        };
+      }));
+
+      // Filter only users with activity today and sort by total actions
+      const activeWithActions = activeUsers
+        .filter(u => u.total_actions_today > 0)
+        .sort((a, b) => b.total_actions_today - a.total_actions_today);
+
+      setActiveUsersToday(activeWithActions);
+    } catch (error) {
+      console.error('Error loading active users today:', error);
     }
   };
 
@@ -1166,9 +1244,28 @@ Sign up here: ${window.location.origin}`;
                 <div className="text-sm text-gray-400">User Feedback</div>
                 {feedbackStats && feedbackStats.avgRatingByCategory && Object.keys(feedbackStats.avgRatingByCategory).length > 0 && (
                   <div className="mt-2 text-xs text-gray-500">
-                    Avg Rating: {(Object.values(feedbackStats.avgRatingByCategory).reduce((a, b) => a + b, 0) / Object.values(feedbackStats.avgRatingByCategory).length).toFixed(1)}/5
+                    Avg Rating: {(Object.values(feedbackStats.avgRatingByCategory).reduce((a, b) => a + b, 0) / Object.values(feedbackStats.avgRatingByCategory).length).toFixed(1)}/10
                   </div>
                 )}
+              </button>
+
+              <button
+                onClick={() => setDetailView('active_users')}
+                className={`bg-gray-800 border rounded-xl p-6 transition-all text-left w-full ${
+                  detailView === 'active_users'
+                    ? 'border-teal-500 shadow-lg shadow-teal-500/20'
+                    : 'border-gray-700 hover:border-teal-500 hover:shadow-lg hover:shadow-teal-500/20'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <TrendingUp className="w-8 h-8 text-teal-400" />
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+                <div className="text-3xl font-bold text-white mb-1">{activeUsersToday.length}</div>
+                <div className="text-sm text-gray-400">Active Users Today</div>
+                <div className="mt-2 text-xs text-gray-500">
+                  {activeUsersToday.reduce((sum, u) => sum + u.total_actions_today, 0)} total actions
+                </div>
               </button>
 
             </div>
@@ -1408,30 +1505,6 @@ Sign up here: ${window.location.origin}`;
                       ))}
                     </tbody>
                   </table>
-                </div>
-              </div>
-            )}
-
-            {detailView === 'users' && (
-              <div className="text-gray-300">
-                <p className="mb-4">Total Users: {users.length}</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-700/50 rounded-lg p-4">
-                    <div className="text-2xl font-bold text-white">{users.filter(u => u.role === 'admin').length}</div>
-                    <div className="text-sm text-gray-400">Admins</div>
-                  </div>
-                  <div className="bg-gray-700/50 rounded-lg p-4">
-                    <div className="text-2xl font-bold text-white">{users.filter(u => u.gmail_connected).length}</div>
-                    <div className="text-sm text-gray-400">Gmail Connected</div>
-                  </div>
-                  <div className="bg-gray-700/50 rounded-lg p-4">
-                    <div className="text-2xl font-bold text-white">{users.filter(u => u.drive_connected).length}</div>
-                    <div className="text-sm text-gray-400">Drive Connected</div>
-                  </div>
-                  <div className="bg-gray-700/50 rounded-lg p-4">
-                    <div className="text-2xl font-bold text-white">{users.filter(u => u.documents_synced).length}</div>
-                    <div className="text-sm text-gray-400">Documents Synced</div>
-                  </div>
                 </div>
               </div>
             )}
@@ -1923,32 +1996,55 @@ Sign up here: ${window.location.origin}`;
 
             {detailView === 'feedback' && (
               <div>
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-gray-400">Total Responses: {feedback.length}</p>
-                    <button
-                      onClick={() => exportToCSV(feedback, 'user-feedback')}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
-                    >
-                      <Download className="w-4 h-4" />
-                      Export CSV
-                    </button>
-                  </div>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-white">Total Responses: {feedback.length}</h3>
+                  <button
+                    onClick={() => exportToCSV(feedback, 'user-feedback')}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    Export CSV
+                  </button>
+                </div>
 
-                  {feedbackStats && feedbackStats.categoryBreakdown && feedbackStats.categoryBreakdown.length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                {feedbackStats && feedbackStats.categoryBreakdown && feedbackStats.categoryBreakdown.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="text-white font-semibold mb-4">Average Ratings by Question</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {feedbackStats.categoryBreakdown.map((cat) => (
                         <div key={cat.category} className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
-                          <div className="text-sm text-gray-400 mb-1">{cat.category}</div>
-                          <div className="text-2xl font-bold text-white mb-1">
-                            {cat.avg_rating.toFixed(1)}/5
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="text-sm font-medium text-gray-300">
+                              {cat.category}
+                            </div>
+                            <div className={`text-2xl font-bold ${
+                              cat.avg_rating >= 8 ? 'text-emerald-400' :
+                              cat.avg_rating >= 6 ? 'text-yellow-400' :
+                              'text-red-400'
+                            }`}>
+                              {cat.avg_rating.toFixed(1)}
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-500">{cat.count} responses</div>
+                          <div className="w-full bg-gray-600 rounded-full h-2 mb-2">
+                            <div
+                              className={`h-2 rounded-full ${
+                                cat.avg_rating >= 8 ? 'bg-emerald-500' :
+                                cat.avg_rating >= 6 ? 'bg-yellow-500' :
+                                'bg-red-500'
+                              }`}
+                              style={{ width: `${(cat.avg_rating / 10) * 100}%` }}
+                            />
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {cat.count} {cat.count === 1 ? 'response' : 'responses'}
+                          </div>
                         </div>
                       ))}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+
+                <h4 className="text-white font-semibold mb-4">Individual Feedback</h4>
 
                 <div className="space-y-3 max-h-[500px] overflow-y-auto">
                   {feedback.map((fb) => (
@@ -1969,8 +2065,12 @@ Sign up here: ${window.location.origin}`;
                                 <div className="text-xs text-gray-400 mt-1 italic">"{answer.comment}"</div>
                               )}
                             </div>
-                            <div className="ml-4 px-2 py-1 bg-blue-600 text-white text-xs rounded font-medium">
-                              {answer.rating}/5
+                            <div className={`ml-4 px-2 py-1 text-white text-xs rounded font-medium ${
+                              answer.rating >= 8 ? 'bg-emerald-600' :
+                              answer.rating >= 6 ? 'bg-yellow-600' :
+                              'bg-red-600'
+                            }`}>
+                              {answer.rating}/10
                             </div>
                           </div>
                         ))}
@@ -1991,6 +2091,75 @@ Sign up here: ${window.location.origin}`;
                     No feedback submissions yet
                   </div>
                 )}
+              </div>
+            )}
+
+            {detailView === 'active_users' && (
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-white">Active Users Today - {activeUsersToday.length} users</h3>
+                  <button
+                    onClick={() => exportToCSV(activeUsersToday, 'active-users-today')}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    Export CSV
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-white">
+                      {activeUsersToday.reduce((sum, u) => sum + u.private_messages_today, 0)}
+                    </div>
+                    <div className="text-sm text-gray-400">Private Messages Today</div>
+                  </div>
+                  <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-white">
+                      {activeUsersToday.reduce((sum, u) => sum + u.team_messages_today, 0)}
+                    </div>
+                    <div className="text-sm text-gray-400">Team Messages Today</div>
+                  </div>
+                  <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-white">
+                      {activeUsersToday.reduce((sum, u) => sum + u.reports_today, 0)}
+                    </div>
+                    <div className="text-sm text-gray-400">Manual Reports Today</div>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-600">
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">User</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Team</th>
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Private Messages</th>
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Team Messages</th>
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Reports</th>
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Total Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {activeUsersToday.map((user) => (
+                        <tr key={user.id} className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors">
+                          <td className="py-3 px-4 text-sm text-white">{user.email}</td>
+                          <td className="py-3 px-4 text-sm text-gray-400">{user.team_name}</td>
+                          <td className="py-3 px-4 text-sm text-right">{user.private_messages_today}</td>
+                          <td className="py-3 px-4 text-sm text-right">{user.team_messages_today}</td>
+                          <td className="py-3 px-4 text-sm text-right">{user.reports_today}</td>
+                          <td className="py-3 px-4 text-sm text-right font-semibold text-white">{user.total_actions_today}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {activeUsersToday.length === 0 && (
+                    <div className="text-center py-8 text-gray-400">
+                      No users with activity today
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
