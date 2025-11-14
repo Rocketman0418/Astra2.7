@@ -4,7 +4,7 @@ const RUNTIME_CACHE = 'astra-runtime-v2';
 const urlsToCache = [
   '/',
   '/manifest.json',
-  '/RocketHub Favicon.png'
+  '/app-icon.svg'
 ];
 
 self.addEventListener('install', (event) => {
