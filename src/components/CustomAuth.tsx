@@ -287,28 +287,30 @@ export const CustomAuth: React.FC = () => {
 
   const handlePreviewRequest = async () => {
     setError('');
+
+    // Validate both email fields are filled and match BEFORE setting loading state
+    if (!email || !confirmEmail) {
+      setError('Please enter your email in both fields before requesting preview access');
+      // Scroll to error message
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (email.toLowerCase() !== confirmEmail.toLowerCase()) {
+      setError('Email addresses do not match');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     setPreviewLoading(true);
 
     try {
-      // Validate both email fields are filled and match
-      if (!email || !confirmEmail) {
-        setError('Please enter and confirm your email address');
-        setPreviewLoading(false);
-        return;
-      }
-
-      if (!validateEmail(email)) {
-        setError('Please enter a valid email address');
-        setPreviewLoading(false);
-        return;
-      }
-
-      if (email.toLowerCase() !== confirmEmail.toLowerCase()) {
-        setError('Email addresses do not match');
-        setPreviewLoading(false);
-        return;
-      }
-
       // Submit preview request to database
       const { error: insertError } = await supabase
         .from('preview_requests')
@@ -650,7 +652,7 @@ export const CustomAuth: React.FC = () => {
           <button
             type="button"
             onClick={handlePreviewRequest}
-            disabled={previewLoading || !email || !confirmEmail}
+            disabled={previewLoading}
             className="w-full py-3 mt-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center space-x-2 border border-purple-500"
           >
             {previewLoading ? (
