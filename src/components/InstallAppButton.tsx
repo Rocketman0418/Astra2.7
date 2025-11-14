@@ -23,43 +23,41 @@ export const InstallAppButton: React.FC = () => {
   const handleClick = async () => {
     console.log('PWA Button clicked:', { isInstalled, isIOS, isInstallable });
 
-    if (isInstalled && !isIOS) {
-      console.log('Opening in app (Chrome/Edge)');
+    // iOS always shows instructions
+    if (isIOS) {
+      console.log('iOS detected - showing instructions');
+      setShowIOSInstructions(true);
+      return;
+    }
+
+    // If app is already installed (Chrome/Edge), open it
+    if (isInstalled) {
+      console.log('Opening in installed app (Chrome/Edge)');
       const currentPath = window.location.pathname + window.location.search + window.location.hash;
       const appUrl = window.location.origin + currentPath;
 
-      // Try to open in the installed app
-      try {
-        // Create a temporary link with target for the app
-        const link = document.createElement('a');
-        link.href = appUrl;
-        link.target = '_blank';
-        link.rel = 'opener';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        console.log('Opened link to app');
-      } catch (error) {
-        console.error('Error opening in app:', error);
-        window.open(appUrl, '_blank');
-      }
-    } else if (isIOS) {
-      console.log('iOS detected - showing instructions');
-      setShowIOSInstructions(true);
-    } else if (isInstallable) {
+      // Simple navigation - Chrome will open in the installed app automatically
+      window.location.href = appUrl;
+      return;
+    }
+
+    // If installable but not installed, prompt to install
+    if (isInstallable) {
       console.log('Prompting to install');
       const installed = await install();
       console.log('Install result:', installed);
       if (installed) {
+        // After install, reload to open in app
         setTimeout(() => {
-          const currentPath = window.location.pathname + window.location.search + window.location.hash;
-          const appUrl = window.location.origin + currentPath;
-          window.open(appUrl, '_blank');
-        }, 1000);
+          window.location.reload();
+        }, 500);
       }
-    } else {
-      console.log('Button clicked but no action available');
+      return;
     }
+
+    // Fallback - show instructions
+    console.log('Button clicked - showing iOS instructions as fallback');
+    setShowIOSInstructions(true);
   };
 
   const buttonText = (isInstalled && !isIOS) ? 'Open In App' : (isIOS ? 'Install App' : 'Install & Open App');
