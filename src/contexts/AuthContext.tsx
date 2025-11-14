@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { initializeHallucinationDetector } from '../lib/hallucination-detector';
 
 interface AuthContextType {
   user: User | null;
@@ -33,13 +32,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-
-      // Initialize hallucination detector if user is logged in
-      if (session?.user?.user_metadata?.team_id) {
-        initializeHallucinationDetector(session.user.user_metadata.team_id).catch(err => {
-          console.error('Failed to initialize hallucination detector:', err);
-        });
-      }
     });
 
     // Listen for auth changes
@@ -49,13 +41,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-
-      // Initialize hallucination detector when user logs in
-      if (session?.user?.user_metadata?.team_id) {
-        initializeHallucinationDetector(session.user.user_metadata.team_id).catch(err => {
-          console.error('Failed to initialize hallucination detector:', err);
-        });
-      }
     });
 
     return () => subscription.unsubscribe();

@@ -3,7 +3,6 @@ import { MessageBubble } from './MessageBubble';
 import { LoadingIndicator } from './LoadingIndicator';
 import { ChatInput } from './ChatInput';
 import { VisualizationView } from './VisualizationView';
-import { ValidatedAIMessage } from './ValidatedAIMessage';
 import { extractVisualizationTitle } from '../utils/extractVisualizationTitle';
 import { useChat } from '../hooks/useChat';
 import { useFavorites } from '../hooks/useFavorites';
@@ -392,45 +391,20 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
     <div className="flex flex-col h-full">
       <div ref={containerRef} className="flex-1 overflow-y-auto px-3 md:px-4 chat-messages-container" style={{ paddingBottom: '120px' }}>
         <div className="max-w-4xl mx-auto space-y-3 md:space-y-4 pt-4">
-          {messages.map((message) => {
-            // Check if this is an Astra (AI) message that should be validated
-            const isAstraMessage = message.messageType === 'astra' || (!message.isUser && !message.isCentered);
-            const teamId = user?.user_metadata?.team_id;
-
-            return (
-              <div key={message.id} id={`message-${message.id}`}>
-                {isAstraMessage && teamId ? (
-                  <ValidatedAIMessage
-                    message={message.text}
-                    messageId={message.chatId || message.id}
-                    teamId={teamId}
-                  >
-                    <MessageBubble
-                      message={message}
-                      onToggleExpansion={toggleMessageExpansion}
-                      onCreateVisualization={handleCreateVisualization}
-                      onViewVisualization={handleViewVisualization}
-                      onToggleFavorite={toggleFavorite}
-                      isFavorited={isFavorited(message.id)}
-                      visualizationState={getLocalVisualizationState(message.chatId || message.id)}
-                      onReply={startReply}
-                    />
-                  </ValidatedAIMessage>
-                ) : (
-                  <MessageBubble
-                    message={message}
-                    onToggleExpansion={toggleMessageExpansion}
-                    onCreateVisualization={handleCreateVisualization}
-                    onViewVisualization={handleViewVisualization}
-                    onToggleFavorite={toggleFavorite}
-                    isFavorited={isFavorited(message.id)}
-                    visualizationState={getLocalVisualizationState(message.chatId || message.id)}
-                    onReply={startReply}
-                  />
-                )}
-              </div>
-            );
-          })}
+          {messages.map((message) => (
+            <div key={message.id} id={`message-${message.id}`}>
+              <MessageBubble
+                message={message}
+                onToggleExpansion={toggleMessageExpansion}
+                onCreateVisualization={handleCreateVisualization}
+                onViewVisualization={handleViewVisualization}
+                onToggleFavorite={toggleFavorite}
+                isFavorited={isFavorited(message.id)}
+                visualizationState={getLocalVisualizationState(message.chatId || message.id)}
+                onReply={startReply}
+              />
+            </div>
+          ))}
         
           {isLoading && <LoadingIndicator />}
         

@@ -4,7 +4,6 @@ import { GroupMessage } from './GroupMessage';
 import { MentionInput } from './MentionInput';
 import { LoadingIndicator } from './LoadingIndicator';
 import { VisualizationView } from './VisualizationView';
-import { ValidatedAIMessage } from './ValidatedAIMessage';
 import { extractVisualizationTitle } from '../utils/extractVisualizationTitle';
 import { VisualizationLoadingView } from './VisualizationLoadingView';
 import { useGroupChat } from '../hooks/useGroupChat';
@@ -1134,49 +1133,22 @@ ${finalSummary}
               </div>
             ) : (
               <>
-                {messages.map((message) => {
-                  // Check if this is an Astra (AI) message that should be validated
-                  const isAstraMessage = message.message_type === 'astra';
-                  const teamId = user?.user_metadata?.team_id;
-
-                  return (
-                    <div key={message.id} id={`message-${message.id}`}>
-                      {isAstraMessage && teamId ? (
-                        <ValidatedAIMessage
-                          message={message.message}
-                          messageId={message.id}
-                          teamId={teamId}
-                        >
-                          <GroupMessage
-                            message={message}
-                            currentUserId={user?.id || ''}
-                            currentUserEmail={user?.email || ''}
-                            isCurrentUserAdmin={isCurrentUserAdmin}
-                            onViewVisualization={handleViewVisualization}
-                            onCreateVisualization={handleCreateVisualization}
-                            onDeleteMessage={handleDeleteMessage}
-                            onReact={handleReact}
-                            onReply={handleReply}
-                            visualizationState={getVisualizationState(message.id)}
-                          />
-                        </ValidatedAIMessage>
-                      ) : (
-                        <GroupMessage
-                          message={message}
-                          currentUserId={user?.id || ''}
-                          currentUserEmail={user?.email || ''}
-                          isCurrentUserAdmin={isCurrentUserAdmin}
-                          onViewVisualization={handleViewVisualization}
-                          onCreateVisualization={handleCreateVisualization}
-                          onDeleteMessage={handleDeleteMessage}
-                          onReact={handleReact}
-                          onReply={handleReply}
-                          visualizationState={getVisualizationState(message.id)}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
+                {messages.map((message) => (
+                  <div key={message.id} id={`message-${message.id}`}>
+                    <GroupMessage
+                      message={message}
+                      currentUserId={user?.id || ''}
+                      currentUserEmail={user?.email || ''}
+                      isCurrentUserAdmin={isCurrentUserAdmin}
+                      onViewVisualization={handleViewVisualization}
+                      onCreateVisualization={handleCreateVisualization}
+                      onDeleteMessage={handleDeleteMessage}
+                      onReact={handleReact}
+                      onReply={handleReply}
+                      visualizationState={getVisualizationState(message.id)}
+                    />
+                  </div>
+                ))}
 
                 {isAstraThinking && (
                   <div className="flex justify-start mb-4">
