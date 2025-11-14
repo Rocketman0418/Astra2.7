@@ -28,7 +28,7 @@ export const MarketingPage: React.FC = () => {
         </div>
 
         {/* Main Tagline */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-16">
           <h3 className="text-4xl font-bold text-white mb-3">
             AI that Works for You
           </h3>
@@ -37,92 +37,92 @@ export const MarketingPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Features Grid - 8 boxes in 2 rows of 4 - 25% bigger proportionally with thicker borders */}
+        {/* Features Grid - 8 boxes in 2 rows of 4 - 25% bigger proportionally with thicker borders and larger text */}
         <div className="grid grid-cols-4 gap-7 mb-10">
             {/* 1. All Your Data Connected */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-6 hover:border-orange-500/50 transition-all duration-300">
-              <div className="w-12 h-12 rounded-lg bg-orange-500/10 flex items-center justify-center mb-4">
-                <RefreshCw className="w-6 h-6 text-orange-400" />
+            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-7 hover:border-orange-500/50 transition-all duration-300">
+              <div className="w-14 h-14 rounded-lg bg-orange-500/10 flex items-center justify-center mb-5">
+                <RefreshCw className="w-7 h-7 text-orange-400" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">All Your Data Connected</h3>
-              <p className="text-gray-400 text-sm">
+              <h3 className="text-2xl font-semibold text-white mb-3">All Your Data Connected</h3>
+              <p className="text-gray-400 text-base">
                 Connect Documents, Financials, and more. AI analyzes all your data for comprehensive insights.
               </p>
             </div>
 
             {/* 2. Smart Visualizations */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-6 hover:border-purple-500/50 transition-all duration-300">
-              <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
-                <BarChart3 className="w-6 h-6 text-purple-400" />
+            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-7 hover:border-purple-500/50 transition-all duration-300">
+              <div className="w-14 h-14 rounded-lg bg-purple-500/10 flex items-center justify-center mb-5">
+                <BarChart3 className="w-7 h-7 text-purple-400" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Smart Visualizations</h3>
-              <p className="text-gray-400 text-sm">
+              <h3 className="text-2xl font-semibold text-white mb-3">Smart Visualizations</h3>
+              <p className="text-gray-400 text-base">
                 Turn conversations into actionable insights with AI-generated charts, graphs, and visual reports.
               </p>
             </div>
 
             {/* 3. Private AI Assistant */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-6 hover:border-blue-500/50 transition-all duration-300">
-              <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4">
-                <Brain className="w-6 h-6 text-blue-400" />
+            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-7 hover:border-blue-500/50 transition-all duration-300">
+              <div className="w-14 h-14 rounded-lg bg-blue-500/10 flex items-center justify-center mb-5">
+                <Brain className="w-7 h-7 text-blue-400" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Private AI Assistant</h3>
-              <p className="text-gray-400 text-sm">
+              <h3 className="text-2xl font-semibold text-white mb-3">Private AI Assistant</h3>
+              <p className="text-gray-400 text-base">
                 Have confidential conversations with AI that understands your business context and provides personalized insights.
               </p>
             </div>
 
             {/* 4. Team Collaboration */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-6 hover:border-emerald-500/50 transition-all duration-300">
-              <div className="w-12 h-12 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-4">
-                <Users className="w-6 h-6 text-emerald-400" />
+            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-7 hover:border-emerald-500/50 transition-all duration-300">
+              <div className="w-14 h-14 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-5">
+                <Users className="w-7 h-7 text-emerald-400" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Team Collaboration</h3>
-              <p className="text-gray-400 text-sm">
+              <h3 className="text-2xl font-semibold text-white mb-3">Team Collaboration</h3>
+              <p className="text-gray-400 text-base">
                 Work together with your team and AI in shared conversations. @mention team members and AI for instant insights.
               </p>
             </div>
 
             {/* 5. Automated Reports */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-6 hover:border-yellow-500/50 transition-all duration-300">
-              <div className="w-12 h-12 rounded-lg bg-yellow-500/10 flex items-center justify-center mb-4">
-                <FileText className="w-6 h-6 text-yellow-400" />
+            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-7 hover:border-yellow-500/50 transition-all duration-300">
+              <div className="w-14 h-14 rounded-lg bg-yellow-500/10 flex items-center justify-center mb-5">
+                <FileText className="w-7 h-7 text-yellow-400" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Automated Reports</h3>
-              <p className="text-gray-400 text-sm">
+              <h3 className="text-2xl font-semibold text-white mb-3">Automated Reports</h3>
+              <p className="text-gray-400 text-base">
                 Schedule automated reports delivered to your inbox. Stay informed with daily, weekly, or monthly insights.
               </p>
             </div>
 
             {/* 6. Agent Builder */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-6 hover:border-pink-500/50 transition-all duration-300">
-              <div className="w-12 h-12 rounded-lg bg-pink-500/10 flex items-center justify-center mb-4">
-                <Bot className="w-6 h-6 text-pink-400" />
+            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-7 hover:border-pink-500/50 transition-all duration-300">
+              <div className="w-14 h-14 rounded-lg bg-pink-500/10 flex items-center justify-center mb-5">
+                <Bot className="w-7 h-7 text-pink-400" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Agent Builder</h3>
-              <p className="text-gray-400 text-sm">
+              <h3 className="text-2xl font-semibold text-white mb-3">Agent Builder</h3>
+              <p className="text-gray-400 text-base">
                 Design and deploy custom AI Agents to complete tasks autonomously.
               </p>
             </div>
 
             {/* 7. Email Control */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-6 hover:border-indigo-500/50 transition-all duration-300">
-              <div className="w-12 h-12 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-4">
-                <Mail className="w-6 h-6 text-indigo-400" />
+            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-7 hover:border-indigo-500/50 transition-all duration-300">
+              <div className="w-14 h-14 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-5">
+                <Mail className="w-7 h-7 text-indigo-400" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Email Control</h3>
-              <p className="text-gray-400 text-sm">
+              <h3 className="text-2xl font-semibold text-white mb-3">Email Control</h3>
+              <p className="text-gray-400 text-base">
                 Allow Astra to understand, analyze and manage your incoming and outgoing emails.
               </p>
             </div>
 
             {/* 8. AI Job Roles */}
-            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-6 hover:border-teal-500/50 transition-all duration-300">
-              <div className="w-12 h-12 rounded-lg bg-teal-500/10 flex items-center justify-center mb-4">
-                <UserCircle className="w-6 h-6 text-teal-400" />
+            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-7 hover:border-teal-500/50 transition-all duration-300">
+              <div className="w-14 h-14 rounded-lg bg-teal-500/10 flex items-center justify-center mb-5">
+                <UserCircle className="w-7 h-7 text-teal-400" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">AI Job Roles</h3>
-              <p className="text-gray-400 text-sm">
+              <h3 className="text-2xl font-semibold text-white mb-3">AI Job Roles</h3>
+              <p className="text-gray-400 text-base">
                 Create roles such as Business Coach, Finance Director, Marketing Manager and more.
               </p>
             </div>
@@ -150,8 +150,8 @@ export const MarketingPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Closing Block Section - Wider */}
-        <div className="bg-gradient-to-br from-blue-500/10 via-emerald-500/10 to-purple-500/10 border border-gray-700 rounded-2xl p-10 text-center w-full">
+        {/* Closing Block Section */}
+        <div className="max-w-[1200px] mx-auto bg-gradient-to-br from-blue-500/10 via-emerald-500/10 to-purple-500/10 border border-gray-700 rounded-2xl p-10 text-center">
           <h3 className="text-3xl font-bold text-white mb-4">
             AI That Works For You
           </h3>
