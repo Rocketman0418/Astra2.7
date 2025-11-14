@@ -92,7 +92,7 @@ Deno.serve(async (req: Request) => {
         }
 
         // Fetch team information from the public.users table
-        let teamId = '';
+        let teamId: string | null = null;
         let teamName = '';
         let role = 'member';
         let viewFinancial = true;
@@ -117,13 +117,13 @@ Deno.serve(async (req: Request) => {
             console.warn(`⚠️ Using fallback to user_metadata`);
             console.log(`User metadata:`, JSON.stringify(userData.user.user_metadata, null, 2));
             // Fallback to user_metadata
-            teamId = userData.user.user_metadata?.team_id || '';
+            teamId = userData.user.user_metadata?.team_id || null;
             role = userData.user.user_metadata?.role || 'member';
             viewFinancial = userData.user.user_metadata?.view_financial !== false;
           } else {
             const userInfo = userTeamData[0];
             console.log(`✅ Team data fetched successfully:`, JSON.stringify(userInfo, null, 2));
-            teamId = userInfo.team_id || '';
+            teamId = userInfo.team_id || null;
             teamName = userInfo.team_name || '';
             role = userInfo.role || 'member';
             viewFinancial = userInfo.view_financial !== false;
@@ -134,7 +134,7 @@ Deno.serve(async (req: Request) => {
           console.error('❌ Exception fetching team info:', err);
           console.error('Exception details:', JSON.stringify(err, null, 2));
           // Fallback to user_metadata
-          teamId = userData.user.user_metadata?.team_id || '';
+          teamId = userData.user.user_metadata?.team_id || null;
           role = userData.user.user_metadata?.role || 'member';
           viewFinancial = userData.user.user_metadata?.view_financial !== false;
           console.log(`⚠️ Using fallback after exception: teamId=${teamId}, role=${role}`);
