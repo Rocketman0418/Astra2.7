@@ -611,7 +611,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
 Use this invite code to create your account: ${generatedPreviewCode}
 Email: ${previewInviteEmail}
 
-Sign up here: ${window.location.origin}`;
+Sign up here: https://airocket.app`;
 
     navigator.clipboard.writeText(message);
     setPreviewInviteSuccess('Invite message copied to clipboard!');
@@ -1481,9 +1481,20 @@ Sign up here: ${window.location.origin}`;
                           <td className="py-3 px-4 text-sm font-medium text-white">{team.name}</td>
                           <td className="py-3 px-4 text-sm text-gray-300">{team.member_count}</td>
                           <td className="py-3 px-4">
-                            <div className="text-sm font-semibold text-white">{team.documents_count}</div>
-                            <div className="text-xs text-gray-400">
-                              S:{team.strategy_docs_count} M:{team.meeting_docs_count} F:{team.financial_docs_count}
+                            <div className="text-sm font-semibold text-white mb-1">{team.documents_count}</div>
+                            <div className="flex items-center gap-2 text-xs text-gray-400">
+                              <div className="flex items-center gap-1">
+                                <FileText className="w-3 h-3" />
+                                <span>{team.strategy_docs_count}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Users className="w-3 h-3" />
+                                <span>{team.meeting_docs_count}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <HardDrive className="w-3 h-3" />
+                                <span>{team.financial_docs_count}</span>
+                              </div>
                             </div>
                           </td>
                           <td className="py-3 px-4">
@@ -1534,12 +1545,11 @@ Sign up here: ${window.location.origin}`;
                 </div>
 
                 <div className="border-t border-gray-700 pt-6">
-                  <h4 className="text-lg font-semibold mb-4 text-white">Documents by User</h4>
+                  <h4 className="text-lg font-semibold mb-4 text-white">Documents by Team</h4>
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
                         <tr className="border-b border-gray-600">
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">User</th>
                           <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Team</th>
                           <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Strategy</th>
                           <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Meeting</th>
@@ -1548,22 +1558,21 @@ Sign up here: ${window.location.origin}`;
                         </tr>
                       </thead>
                       <tbody>
-                        {[...users]
-                          .filter(u => u.total_docs_count > 0)
-                          .sort((a, b) => b.total_docs_count - a.total_docs_count)
-                          .map(user => (
-                            <tr key={user.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
-                              <td className="py-3 px-4 text-sm">{user.email}</td>
-                              <td className="py-3 px-4 text-sm text-gray-400">{user.team_name}</td>
-                              <td className="py-3 px-4 text-sm text-right">{user.strategy_docs_count}</td>
-                              <td className="py-3 px-4 text-sm text-right">{user.meeting_docs_count}</td>
-                              <td className="py-3 px-4 text-sm text-right">{user.financial_docs_count}</td>
-                              <td className="py-3 px-4 text-sm text-right font-semibold">{user.total_docs_count}</td>
+                        {teamsData
+                          .filter(t => t.documents_count > 0)
+                          .sort((a, b) => b.documents_count - a.documents_count)
+                          .map(team => (
+                            <tr key={team.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
+                              <td className="py-3 px-4 text-sm font-medium text-white">{team.name}</td>
+                              <td className="py-3 px-4 text-sm text-right">{team.strategy_docs_count}</td>
+                              <td className="py-3 px-4 text-sm text-right">{team.meeting_docs_count}</td>
+                              <td className="py-3 px-4 text-sm text-right">{team.financial_docs_count}</td>
+                              <td className="py-3 px-4 text-sm text-right font-semibold">{team.documents_count}</td>
                             </tr>
                           ))}
                       </tbody>
                     </table>
-                    {users.filter(u => u.total_docs_count > 0).length === 0 && (
+                    {teamsData.filter(t => t.documents_count > 0).length === 0 && (
                       <div className="text-center py-8 text-gray-400">No documents uploaded yet</div>
                     )}
                   </div>
@@ -1621,99 +1630,6 @@ Sign up here: ${window.location.origin}`;
                       <div className="text-center py-8 text-gray-400">No messages yet</div>
                     )}
                   </div>
-                </div>
-              </div>
-            )}
-
-            {detailView === 'users' && (
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search users..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <button
-                    onClick={() => exportToCSV(filteredAndSortedUsers, 'user-metrics')}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
-                  >
-                    <Download className="w-4 h-4" />
-                    Export CSV
-                  </button>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-gray-600">
-                        <th
-                          className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white whitespace-nowrap"
-                          onClick={() => handleSort('email')}
-                        >
-                          <div className="flex items-center gap-2">
-                            Email
-                            <ArrowUpDown className="w-4 h-4" />
-                          </div>
-                        </th>
-                        <th
-                          className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white whitespace-nowrap"
-                          onClick={() => handleSort('team_name')}
-                        >
-                          <div className="flex items-center gap-2">
-                            Team
-                            <ArrowUpDown className="w-4 h-4" />
-                          </div>
-                        </th>
-                        <th
-                          className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white whitespace-nowrap"
-                          onClick={() => handleSort('created_at')}
-                        >
-                          <div className="flex items-center gap-2">
-                            Joined
-                            <ArrowUpDown className="w-4 h-4" />
-                          </div>
-                        </th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400 whitespace-nowrap">Last Active</th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400 whitespace-nowrap">Documents</th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400 whitespace-nowrap">Messages</th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400 whitespace-nowrap">Reports</th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400 whitespace-nowrap">Integrations</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredAndSortedUsers.map((user) => (
-                        <tr key={user.id} className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors">
-                          <td className="py-3 px-4 text-sm">{user.email}</td>
-                          <td className="py-3 px-4 text-sm text-gray-400">{user.team_name}</td>
-                          <td className="py-3 px-4 text-sm text-gray-400">{format(new Date(user.created_at), 'MMM d, yyyy')}</td>
-                          <td className="py-3 px-4 text-sm text-gray-400">
-                            {user.last_active_at ? format(new Date(user.last_active_at), 'MMM d, yyyy') : 'Never'}
-                          </td>
-                          <td className="py-3 px-4 text-sm">{user.total_docs_count}</td>
-                          <td className="py-3 px-4 text-sm">{user.private_chats_count + user.team_messages_count}</td>
-                          <td className="py-3 px-4 text-sm">{user.reports_count}</td>
-                          <td className="py-3 px-4 text-sm">
-                            <div className="flex items-center gap-2">
-                              {user.gmail_connected && (
-                                <Mail className="w-4 h-4 text-green-400" title="Gmail connected" />
-                              )}
-                              {user.drive_connected && (
-                                <HardDrive className="w-4 h-4 text-blue-400" title="Drive connected" />
-                              )}
-                              {!user.gmail_connected && !user.drive_connected && (
-                                <span className="text-gray-500 text-xs">None</span>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
                 </div>
               </div>
             )}
@@ -1918,7 +1834,7 @@ Sign up here: ${window.location.origin}`;
                   </div>
                 </div>
 
-                <div className="space-y-3 max-h-[500px] overflow-y-auto">
+                <div className="space-y-3 max-h-[700px] overflow-y-auto">
                   {filteredSupportMessages.map((message) => (
                     <div
                       key={message.id}
@@ -1946,9 +1862,13 @@ Sign up here: ${window.location.origin}`;
                               {message.support_type.replace('_', ' ')}
                             </span>
                             {message.not_resolved && (
-                              <span className="px-2 py-0.5 rounded text-xs bg-red-600 text-white">
+                              <button
+                                onClick={() => toggleNotResolved(message.id, message.not_resolved || false)}
+                                className="px-2 py-0.5 rounded text-xs bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer"
+                                title="Click to mark as resolved"
+                              >
                                 Not Resolved
-                              </span>
+                              </button>
                             )}
                             {message.status === 'responded' && !message.not_resolved && (
                               <CheckCircle className="w-4 h-4 text-green-400" />

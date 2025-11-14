@@ -96,7 +96,7 @@ Deno.serve(async (req: Request) => {
       supabaseAdmin.from('teams').select('*'),
       supabaseAdmin.from('documents').select('*'),
       supabaseAdmin.from('astra_chats').select('*'),
-      supabaseAdmin.from('scheduled_reports').select('*'),
+      supabaseAdmin.from('user_reports').select('*'),
       supabaseAdmin.from('gmail_auth').select('*'),
       supabaseAdmin.from('user_drive_connections').select('*'),
       supabaseAdmin.from('user_feedback_submissions').select('*')
