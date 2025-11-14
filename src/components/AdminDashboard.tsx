@@ -1625,8 +1625,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
 
             {detailView === 'documents' && overviewMetrics && (
               <div className="text-gray-300">
-                <p className="mb-4">Total Documents: {overviewMetrics.totalDocuments}</p>
-                <div className="grid grid-cols-3 gap-4">
+                <p className="mb-4 text-lg font-semibold">Total Documents: {overviewMetrics.totalDocuments}</p>
+                <div className="grid grid-cols-3 gap-4 mb-6">
                   <div className="bg-gray-700/50 rounded-lg p-4">
                     <div className="text-2xl font-bold text-white">
                       {overviewMetrics.strategyDocsCount}
@@ -1646,13 +1646,49 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
                     <div className="text-sm text-gray-400">Financial Docs</div>
                   </div>
                 </div>
+
+                <div className="border-t border-gray-700 pt-6">
+                  <h4 className="text-lg font-semibold mb-4 text-white">Documents by User</h4>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-gray-600">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">User</th>
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Team</th>
+                          <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Strategy</th>
+                          <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Meeting</th>
+                          <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Financial</th>
+                          <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[...users]
+                          .filter(u => u.total_docs_count > 0)
+                          .sort((a, b) => b.total_docs_count - a.total_docs_count)
+                          .map(user => (
+                            <tr key={user.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
+                              <td className="py-3 px-4 text-sm">{user.email}</td>
+                              <td className="py-3 px-4 text-sm text-gray-400">{user.team_name}</td>
+                              <td className="py-3 px-4 text-sm text-right">{user.strategy_docs_count}</td>
+                              <td className="py-3 px-4 text-sm text-right">{user.meeting_docs_count}</td>
+                              <td className="py-3 px-4 text-sm text-right">{user.financial_docs_count}</td>
+                              <td className="py-3 px-4 text-sm text-right font-semibold">{user.total_docs_count}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                    {users.filter(u => u.total_docs_count > 0).length === 0 && (
+                      <div className="text-center py-8 text-gray-400">No documents uploaded yet</div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
             {detailView === 'chats' && overviewMetrics && (
               <div className="text-gray-300">
-                <p className="mb-4">Total Messages: {overviewMetrics.totalChats}</p>
-                <div className="grid grid-cols-2 gap-4">
+                <p className="mb-4 text-lg font-semibold">Total Messages: {overviewMetrics.totalChats}</p>
+                <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="bg-gray-700/50 rounded-lg p-4">
                     <div className="text-2xl font-bold text-white">
                       {users.reduce((sum, u) => sum + u.private_chats_count, 0)}
@@ -1664,6 +1700,40 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
                       {users.reduce((sum, u) => sum + u.team_messages_count, 0)}
                     </div>
                     <div className="text-sm text-gray-400">Team Messages</div>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-700 pt-6">
+                  <h4 className="text-lg font-semibold mb-4 text-white">Messages by User</h4>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-gray-600">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">User</th>
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Team</th>
+                          <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Private Chats</th>
+                          <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Team Messages</th>
+                          <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[...users]
+                          .filter(u => (u.private_chats_count + u.team_messages_count) > 0)
+                          .sort((a, b) => (b.private_chats_count + b.team_messages_count) - (a.private_chats_count + a.team_messages_count))
+                          .map(user => (
+                            <tr key={user.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
+                              <td className="py-3 px-4 text-sm">{user.email}</td>
+                              <td className="py-3 px-4 text-sm text-gray-400">{user.team_name}</td>
+                              <td className="py-3 px-4 text-sm text-right">{user.private_chats_count}</td>
+                              <td className="py-3 px-4 text-sm text-right">{user.team_messages_count}</td>
+                              <td className="py-3 px-4 text-sm text-right font-semibold">{user.private_chats_count + user.team_messages_count}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                    {users.filter(u => (u.private_chats_count + u.team_messages_count) > 0).length === 0 && (
+                      <div className="text-center py-8 text-gray-400">No messages yet</div>
+                    )}
                   </div>
                 </div>
               </div>
