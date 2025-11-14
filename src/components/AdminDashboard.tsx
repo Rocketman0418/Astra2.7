@@ -115,7 +115,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-  const [detailView, setDetailView] = useState<DetailView>(null);
+  const [detailView, setDetailView] = useState<DetailView>('users');
   const [supportFilter, setSupportFilter] = useState<SupportFilter>('all');
   const [invitingPreview, setInvitingPreview] = useState<string | null>(null);
   const [generatedPreviewCode, setGeneratedPreviewCode] = useState<string>('');
@@ -1050,7 +1050,11 @@ Sign up here: ${window.location.origin}`;
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               <button
                 onClick={() => setDetailView('users')}
-                className="bg-gray-800 border border-gray-700 hover:border-blue-500 rounded-xl p-6 transition-all hover:shadow-lg hover:shadow-blue-500/20 text-left w-full"
+                className={`bg-gray-800 border rounded-xl p-6 transition-all text-left w-full ${
+                  detailView === 'users'
+                    ? 'border-blue-500 shadow-lg shadow-blue-500/20'
+                    : 'border-gray-700 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20'
+                }`}
               >
                 <div className="flex items-center justify-between mb-4">
                   <Users className="w-8 h-8 text-blue-400" />
@@ -1065,7 +1069,11 @@ Sign up here: ${window.location.origin}`;
 
               <button
                 onClick={() => setDetailView('teams')}
-                className="bg-gray-800 border border-gray-700 hover:border-emerald-500 rounded-xl p-6 transition-all hover:shadow-lg hover:shadow-emerald-500/20 text-left w-full"
+                className={`bg-gray-800 border rounded-xl p-6 transition-all text-left w-full ${
+                  detailView === 'teams'
+                    ? 'border-emerald-500 shadow-lg shadow-emerald-500/20'
+                    : 'border-gray-700 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/20'
+                }`}
               >
                 <div className="flex items-center justify-between mb-4">
                   <Building2 className="w-8 h-8 text-emerald-400" />
@@ -1077,7 +1085,11 @@ Sign up here: ${window.location.origin}`;
 
               <button
                 onClick={() => setDetailView('documents')}
-                className="bg-gray-800 border border-gray-700 hover:border-purple-500 rounded-xl p-6 transition-all hover:shadow-lg hover:shadow-purple-500/20 text-left w-full"
+                className={`bg-gray-800 border rounded-xl p-6 transition-all text-left w-full ${
+                  detailView === 'documents'
+                    ? 'border-purple-500 shadow-lg shadow-purple-500/20'
+                    : 'border-gray-700 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20'
+                }`}
               >
                 <div className="flex items-center justify-between mb-4">
                   <FileText className="w-8 h-8 text-purple-400" />
@@ -1089,7 +1101,11 @@ Sign up here: ${window.location.origin}`;
 
               <button
                 onClick={() => setDetailView('chats')}
-                className="bg-gray-800 border border-gray-700 hover:border-orange-500 rounded-xl p-6 transition-all hover:shadow-lg hover:shadow-orange-500/20 text-left w-full"
+                className={`bg-gray-800 border rounded-xl p-6 transition-all text-left w-full ${
+                  detailView === 'chats'
+                    ? 'border-orange-500 shadow-lg shadow-orange-500/20'
+                    : 'border-gray-700 hover:border-orange-500 hover:shadow-lg hover:shadow-orange-500/20'
+                }`}
               >
                 <div className="flex items-center justify-between mb-4">
                   <MessageSquare className="w-8 h-8 text-orange-400" />
@@ -1101,7 +1117,11 @@ Sign up here: ${window.location.origin}`;
 
               <button
                 onClick={() => setDetailView('preview_requests')}
-                className="bg-gray-800 border border-gray-700 hover:border-green-500 rounded-xl p-6 transition-all hover:shadow-lg hover:shadow-green-500/20 text-left w-full"
+                className={`bg-gray-800 border rounded-xl p-6 transition-all text-left w-full ${
+                  detailView === 'preview_requests'
+                    ? 'border-green-500 shadow-lg shadow-green-500/20'
+                    : 'border-gray-700 hover:border-green-500 hover:shadow-lg hover:shadow-green-500/20'
+                }`}
               >
                 <div className="flex items-center justify-between mb-4">
                   <UserPlus className="w-8 h-8 text-green-400" />
@@ -1113,7 +1133,11 @@ Sign up here: ${window.location.origin}`;
 
               <button
                 onClick={() => setDetailView('support')}
-                className="bg-gray-800 border border-gray-700 hover:border-yellow-500 rounded-xl p-6 transition-all hover:shadow-lg hover:shadow-yellow-500/20 text-left w-full"
+                className={`bg-gray-800 border rounded-xl p-6 transition-all text-left w-full ${
+                  detailView === 'support'
+                    ? 'border-yellow-500 shadow-lg shadow-yellow-500/20'
+                    : 'border-gray-700 hover:border-yellow-500 hover:shadow-lg hover:shadow-yellow-500/20'
+                }`}
               >
                 <div className="flex items-center justify-between mb-4">
                   <AlertCircle className="w-8 h-8 text-yellow-400" />
@@ -1128,7 +1152,11 @@ Sign up here: ${window.location.origin}`;
 
               <button
                 onClick={() => setDetailView('feedback')}
-                className="bg-gray-800 border border-gray-700 hover:border-pink-500 rounded-xl p-6 transition-all hover:shadow-lg hover:shadow-pink-500/20 text-left w-full"
+                className={`bg-gray-800 border rounded-xl p-6 transition-all text-left w-full ${
+                  detailView === 'feedback'
+                    ? 'border-pink-500 shadow-lg shadow-pink-500/20'
+                    : 'border-gray-700 hover:border-pink-500 hover:shadow-lg hover:shadow-pink-500/20'
+                }`}
               >
                 <div className="flex items-center justify-between mb-4">
                   <MessageCircleQuestion className="w-8 h-8 text-pink-400" />
@@ -1143,49 +1171,40 @@ Sign up here: ${window.location.origin}`;
                 )}
               </button>
 
-              <button
-                onClick={() => setDetailView('teams')}
-                className="bg-gray-800 border border-gray-700 hover:border-cyan-500 rounded-xl p-6 transition-all hover:shadow-lg hover:shadow-cyan-500/20 text-left w-full"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <BarChart3 className="w-8 h-8 text-cyan-400" />
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
-                </div>
-                <div className="text-3xl font-bold text-white mb-1">{overviewMetrics.totalReports}</div>
-                <div className="text-sm text-gray-400">Reports Generated</div>
-              </button>
             </div>
           )}
 
-          {/* Removed standalone sections - all now accessible via metric boxes above */}
-          <div style={{display: 'none'}} className="bg-gray-800 border border-gray-700 rounded-xl p-4 md:p-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                <Users className="w-6 h-6 text-blue-400" />
-                User Metrics ({users.length})
-              </h2>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <div className="relative flex-1 sm:flex-initial">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search users..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+          {/* Main Content Area - Updates based on selected metric box */}
+          <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 md:p-6">
+            {detailView === 'users' && (
+              <>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                  <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                    <Users className="w-6 h-6 text-blue-400" />
+                    User Metrics ({users.length})
+                  </h2>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <div className="relative flex-1 sm:flex-initial">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search users..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <button
+                      onClick={() => exportToCSV(filteredAndSortedUsers, 'user-metrics')}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Export CSV</span>
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={() => exportToCSV(filteredAndSortedUsers, 'user-metrics')}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Export CSV</span>
-                </button>
-              </div>
-            </div>
 
-            <div className="overflow-x-auto">
+                <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-700">
@@ -1280,513 +1299,9 @@ Sign up here: ${window.location.origin}`;
                   ))}
                 </tbody>
               </table>
-            </div>
-          </div>
-
-          {feedbackStats && feedbackStats.categoryBreakdown.length > 0 && (
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 md:p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                  <BarChart3 className="w-6 h-6 text-purple-400" />
-                  Feedback Analytics
-                </h2>
-                <div className="text-sm text-gray-400">
-                  {feedbackStats.totalResponses} total responses
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {feedbackStats.categoryBreakdown.map((cat) => (
-                  <div key={cat.category} className="bg-gray-700/50 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-sm font-medium text-gray-300 capitalize">
-                        {cat.category.replace(/_/g, ' ')}
-                      </div>
-                      <div className="text-2xl font-bold text-white">
-                        {cat.avg_rating.toFixed(1)}
-                      </div>
-                    </div>
-                    <div className="w-full bg-gray-600 rounded-full h-2 mb-2">
-                      <div
-                        className={`h-2 rounded-full ${
-                          cat.avg_rating >= 8 ? 'bg-emerald-500' :
-                          cat.avg_rating >= 6 ? 'bg-yellow-500' :
-                          'bg-red-500'
-                        }`}
-                        style={{ width: `${(cat.avg_rating / 10) * 100}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      {cat.count} {cat.count === 1 ? 'response' : 'responses'}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 md:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                <MessageCircleQuestion className="w-6 h-6 text-purple-400" />
-                User Feedback Analytics
-              </h2>
-              <button
-                onClick={() => exportToCSV(feedback, 'user-feedback')}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
-              >
-                <Download className="w-4 h-4" />
-                Export CSV
-              </button>
-            </div>
-
-            {feedback.length === 0 && feedbackStats?.totalResponses === 0 && (
-              <div className="text-center py-12">
-                <MessageCircleQuestion className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400 text-lg">No feedback submissions yet</p>
-                <p className="text-gray-500 text-sm mt-2">
-                  Users will start receiving feedback prompts 24 hours after onboarding
-                </p>
-              </div>
-            )}
-
-            {feedbackStats && feedbackStats.totalResponses > 0 && (
-              <>
-                <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
-                    <p className="text-sm text-gray-400 mb-1">Total Responses</p>
-                    <p className="text-3xl font-bold text-white">{feedbackStats.totalResponses}</p>
-                  </div>
-                  <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
-                    <p className="text-sm text-gray-400 mb-1">Questions Answered</p>
-                    <p className="text-3xl font-bold text-white">{feedbackStats.categoryBreakdown.length}</p>
-                  </div>
-                  <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
-                    <p className="text-sm text-gray-400 mb-1">Avg Overall Rating</p>
-                    <p className={`text-3xl font-bold ${
-                      feedbackStats.categoryBreakdown.reduce((sum, c) => sum + c.avg_rating, 0) / feedbackStats.categoryBreakdown.length >= 8
-                        ? 'text-emerald-400'
-                        : feedbackStats.categoryBreakdown.reduce((sum, c) => sum + c.avg_rating, 0) / feedbackStats.categoryBreakdown.length >= 6
-                        ? 'text-yellow-400'
-                        : 'text-red-400'
-                    }`}>
-                      {(feedbackStats.categoryBreakdown.reduce((sum, c) => sum + c.avg_rating, 0) / feedbackStats.categoryBreakdown.length).toFixed(1)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <h4 className="text-white font-semibold mb-4">Average Ratings by Question</h4>
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {feedbackStats.categoryBreakdown.map((cat) => (
-                      <div key={cat.category} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
-                        <div className="flex items-start justify-between mb-2">
-                          <p className="text-sm text-gray-300 flex-1">{cat.category}</p>
-                          <div className="flex items-center gap-2 ml-3">
-                            {cat.avg_rating >= 8 ? (
-                              <TrendingUp className="w-4 h-4 text-emerald-400" />
-                            ) : cat.avg_rating >= 6 ? (
-                              <Minus className="w-4 h-4 text-yellow-400" />
-                            ) : (
-                              <TrendingDown className="w-4 h-4 text-red-400" />
-                            )}
-                            <span className={`text-lg font-bold ${
-                              cat.avg_rating >= 8 ? 'text-emerald-400' :
-                              cat.avg_rating >= 6 ? 'text-yellow-400' :
-                              'text-red-400'
-                            }`}>
-                              {cat.avg_rating.toFixed(1)}
-                            </span>
-                            <span className="text-xs text-gray-500">({cat.count})</span>
-                          </div>
-                        </div>
-                        <div className="w-full bg-gray-600 rounded-full h-2">
-                          <div
-                            className={`h-2 rounded-full transition-all ${
-                              cat.avg_rating >= 8 ? 'bg-emerald-500' :
-                              cat.avg_rating >= 6 ? 'bg-yellow-500' :
-                              'bg-red-500'
-                            }`}
-                            style={{ width: `${(cat.avg_rating / 10) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </>
             )}
-
-            {feedback.length > 0 && (
-              <div>
-                <h4 className="text-white font-semibold mb-4">User Comments & Feedback</h4>
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {feedback.map((fb) => (
-                    <div key={fb.id} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-                        <div className="text-sm text-white font-medium">{fb.user_email}</div>
-                        <div className="text-xs text-gray-400">{format(new Date(fb.created_at), 'MMM d, yyyy h:mm a')}</div>
-                      </div>
-                      {fb.answers.map((answer, idx) => (
-                        answer.comment && (
-                          <div key={idx} className="mb-3">
-                            <div className="flex items-start justify-between mb-1">
-                              <div className="text-xs text-gray-400 flex-1">{answer.question_text}</div>
-                              <div className={`text-xs font-semibold px-2 py-0.5 rounded ml-2 ${
-                                answer.rating >= 8 ? 'bg-emerald-500/20 text-emerald-400' :
-                                answer.rating >= 6 ? 'bg-yellow-500/20 text-yellow-400' :
-                                'bg-red-500/20 text-red-400'
-                              }`}>
-                                {answer.rating}/10
-                              </div>
-                            </div>
-                            <div className="text-sm text-gray-300 ml-2">&quot;{answer.comment}&quot;</div>
-                          </div>
-                        )
-                      ))}
-                      {fb.general_feedback && (
-                        <div className="mt-3 pt-3 border-t border-gray-600">
-                          <div className="text-xs text-gray-400 mb-1">Additional Feedback:</div>
-                          <div className="text-sm text-gray-300">{fb.general_feedback}</div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 md:p-6">
-            <div className="flex flex-col gap-4 mb-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                  <Users className="w-6 h-6 text-green-400" />
-                  Preview Requests ({previewRequests.length})
-                </h2>
-                <button
-                  onClick={() => exportToCSV(previewRequests, 'preview-requests')}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
-                >
-                  <Download className="w-4 h-4" />
-                  Export CSV
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {previewRequests.length > 0 ? (
-                previewRequests.map((request) => (
-                  <div key={request.id} className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Mail className="w-4 h-4 text-blue-400" />
-                          <span className="font-medium text-white">{request.email}</span>
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          Requested: {format(new Date(request.created_at), 'MMM d, yyyy h:mm a')}
-                        </div>
-                      </div>
-
-                      {invitingPreview === request.email && generatedPreviewCode ? (
-                        <div className="flex flex-col gap-2 min-w-[200px]">
-                          <div className="bg-green-500/20 border border-green-500/50 rounded p-2 text-center">
-                            <div className="text-xs text-green-400 mb-1">Invite Code:</div>
-                            <div className="text-sm font-mono font-bold text-green-300">{generatedPreviewCode}</div>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={sendPreviewInviteEmail}
-                              disabled={sendingPreviewEmail}
-                              className="flex-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-xs rounded transition-colors flex items-center justify-center gap-1"
-                            >
-                              {sendingPreviewEmail ? (
-                                <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                              ) : (
-                                <>
-                                  <Mail className="w-3 h-3" />
-                                  <span>Send Email</span>
-                                </>
-                              )}
-                            </button>
-                            <button
-                              onClick={copyPreviewInviteMessage}
-                              className="flex-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition-colors flex items-center justify-center gap-1"
-                            >
-                              <Copy className="w-3 h-3" />
-                              <span>Copy</span>
-                            </button>
-                          </div>
-                          <button
-                            onClick={resetPreviewInvite}
-                            className="w-full px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded transition-colors"
-                          >
-                            Done
-                          </button>
-                          {previewInviteSuccess && (
-                            <div className="text-xs text-green-400 text-center">{previewInviteSuccess}</div>
-                          )}
-                          {previewInviteError && (
-                            <div className="text-xs text-red-400 text-center">{previewInviteError}</div>
-                          )}
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => handleInvitePreviewRequest(request.email)}
-                          disabled={!!invitingPreview}
-                          className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
-                        >
-                          <UserPlus className="w-4 h-4" />
-                          Invite New Team
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-gray-400">
-                  No preview requests yet
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 md:p-6">
-            <div className="flex flex-col gap-4 mb-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                  <AlertCircle className="w-6 h-6 text-orange-400" />
-                  Support Messages ({supportMessages.length})
-                </h2>
-                <button
-                  onClick={() => exportToCSV(supportMessages, 'support-messages')}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
-                >
-                  <Download className="w-4 h-4" />
-                  Export CSV
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <div className="text-xs text-gray-400 mb-2 font-medium">Filter by Type:</div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => setSupportFilter('all')}
-                      className={`px-3 py-1 rounded text-sm transition-colors ${
-                        supportFilter === 'all'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      All ({supportMessages.length})
-                    </button>
-                    <button
-                      onClick={() => setSupportFilter('bug_report')}
-                      className={`px-3 py-1 rounded text-sm transition-colors ${
-                        supportFilter === 'bug_report'
-                          ? 'bg-red-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      Bug Reports ({supportMessages.filter(m => m.support_type === 'bug_report').length})
-                    </button>
-                    <button
-                      onClick={() => setSupportFilter('support_message')}
-                      className={`px-3 py-1 rounded text-sm transition-colors ${
-                        supportFilter === 'support_message'
-                          ? 'bg-yellow-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      Support ({supportMessages.filter(m => m.support_type === 'support_message').length})
-                    </button>
-                    <button
-                      onClick={() => setSupportFilter('feature_request')}
-                      className={`px-3 py-1 rounded text-sm transition-colors ${
-                        supportFilter === 'feature_request'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      Feature Requests ({supportMessages.filter(m => m.support_type === 'feature_request').length})
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-400 mb-2 font-medium">Filter by Status:</div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => setStatusFilter('all')}
-                      className={`px-3 py-1 rounded text-sm transition-colors ${
-                        statusFilter === 'all'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      All
-                    </button>
-                    <button
-                      onClick={() => setStatusFilter('needs_response')}
-                      className={`px-3 py-1 rounded text-sm transition-colors ${
-                        statusFilter === 'needs_response'
-                          ? 'bg-red-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      Needs Response ({supportMessages.filter(m => (m.status || 'needs_response') === 'needs_response').length})
-                    </button>
-                    <button
-                      onClick={() => setStatusFilter('responded')}
-                      className={`px-3 py-1 rounded text-sm transition-colors ${
-                        statusFilter === 'responded'
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      Responded ({supportMessages.filter(m => m.status === 'responded').length})
-                    </button>
-                    <button
-                      onClick={() => setStatusFilter('not_resolved')}
-                      className={`px-3 py-1 rounded text-sm transition-colors ${
-                        statusFilter === 'not_resolved'
-                          ? 'bg-yellow-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      Not Resolved ({supportMessages.filter(m => m.not_resolved === true).length})
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {filteredSupportMessages.map((msg) => (
-                <div key={msg.id} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <div className="text-sm text-white font-medium">{msg.user_email}</div>
-                      <span className={`px-2 py-1 text-xs rounded ${
-                        msg.support_type === 'bug_report' ? 'bg-red-500/20 text-red-400' :
-                        msg.support_type === 'feature_request' ? 'bg-blue-500/20 text-blue-400' :
-                        'bg-yellow-500/20 text-yellow-400'
-                      }`}>
-                        {msg.support_type?.replace(/_/g, ' ')}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          console.log('Status button clicked!', msg.id, msg.status);
-                          e.stopPropagation();
-                          toggleResponseStatus(msg.id, msg.status || 'needs_response');
-                        }}
-                        className={`px-2 py-1 text-xs rounded font-medium transition-all hover:scale-105 cursor-pointer ${
-                          (msg.status || 'needs_response') === 'needs_response' ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' :
-                          'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
-                        }`}
-                        title="Click to toggle response status"
-                      >
-                        {(msg.status || 'needs_response').replace(/_/g, ' ')}
-                      </button>
-                      {msg.status === 'responded' && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            console.log('Button clicked!', msg.id, msg.not_resolved);
-                            e.stopPropagation();
-                            toggleNotResolved(msg.id, msg.not_resolved || false);
-                          }}
-                          className={`px-2 py-1 text-xs rounded font-medium transition-all hover:scale-105 ${
-                            msg.not_resolved
-                              ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30'
-                              : 'bg-gray-600/50 text-gray-400 hover:bg-gray-600/70 border border-gray-500/50'
-                          }`}
-                          title={msg.not_resolved ? 'Click to mark as resolved' : 'Click to mark as not resolved'}
-                        >
-                          {msg.not_resolved ? '⚠️ Not Resolved' : '✓ Resolved'}
-                        </button>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="text-xs text-gray-400">{format(new Date(msg.created_at), 'MMM d, yyyy h:mm a')}</div>
-                    </div>
-                  </div>
-                  {msg.support_details.subject && (
-                    <div className="text-sm text-gray-300 font-medium mb-2">{msg.support_details.subject}</div>
-                  )}
-                  {msg.support_details.description && (
-                    <div className="text-sm text-gray-400 mb-2 whitespace-pre-wrap">{msg.support_details.description}</div>
-                  )}
-                  {msg.support_details.url_context && (
-                    <div className="text-xs text-gray-500 mb-2">Page: {msg.support_details.url_context}</div>
-                  )}
-                  {msg.attachment_urls.length > 0 && (
-                    <div className="mt-2 pt-2 border-t border-gray-600">
-                      <div className="text-xs text-gray-400">
-                        {msg.attachment_urls.length} attachment{msg.attachment_urls.length > 1 ? 's' : ''}
-                      </div>
-                    </div>
-                  )}
-                  {msg.admin_response && (
-                    <div className="mt-3 pt-3 border-t border-gray-600">
-                      <div className="flex items-center gap-2 mb-2">
-                        <MessageCircle className="w-4 h-4 text-blue-400" />
-                        <span className="text-xs text-blue-400 font-medium">Admin Response</span>
-                        {msg.responded_at && (
-                          <span className="text-xs text-gray-500">({format(new Date(msg.responded_at), 'MMM d, h:mm a')})</span>
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-300 whitespace-pre-wrap bg-blue-500/5 p-2 rounded">{msg.admin_response}</div>
-                    </div>
-                  )}
-                  <div className="mt-3 pt-3 border-t border-gray-600 flex gap-2">
-                    <button
-                      onClick={() => setResponseModalMessage(msg)}
-                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition-colors flex items-center gap-1.5"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                      {msg.admin_response ? 'Update Response' : 'Respond'}
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {filteredSupportMessages.length === 0 && (
-                <div className="text-center py-8 text-gray-400">
-                  {supportMessages.length === 0 ? 'No support messages yet' : 'No messages in this category'}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Detail View Modal */}
-      {detailView && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setDetailView(null)}>
-          <div
-            className="bg-gray-800 rounded-xl p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-white">
-                {detailView === 'users' && 'User Metrics'}
-                {detailView === 'teams' && 'Team Details'}
-                {detailView === 'documents' && 'Document Details'}
-                {detailView === 'chats' && 'Chat Details'}
-                {detailView === 'preview_requests' && 'Preview Requests'}
-                {detailView === 'support' && 'Support Messages'}
-                {detailView === 'feedback' && 'User Feedback & Analytics'}
-              </h3>
-              <button
-                onClick={() => setDetailView(null)}
-                className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-400" />
-              </button>
-            </div>
-
             {detailView === 'teams' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between mb-4">
@@ -2480,7 +1995,7 @@ Sign up here: ${window.location.origin}`;
             )}
           </div>
         </div>
-      )}
+      </div>
 
       {responseModalMessage && (
         <SupportResponseModal
