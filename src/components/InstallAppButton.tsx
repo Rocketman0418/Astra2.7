@@ -1,32 +1,50 @@
 import React, { useState } from 'react';
-import { Download, X, Share } from 'lucide-react';
+import { ExternalLink, X, Share } from 'lucide-react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 
 export const InstallAppButton: React.FC = () => {
   const { isInstallable, isInstalled, isIOS, isMobile, install } = usePWAInstall();
   const [showIOSInstructions, setShowIOSInstructions] = useState(false);
 
-  if (isInstalled || !isInstallable) {
+  const isRunningInApp = window.matchMedia('(display-mode: standalone)').matches ||
+                         window.matchMedia('(display-mode: fullscreen)').matches ||
+                         (window.navigator as any).standalone === true;
+
+  if (isRunningInApp) {
     return null;
   }
 
-  const handleInstallClick = async () => {
-    if (isIOS) {
+  const handleClick = async () => {
+    if (isInstalled) {
+      const currentPath = window.location.pathname + window.location.search + window.location.hash;
+      const appUrl = window.location.origin + currentPath;
+      window.open(appUrl, '_blank');
+    } else if (isIOS) {
       setShowIOSInstructions(true);
-    } else {
-      await install();
+    } else if (isInstallable) {
+      const installed = await install();
+      if (installed) {
+        setTimeout(() => {
+          const currentPath = window.location.pathname + window.location.search + window.location.hash;
+          const appUrl = window.location.origin + currentPath;
+          window.open(appUrl, '_blank');
+        }, 1000);
+      }
     }
   };
+
+  const buttonText = isInstalled ? 'Open In App' : 'Install & Open App';
 
   return (
     <>
       <button
-        onClick={handleInstallClick}
+        onClick={handleClick}
         className="p-2 hover:bg-slate-700 rounded-lg transition-colors min-h-[44px] px-3 flex items-center gap-2 touch-manipulation bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-        aria-label="Install App"
+        aria-label={buttonText}
+        title={buttonText}
       >
-        <Download className="w-5 h-5 text-white" />
-        <span className="hidden md:inline text-white text-sm font-medium">Install App</span>
+        <ExternalLink className="w-5 h-5 text-white" />
+        <span className="hidden md:inline text-white text-sm font-medium whitespace-nowrap">{buttonText}</span>
       </button>
 
       {showIOSInstructions && (
@@ -45,9 +63,14 @@ export const InstallAppButton: React.FC = () => {
 
               <div className="space-y-4">
                 <p className="text-gray-300 text-sm">
-                  To install this app on your {isMobile ? 'iPhone or iPad' : 'device'}:
+                  {isInstalled
+                    ? `Once installed, open the AI Rocket app from your home screen to use it in app mode.`
+                    : `To install this app on your ${isMobile ? 'iPhone or iPad' : 'device'}:`
+                  }
                 </p>
 
+                {!isInstalled && (
+                <>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3 bg-gray-900/50 p-4 rounded-lg">
                     <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
@@ -88,6 +111,8 @@ export const InstallAppButton: React.FC = () => {
                     <strong>Note:</strong> This feature only works in Safari browser on iOS devices.
                   </p>
                 </div>
+                </>
+                )}
               </div>
 
               <button
