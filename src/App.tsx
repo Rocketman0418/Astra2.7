@@ -13,6 +13,7 @@ import { VersionChecker } from './components/VersionChecker';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import AdminDashboardPage from './components/AdminDashboardPage';
 import { BuildAgentsPage } from './components/BuildAgentsPage';
+import { MarketingPage } from './components/MarketingPage';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
 import { useFeedbackPrompt } from './hooks/useFeedbackPrompt';
 import { useActivityTracking } from './hooks/useActivityTracking';
@@ -103,6 +104,9 @@ const AppContent: React.FC = () => {
           )
         }
       />
+
+      {/* Marketing Page - Public Route */}
+      <Route path="/marketing" element={<MarketingPage />} />
 
       {/* Main App Routes */}
       <Route
