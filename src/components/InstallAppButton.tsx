@@ -17,8 +17,11 @@ export const InstallAppButton: React.FC = () => {
     return null;
   }
 
-  if (!isInstallable && !isInstalled) {
-    console.log('Hiding button - not installable and not installed');
+  // Show button if iOS OR if installable OR if previously installed
+  const shouldShowButton = isIOS || isInstallable || isInstalled;
+
+  if (!shouldShowButton) {
+    console.log('Hiding button - not iOS, not installable, not installed');
     return null;
   }
 
