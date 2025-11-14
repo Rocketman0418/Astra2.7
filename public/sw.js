@@ -1,10 +1,13 @@
-const CACHE_NAME = 'astra-intelligence-v3';
-const RUNTIME_CACHE = 'astra-runtime-v3';
+const CACHE_NAME = 'astra-intelligence-v4';
+const RUNTIME_CACHE = 'astra-runtime-v4';
 
 const urlsToCache = [
   '/',
   '/manifest.json',
-  '/rocket-icon.svg'
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-touch-icon.png',
+  '/favicon-32x32.png'
 ];
 
 self.addEventListener('install', (event) => {
