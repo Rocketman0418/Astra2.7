@@ -34,10 +34,9 @@ export const InstallAppButton: React.FC = () => {
       return;
     }
 
-
-    // If installable but not installed, prompt to install
+    // Chrome/Edge: If installable, prompt to install
     if (isInstallable) {
-      console.log('Prompting to install');
+      console.log('Chrome: Prompting to install');
       const installed = await install();
       console.log('Install result:', installed);
       if (installed) {
@@ -49,12 +48,12 @@ export const InstallAppButton: React.FC = () => {
       return;
     }
 
-    // Fallback - show instructions
-    console.log('Button clicked - showing iOS instructions as fallback');
+    // This shouldn't happen, but fallback to showing instructions
+    console.log('Unexpected state - showing instructions as fallback');
     setShowIOSInstructions(true);
   };
 
-  const buttonText = isIOS ? 'Install App' : 'Install & Open App';
+  const buttonText = 'Install App';
 
   return (
     <>
