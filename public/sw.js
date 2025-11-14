@@ -1,10 +1,10 @@
-const CACHE_NAME = 'astra-intelligence-v2';
-const RUNTIME_CACHE = 'astra-runtime-v2';
+const CACHE_NAME = 'astra-intelligence-v3';
+const RUNTIME_CACHE = 'astra-runtime-v3';
 
 const urlsToCache = [
   '/',
   '/manifest.json',
-  '/app-icon.svg'
+  '/rocket-icon.svg'
 ];
 
 self.addEventListener('install', (event) => {
