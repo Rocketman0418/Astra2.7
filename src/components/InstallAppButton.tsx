@@ -12,18 +12,13 @@ export const InstallAppButton: React.FC = () => {
 
   console.log('PWA Button render:', { isRunningInApp, isInstallable, isInstalled, isIOS });
 
+  // Only hide if running in installed app mode
   if (isRunningInApp) {
     console.log('Hiding button - already in app mode');
     return null;
   }
 
-  // Show button if iOS OR if installable OR if previously installed
-  const shouldShowButton = isIOS || isInstallable || isInstalled;
-
-  if (!shouldShowButton) {
-    console.log('Hiding button - not iOS, not installable, not installed');
-    return null;
-  }
+  // Always show button in web browser
 
   const handleClick = async () => {
     console.log('PWA Button clicked:', { isInstalled, isIOS, isInstallable });
