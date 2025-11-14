@@ -94,7 +94,7 @@ interface FeedbackStats {
 type TimeFilter = '7days' | '30days' | '90days' | 'all';
 type SortField = 'email' | 'created_at' | 'team_name' | 'documents' | 'messages';
 type SortDirection = 'asc' | 'desc';
-type DetailView = 'users' | 'teams' | 'documents' | 'chats' | null;
+type DetailView = 'users' | 'teams' | 'documents' | 'chats' | 'preview_requests' | 'support' | 'feedback' | null;
 type SupportFilter = 'all' | 'bug_report' | 'support_message' | 'feature_request';
 
 interface AdminDashboardProps {
@@ -1098,10 +1098,67 @@ Sign up here: ${window.location.origin}`;
                 <div className="text-3xl font-bold text-white mb-1">{overviewMetrics.totalChats}</div>
                 <div className="text-sm text-gray-400">Total Messages</div>
               </button>
+
+              <button
+                onClick={() => setDetailView('preview_requests')}
+                className="bg-gray-800 border border-gray-700 hover:border-green-500 rounded-xl p-6 transition-all hover:shadow-lg hover:shadow-green-500/20 text-left w-full"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <UserPlus className="w-8 h-8 text-green-400" />
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+                <div className="text-3xl font-bold text-white mb-1">{previewRequests.length}</div>
+                <div className="text-sm text-gray-400">Preview Requests</div>
+              </button>
+
+              <button
+                onClick={() => setDetailView('support')}
+                className="bg-gray-800 border border-gray-700 hover:border-yellow-500 rounded-xl p-6 transition-all hover:shadow-lg hover:shadow-yellow-500/20 text-left w-full"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <AlertCircle className="w-8 h-8 text-yellow-400" />
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+                <div className="text-3xl font-bold text-white mb-1">{supportMessages.length}</div>
+                <div className="text-sm text-gray-400">Support Messages</div>
+                <div className="mt-2 text-xs text-gray-500">
+                  {supportMessages.filter(m => m.status === 'needs_response' || m.not_resolved).length} need attention
+                </div>
+              </button>
+
+              <button
+                onClick={() => setDetailView('feedback')}
+                className="bg-gray-800 border border-gray-700 hover:border-pink-500 rounded-xl p-6 transition-all hover:shadow-lg hover:shadow-pink-500/20 text-left w-full"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <MessageCircleQuestion className="w-8 h-8 text-pink-400" />
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+                <div className="text-3xl font-bold text-white mb-1">{feedback.length}</div>
+                <div className="text-sm text-gray-400">User Feedback</div>
+                {feedbackStats && feedbackStats.avgRatingByCategory && Object.keys(feedbackStats.avgRatingByCategory).length > 0 && (
+                  <div className="mt-2 text-xs text-gray-500">
+                    Avg Rating: {(Object.values(feedbackStats.avgRatingByCategory).reduce((a, b) => a + b, 0) / Object.values(feedbackStats.avgRatingByCategory).length).toFixed(1)}/5
+                  </div>
+                )}
+              </button>
+
+              <button
+                onClick={() => setDetailView('teams')}
+                className="bg-gray-800 border border-gray-700 hover:border-cyan-500 rounded-xl p-6 transition-all hover:shadow-lg hover:shadow-cyan-500/20 text-left w-full"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <BarChart3 className="w-8 h-8 text-cyan-400" />
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+                <div className="text-3xl font-bold text-white mb-1">{overviewMetrics.totalReports}</div>
+                <div className="text-sm text-gray-400">Reports Generated</div>
+              </button>
             </div>
           )}
 
-          <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 md:p-6">
+          {/* Removed standalone sections - all now accessible via metric boxes above */}
+          <div style={{display: 'none'}} className="bg-gray-800 border border-gray-700 rounded-xl p-4 md:p-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <h2 className="text-xl font-semibold text-white flex items-center gap-2">
                 <Users className="w-6 h-6 text-blue-400" />
@@ -1714,10 +1771,13 @@ Sign up here: ${window.location.origin}`;
           >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold text-white">
-                {detailView === 'users' && 'User Details'}
+                {detailView === 'users' && 'User Metrics'}
                 {detailView === 'teams' && 'Team Details'}
                 {detailView === 'documents' && 'Document Details'}
                 {detailView === 'chats' && 'Chat Details'}
+                {detailView === 'preview_requests' && 'Preview Requests'}
+                {detailView === 'support' && 'Support Messages'}
+                {detailView === 'feedback' && 'User Feedback & Analytics'}
               </h3>
               <button
                 onClick={() => setDetailView(null)}
@@ -1974,6 +2034,448 @@ Sign up here: ${window.location.origin}`;
                     )}
                   </div>
                 </div>
+              </div>
+            )}
+
+            {detailView === 'users' && (
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search users..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <button
+                    onClick={() => exportToCSV(filteredAndSortedUsers, 'user-metrics')}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    Export CSV
+                  </button>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-600">
+                        <th
+                          className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white whitespace-nowrap"
+                          onClick={() => handleSort('email')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Email
+                            <ArrowUpDown className="w-4 h-4" />
+                          </div>
+                        </th>
+                        <th
+                          className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white whitespace-nowrap"
+                          onClick={() => handleSort('team_name')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Team
+                            <ArrowUpDown className="w-4 h-4" />
+                          </div>
+                        </th>
+                        <th
+                          className="text-left py-3 px-4 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white whitespace-nowrap"
+                          onClick={() => handleSort('created_at')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Joined
+                            <ArrowUpDown className="w-4 h-4" />
+                          </div>
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400 whitespace-nowrap">Last Active</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400 whitespace-nowrap">Documents</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400 whitespace-nowrap">Messages</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400 whitespace-nowrap">Reports</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400 whitespace-nowrap">Integrations</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredAndSortedUsers.map((user) => (
+                        <tr key={user.id} className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors">
+                          <td className="py-3 px-4 text-sm">{user.email}</td>
+                          <td className="py-3 px-4 text-sm text-gray-400">{user.team_name}</td>
+                          <td className="py-3 px-4 text-sm text-gray-400">{format(new Date(user.created_at), 'MMM d, yyyy')}</td>
+                          <td className="py-3 px-4 text-sm text-gray-400">
+                            {user.last_active_at ? format(new Date(user.last_active_at), 'MMM d, yyyy') : 'Never'}
+                          </td>
+                          <td className="py-3 px-4 text-sm">{user.total_docs_count}</td>
+                          <td className="py-3 px-4 text-sm">{user.private_chats_count + user.team_messages_count}</td>
+                          <td className="py-3 px-4 text-sm">{user.reports_count}</td>
+                          <td className="py-3 px-4 text-sm">
+                            <div className="flex items-center gap-2">
+                              {user.gmail_connected && (
+                                <Mail className="w-4 h-4 text-green-400" title="Gmail connected" />
+                              )}
+                              {user.drive_connected && (
+                                <HardDrive className="w-4 h-4 text-blue-400" title="Drive connected" />
+                              )}
+                              {!user.gmail_connected && !user.drive_connected && (
+                                <span className="text-gray-500 text-xs">None</span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {detailView === 'preview_requests' && (
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-gray-400">Total Requests: {previewRequests.length}</p>
+                  <button
+                    onClick={() => exportToCSV(previewRequests, 'preview-requests')}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    Export CSV
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {previewRequests.length > 0 ? (
+                    previewRequests.map((request) => (
+                      <div key={request.id} className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Mail className="w-4 h-4 text-blue-400" />
+                              <span className="font-medium text-white">{request.email}</span>
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              Requested: {format(new Date(request.created_at), 'MMM d, yyyy h:mm a')}
+                            </div>
+                          </div>
+
+                          {invitingPreview === request.email && generatedPreviewCode ? (
+                            <div className="flex flex-col gap-2 min-w-[200px]">
+                              <div className="bg-green-500/20 border border-green-500/50 rounded p-2 text-center">
+                                <div className="text-xs text-green-400 mb-1">Invite Code:</div>
+                                <div className="text-sm font-mono font-bold text-green-300">{generatedPreviewCode}</div>
+                              </div>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={sendPreviewInviteEmail}
+                                  disabled={sendingPreviewEmail}
+                                  className="flex-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-xs rounded transition-colors flex items-center justify-center gap-1"
+                                >
+                                  {sendingPreviewEmail ? (
+                                    <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                  ) : (
+                                    <>
+                                      <Mail className="w-3 h-3" />
+                                      <span>Send Email</span>
+                                    </>
+                                  )}
+                                </button>
+                                <button
+                                  onClick={copyPreviewInviteMessage}
+                                  className="flex-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition-colors flex items-center justify-center gap-1"
+                                >
+                                  <Copy className="w-3 h-3" />
+                                  <span>Copy</span>
+                                </button>
+                              </div>
+                              <button
+                                onClick={resetPreviewInvite}
+                                className="w-full px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded transition-colors"
+                              >
+                                Done
+                              </button>
+                              {previewInviteSuccess && (
+                                <div className="text-xs text-green-400 text-center">{previewInviteSuccess}</div>
+                              )}
+                              {previewInviteError && (
+                                <div className="text-xs text-red-400 text-center">{previewInviteError}</div>
+                              )}
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleInvitePreviewRequest(request.email)}
+                              disabled={!!invitingPreview}
+                              className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
+                            >
+                              <UserPlus className="w-4 h-4" />
+                              Invite New Team
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-400">
+                      No preview requests yet
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {detailView === 'support' && (
+              <div>
+                <div className="flex flex-col gap-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <p className="text-gray-400">Total Messages: {supportMessages.length}</p>
+                    <button
+                      onClick={() => exportToCSV(supportMessages, 'support-messages')}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
+                    >
+                      <Download className="w-4 h-4" />
+                      Export CSV
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-xs text-gray-400 mb-2 font-medium">Filter by Type:</div>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => setSupportFilter('all')}
+                          className={`px-3 py-1 rounded text-sm transition-colors ${
+                            supportFilter === 'all'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          All ({supportMessages.length})
+                        </button>
+                        <button
+                          onClick={() => setSupportFilter('bug_report')}
+                          className={`px-3 py-1 rounded text-sm transition-colors ${
+                            supportFilter === 'bug_report'
+                              ? 'bg-red-600 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          Bug Reports ({supportMessages.filter(m => m.support_type === 'bug_report').length})
+                        </button>
+                        <button
+                          onClick={() => setSupportFilter('support_message')}
+                          className={`px-3 py-1 rounded text-sm transition-colors ${
+                            supportFilter === 'support_message'
+                              ? 'bg-yellow-600 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          Support ({supportMessages.filter(m => m.support_type === 'support_message').length})
+                        </button>
+                        <button
+                          onClick={() => setSupportFilter('feature_request')}
+                          className={`px-3 py-1 rounded text-sm transition-colors ${
+                            supportFilter === 'feature_request'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          Feature Requests ({supportMessages.filter(m => m.support_type === 'feature_request').length})
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-400 mb-2 font-medium">Filter by Status:</div>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => setStatusFilter('all')}
+                          className={`px-3 py-1 rounded text-sm transition-colors ${
+                            statusFilter === 'all'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          All
+                        </button>
+                        <button
+                          onClick={() => setStatusFilter('needs_response')}
+                          className={`px-3 py-1 rounded text-sm transition-colors ${
+                            statusFilter === 'needs_response'
+                              ? 'bg-orange-600 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          Needs Response
+                        </button>
+                        <button
+                          onClick={() => setStatusFilter('responded')}
+                          className={`px-3 py-1 rounded text-sm transition-colors ${
+                            statusFilter === 'responded'
+                              ? 'bg-green-600 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          Responded
+                        </button>
+                        <button
+                          onClick={() => setStatusFilter('not_resolved')}
+                          className={`px-3 py-1 rounded text-sm transition-colors ${
+                            statusFilter === 'not_resolved'
+                              ? 'bg-red-600 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          Not Resolved
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3 max-h-[500px] overflow-y-auto">
+                  {filteredSupportMessages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`border rounded-lg p-4 ${
+                        message.not_resolved
+                          ? 'bg-red-900/20 border-red-500/50'
+                          : message.status === 'needs_response'
+                          ? 'bg-orange-900/20 border-orange-500/50'
+                          : 'bg-gray-700/50 border-gray-600'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium text-white">{message.user_email}</span>
+                            <span
+                              className={`px-2 py-0.5 rounded text-xs ${
+                                message.support_type === 'bug_report'
+                                  ? 'bg-red-600 text-white'
+                                  : message.support_type === 'feature_request'
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-yellow-600 text-white'
+                              }`}
+                            >
+                              {message.support_type.replace('_', ' ')}
+                            </span>
+                            {message.not_resolved && (
+                              <span className="px-2 py-0.5 rounded text-xs bg-red-600 text-white">
+                                Not Resolved
+                              </span>
+                            )}
+                            {message.status === 'responded' && !message.not_resolved && (
+                              <CheckCircle className="w-4 h-4 text-green-400" />
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {format(new Date(message.created_at), 'MMM d, yyyy h:mm a')}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setResponseModalMessage(message)}
+                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
+                        >
+                          {message.status === 'responded' ? 'View/Update' : 'Respond'}
+                        </button>
+                      </div>
+
+                      {message.support_details.subject && (
+                        <div className="mb-2">
+                          <div className="text-sm font-medium text-white">{message.support_details.subject}</div>
+                        </div>
+                      )}
+
+                      {message.support_details.description && (
+                        <div className="text-sm text-gray-300 mb-2">{message.support_details.description}</div>
+                      )}
+
+                      {message.admin_response && (
+                        <div className="mt-3 pt-3 border-t border-gray-600">
+                          <div className="text-xs text-green-400 mb-1">Admin Response:</div>
+                          <div className="text-sm text-gray-300">{message.admin_response}</div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {filteredSupportMessages.length === 0 && (
+                    <div className="text-center py-8 text-gray-400">
+                      {supportMessages.length === 0 ? 'No support messages yet' : 'No messages in this category'}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {detailView === 'feedback' && (
+              <div>
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-gray-400">Total Responses: {feedback.length}</p>
+                    <button
+                      onClick={() => exportToCSV(feedback, 'user-feedback')}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
+                    >
+                      <Download className="w-4 h-4" />
+                      Export CSV
+                    </button>
+                  </div>
+
+                  {feedbackStats && feedbackStats.categoryBreakdown && feedbackStats.categoryBreakdown.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      {feedbackStats.categoryBreakdown.map((cat) => (
+                        <div key={cat.category} className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
+                          <div className="text-sm text-gray-400 mb-1">{cat.category}</div>
+                          <div className="text-2xl font-bold text-white mb-1">
+                            {cat.avg_rating.toFixed(1)}/5
+                          </div>
+                          <div className="text-xs text-gray-500">{cat.count} responses</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3 max-h-[500px] overflow-y-auto">
+                  {feedback.map((fb) => (
+                    <div key={fb.id} className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-medium text-white">{fb.user_email}</span>
+                        <span className="text-xs text-gray-400">
+                          {format(new Date(fb.created_at), 'MMM d, yyyy')}
+                        </span>
+                      </div>
+
+                      <div className="space-y-2">
+                        {fb.answers.map((answer, idx) => (
+                          <div key={idx} className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="text-sm text-gray-300">{answer.question_text}</div>
+                              {answer.comment && (
+                                <div className="text-xs text-gray-400 mt-1 italic">"{answer.comment}"</div>
+                              )}
+                            </div>
+                            <div className="ml-4 px-2 py-1 bg-blue-600 text-white text-xs rounded font-medium">
+                              {answer.rating}/5
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {fb.general_feedback && (
+                        <div className="mt-3 pt-3 border-t border-gray-600">
+                          <div className="text-xs text-gray-400 mb-1">Additional Feedback:</div>
+                          <div className="text-sm text-gray-300">{fb.general_feedback}</div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {feedback.length === 0 && (
+                  <div className="text-center py-8 text-gray-400">
+                    No feedback submissions yet
+                  </div>
+                )}
               </div>
             )}
           </div>
