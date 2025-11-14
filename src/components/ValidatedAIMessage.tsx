@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { AlertTriangle, Info, CheckCircle } from 'lucide-react';
 import { validateAIResponse } from '../lib/hallucination-detector';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ValidationResult {
   isValid: boolean;
@@ -11,6 +13,7 @@ interface ValidationResult {
 
 interface ValidatedAIMessageProps {
   message: string;
+  messageId?: string;
   teamId: string;
   children: React.ReactNode;
   onValidationComplete?: (result: ValidationResult) => void;
@@ -21,10 +24,12 @@ interface ValidatedAIMessageProps {
  */
 export function ValidatedAIMessage({
   message,
+  messageId,
   teamId,
   children,
   onValidationComplete
 }: ValidatedAIMessageProps) {
+  const { user } = useAuth();
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [isValidating, setIsValidating] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
@@ -38,6 +43,25 @@ export function ValidatedAIMessage({
     try {
       const result = await validateAIResponse(message, teamId);
       setValidation(result);
+
+      // Log validation results to database if there are warnings or failures
+      if (!result.isValid || result.warnings.length > 0 || result.confidence !== 'high') {
+        try {
+          await supabase.from('ai_validation_logs').insert({
+            message_id: messageId || 'unknown',
+            team_id: teamId,
+            user_id: user?.id,
+            is_valid: result.isValid,
+            confidence: result.confidence,
+            issues: result.issues,
+            warnings: result.warnings,
+            message_preview: message.substring(0, 200)
+          });
+        } catch (logError) {
+          console.error('Failed to log validation result:', logError);
+        }
+      }
+
       if (onValidationComplete) {
         onValidationComplete(result);
       }
@@ -169,14 +193,6 @@ export function ValidatedAIMessage({
       <div className={hasWarnings && validation!.confidence === 'low' ? 'opacity-75' : ''}>
         {children}
       </div>
-
-      {/* Show high confidence indicator for valid responses */}
-      {validation && validation.isValid && validation.confidence === 'high' && validation.warnings.length === 0 && (
-        <div className="flex items-center gap-2 mt-2 text-xs text-green-600 dark:text-green-400">
-          <CheckCircle className="w-4 h-4" />
-          <span>Response validated against team data</span>
-        </div>
-      )}
     </div>
   );
 }
