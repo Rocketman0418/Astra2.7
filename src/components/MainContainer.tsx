@@ -136,8 +136,11 @@ export const MainContainer: React.FC = () => {
 
   const handleStartTour = () => {
     setShowWelcomeModal(false);
-    setTourStep(0);
-    setShowTour(true);
+    // Small delay to ensure modal closes before tour starts
+    setTimeout(() => {
+      setTourStep(0);
+      setShowTour(true);
+    }, 100);
   };
 
   const handleDismissWelcome = async () => {
