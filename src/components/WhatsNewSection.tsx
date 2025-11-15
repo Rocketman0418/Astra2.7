@@ -28,18 +28,31 @@ export function WhatsNewSection() {
       setLoading(true);
       setError('');
 
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        console.error('No active session');
+        setError('Please sign in to view updates.');
+        setLoading(false);
+        return;
+      }
+
       const { data, error: fetchError } = await supabase
         .from('whats_new')
         .select('*')
         .eq('is_published', true)
         .order('display_order', { ascending: false });
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error('Supabase error:', fetchError);
+        throw fetchError;
+      }
 
+      console.log('Loaded whats_new items:', data?.length);
       setItems(data || []);
     } catch (err: any) {
       console.error('Failed to load what\'s new:', err);
-      setError('Failed to load updates. Please try again.');
+      setError(err.message || 'Failed to load updates. Please try again.');
     } finally {
       setLoading(false);
     }
