@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { X, BookOpen, MessageCircleQuestion, Sparkles } from 'lucide-react';
+import { X, BookOpen, MessageCircleQuestion, Sparkles, Zap } from 'lucide-react';
 import { FAQSection } from './FAQSection';
 import { HelpAssistant } from './HelpAssistant';
 import { QuickStartGuide } from './QuickStartGuide';
+import { WhatsNewSection } from './WhatsNewSection';
 
 interface HelpCenterProps {
   isOpen: boolean;
@@ -11,7 +12,7 @@ interface HelpCenterProps {
   isAdmin: boolean;
 }
 
-type TabType = 'quick-start' | 'faq' | 'ask-astra';
+type TabType = 'quick-start' | 'whats-new' | 'faq' | 'ask-astra';
 
 export function HelpCenter({ isOpen, onClose, onStartTour, isAdmin }: HelpCenterProps) {
   const [activeTab, setActiveTab] = useState<TabType>('quick-start');
@@ -49,10 +50,10 @@ export function HelpCenter({ isOpen, onClose, onStartTour, isAdmin }: HelpCenter
           </button>
         </div>
 
-        <div className="flex border-b border-gray-800">
+        <div className="flex border-b border-gray-800 overflow-x-auto">
           <button
             onClick={() => setActiveTab('quick-start')}
-            className={`flex-1 py-3 px-2 sm:px-4 font-medium transition-colors flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-base min-h-[56px] sm:min-h-[44px] ${
+            className={`flex-1 py-3 px-2 sm:px-4 font-medium transition-colors flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm min-h-[56px] sm:min-h-[44px] whitespace-nowrap ${
               activeTab === 'quick-start'
                 ? 'text-purple-400 border-b-2 border-purple-400 bg-gray-800/50'
                 : 'text-gray-400 hover:text-gray-300'
@@ -62,8 +63,19 @@ export function HelpCenter({ isOpen, onClose, onStartTour, isAdmin }: HelpCenter
             <span>Quick Start</span>
           </button>
           <button
+            onClick={() => setActiveTab('whats-new')}
+            className={`flex-1 py-3 px-2 sm:px-4 font-medium transition-colors flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm min-h-[56px] sm:min-h-[44px] whitespace-nowrap ${
+              activeTab === 'whats-new'
+                ? 'text-orange-400 border-b-2 border-orange-400 bg-gray-800/50'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <Zap className="w-4 h-4 sm:w-4 sm:h-4" />
+            <span>What's New</span>
+          </button>
+          <button
             onClick={() => setActiveTab('faq')}
-            className={`flex-1 py-3 px-2 sm:px-4 font-medium transition-colors flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-base min-h-[56px] sm:min-h-[44px] ${
+            className={`flex-1 py-3 px-2 sm:px-4 font-medium transition-colors flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm min-h-[56px] sm:min-h-[44px] whitespace-nowrap ${
               activeTab === 'faq'
                 ? 'text-purple-400 border-b-2 border-purple-400 bg-gray-800/50'
                 : 'text-gray-400 hover:text-gray-300'
@@ -74,7 +86,7 @@ export function HelpCenter({ isOpen, onClose, onStartTour, isAdmin }: HelpCenter
           </button>
           <button
             onClick={() => setActiveTab('ask-astra')}
-            className={`flex-1 py-3 px-2 sm:px-4 font-medium transition-colors flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-base min-h-[56px] sm:min-h-[44px] ${
+            className={`flex-1 py-3 px-2 sm:px-4 font-medium transition-colors flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm min-h-[56px] sm:min-h-[44px] whitespace-nowrap ${
               activeTab === 'ask-astra'
                 ? 'text-purple-400 border-b-2 border-purple-400 bg-gray-800/50'
                 : 'text-gray-400 hover:text-gray-300'
@@ -88,6 +100,17 @@ export function HelpCenter({ isOpen, onClose, onStartTour, isAdmin }: HelpCenter
         <div className="flex-1 overflow-y-auto">
           {activeTab === 'quick-start' && (
             <QuickStartGuide onStartTour={onStartTour} isAdmin={isAdmin} />
+          )}
+          {activeTab === 'whats-new' && (
+            <div className="p-6">
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-white mb-2">Latest Updates</h3>
+                <p className="text-sm text-gray-400">
+                  Stay up to date with the newest features and improvements to Astra Intelligence.
+                </p>
+              </div>
+              <WhatsNewSection />
+            </div>
           )}
           {activeTab === 'faq' && <FAQSection isAdmin={isAdmin} />}
           {activeTab === 'ask-astra' && <HelpAssistant />}

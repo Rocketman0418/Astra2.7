@@ -1,9 +1,12 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { supabase } from './supabase';
+import { DOCUMENTATION_CONTEXT } from './documentation-context';
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
 const APP_HELP_CONTEXT = `You are Astra's Help Assistant for Astra Intelligence, a team collaboration and AI insights platform.
+
+${DOCUMENTATION_CONTEXT}
 
 CORE FEATURES:
 1. AI Chat with Two Modes:
