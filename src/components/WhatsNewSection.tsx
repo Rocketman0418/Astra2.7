@@ -41,7 +41,7 @@ export function WhatsNewSection() {
         .from('whats_new')
         .select('*')
         .eq('is_published', true)
-        .order('display_order', { ascending: false });
+        .order('date_added', { ascending: false });
 
       if (fetchError) {
         console.error('Supabase error:', fetchError);
@@ -165,10 +165,6 @@ export function WhatsNewSection() {
                   <span className="inline-flex items-center text-gray-400">
                     <Calendar className="w-3 h-3 mr-1" />
                     {format(new Date(item.date_added), 'MMM d, yyyy')}
-                  </span>
-
-                  <span className="inline-flex items-center text-gray-500">
-                    v{item.version}
                   </span>
                 </div>
 
