@@ -1,21 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, BookOpen, MessageCircleQuestion, Sparkles, Zap } from 'lucide-react';
 import { FAQSection } from './FAQSection';
 import { HelpAssistant } from './HelpAssistant';
 import { QuickStartGuide } from './QuickStartGuide';
 import { WhatsNewSection } from './WhatsNewSection';
 
+export type HelpCenterTab = 'quick-start' | 'whats-new' | 'faq' | 'ask-astra';
+
 interface HelpCenterProps {
   isOpen: boolean;
   onClose: () => void;
   onStartTour: () => void;
   isAdmin: boolean;
+  initialTab?: HelpCenterTab;
 }
 
-type TabType = 'quick-start' | 'whats-new' | 'faq' | 'ask-astra';
+export function HelpCenter({ isOpen, onClose, onStartTour, isAdmin, initialTab = 'quick-start' }: HelpCenterProps) {
+  const [activeTab, setActiveTab] = useState<HelpCenterTab>(initialTab);
 
-export function HelpCenter({ isOpen, onClose, onStartTour, isAdmin }: HelpCenterProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('quick-start');
+  useEffect(() => {
+    if (isOpen && initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
 
   if (!isOpen) return null;
 

@@ -9,12 +9,13 @@ import { AdminInviteCodesPanel } from './AdminInviteCodesPanel';
 import { TeamMembersPanel } from './TeamMembersPanel';
 import { TeamSettingsModal } from './TeamSettingsModal';
 import { FEATURES } from '../config/features';
+import { HelpCenterTab } from './HelpCenter';
 
 interface UserSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onStartTour?: () => void;
-  onOpenHelpCenter?: () => void;
+  onOpenHelpCenter?: (tab?: HelpCenterTab) => void;
 }
 
 export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, onClose, onStartTour, onOpenHelpCenter }) => {

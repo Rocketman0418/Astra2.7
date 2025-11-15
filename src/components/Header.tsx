@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, User, HelpCircle, BookOpen, MessageCircleQuestion, Sparkles, Workflow } from 'lucide-react';
+import { Menu, User, HelpCircle, BookOpen, MessageCircleQuestion, Sparkles, Workflow, Zap } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { ChatMode } from '../types';
@@ -8,13 +8,14 @@ import { UserSettingsModal } from './UserSettingsModal';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { SupportMenu } from './SupportMenu';
 import { InstallAppButton } from './InstallAppButton';
+import { HelpCenterTab } from './HelpCenter';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
   showSidebarToggle?: boolean;
   chatMode?: ChatMode;
   onToggleTeamMenu?: () => void;
-  onOpenHelpCenter?: () => void;
+  onOpenHelpCenter?: (tab?: HelpCenterTab) => void;
   onStartTour?: () => void;
 }
 
@@ -192,7 +193,17 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   onClick={() => {
                     setShowHelpMenu(false);
-                    onOpenHelpCenter?.();
+                    onOpenHelpCenter?.('whats-new');
+                  }}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 transition-colors flex items-center gap-3"
+                >
+                  <Zap className="w-4 h-4 text-orange-400" />
+                  <span>What's New</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setShowHelpMenu(false);
+                    onOpenHelpCenter?.('quick-start');
                   }}
                   className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 transition-colors flex items-center gap-3"
                 >
@@ -202,7 +213,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   onClick={() => {
                     setShowHelpMenu(false);
-                    onOpenHelpCenter?.();
+                    onOpenHelpCenter?.('faq');
                   }}
                   className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 transition-colors flex items-center gap-3"
                 >

@@ -9,7 +9,7 @@ import { SavedVisualizationsList } from './SavedVisualizationsList';
 import { UserSettingsModal } from './UserSettingsModal';
 import { WelcomeModal } from './WelcomeModal';
 import { InteractiveTour } from './InteractiveTour';
-import { HelpCenter } from './HelpCenter';
+import { HelpCenter, HelpCenterTab } from './HelpCenter';
 import { NoFoldersSelectedModal } from './NoFoldersSelectedModal';
 import { ChatMode } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -32,6 +32,7 @@ export const MainContainer: React.FC = () => {
   const [showTour, setShowTour] = useState(false);
   const [tourStep, setTourStep] = useState(0);
   const [showHelpCenter, setShowHelpCenter] = useState(false);
+  const [helpCenterTab, setHelpCenterTab] = useState<HelpCenterTab>('quick-start');
   const [teamName, setTeamName] = useState<string>('');
 
   const isAdmin = user?.user_metadata?.role === 'admin';
@@ -218,8 +219,9 @@ export const MainContainer: React.FC = () => {
         isOpen={showUserSettings}
         onClose={() => setShowUserSettings(false)}
         onStartTour={handleRestartTour}
-        onOpenHelpCenter={() => {
+        onOpenHelpCenter={(tab) => {
           setShowUserSettings(false);
+          setHelpCenterTab(tab || 'quick-start');
           setShowHelpCenter(true);
         }}
       />
@@ -230,7 +232,10 @@ export const MainContainer: React.FC = () => {
           showSidebarToggle={chatMode === 'private'}
           chatMode={chatMode}
           onToggleTeamMenu={handleToggleTeamMenu}
-          onOpenHelpCenter={() => setShowHelpCenter(true)}
+          onOpenHelpCenter={(tab) => {
+            setHelpCenterTab(tab || 'quick-start');
+            setShowHelpCenter(true);
+          }}
           onStartTour={handleRestartTour}
         />
 
@@ -291,6 +296,7 @@ export const MainContainer: React.FC = () => {
         onClose={() => setShowHelpCenter(false)}
         onStartTour={handleRestartTour}
         isAdmin={isAdmin}
+        initialTab={helpCenterTab}
       />
 
       {/* No Folders Selected Modal */}
