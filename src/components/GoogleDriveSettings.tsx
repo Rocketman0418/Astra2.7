@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HardDrive, CheckCircle, XCircle, Trash2, FolderOpen, RefreshCw, Info, FileText, CreditCard as Edit, Search } from 'lucide-react';
+import { HardDrive, CheckCircle, XCircle, Trash2, FolderOpen, RefreshCw, Info, FileText, CreditCard as Edit, Search, Sparkles } from 'lucide-react';
 import {
   initiateGoogleDriveOAuth,
   disconnectGoogleDrive as disconnectDrive,
@@ -10,6 +10,7 @@ import {
   FolderInfo
 } from '../lib/google-drive-oauth';
 import { supabase } from '../lib/supabase';
+import { AstraGuidedSetupModal } from './AstraGuidedSetupModal';
 
 export const GoogleDriveSettings: React.FC = () => {
   const [connection, setConnection] = useState<GoogleDriveConnection | null>(null);
@@ -37,6 +38,7 @@ export const GoogleDriveSettings: React.FC = () => {
   const [documentTypeFilter, setDocumentTypeFilter] = useState<'all' | 'strategy' | 'meetings' | 'financial'>('all');
   const [documentSearchTerm, setDocumentSearchTerm] = useState('');
   const [showNoFoldersNotification, setShowNoFoldersNotification] = useState(false);
+  const [showGuidedSetup, setShowGuidedSetup] = useState(false);
 
   // Temporary state for folder selection
   const [selectedMeetingsFolder, setSelectedMeetingsFolder] = useState<FolderInfo | null>(null);
@@ -248,6 +250,56 @@ export const GoogleDriveSettings: React.FC = () => {
       setError(err.message || 'Failed to load folders');
     } finally {
       setLoadingFolders(false);
+    }
+  };
+
+  const handleStartGuidedSetup = async () => {
+    try {
+      setLoadingFolders(true);
+      setError('');
+      const folderList = await listGoogleDriveFolders();
+      setFolders(folderList);
+      setShowGuidedSetup(true);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load folders');
+    } finally {
+      setLoadingFolders(false);
+    }
+  };
+
+  const handleGuidedSetupSave = async (strategyIds: string[], meetingsIds: string[], financialIds: string[]) => {
+    try {
+      setSavingFolders(true);
+      setError('');
+
+      // Convert folder IDs to folder objects
+      const strategyFolders = folders.filter(f => strategyIds.includes(f.id));
+      const meetingsFolders = folders.filter(f => meetingsIds.includes(f.id));
+      const financialFolders = folders.filter(f => financialIds.includes(f.id));
+
+      // Update the configuration
+      await updateFolderConfiguration(
+        strategyFolders.length > 0 ? strategyFolders[0] : null,
+        meetingsFolders.length > 0 ? meetingsFolders[0] : null,
+        financialFolders.length > 0 ? financialFolders[0] : null,
+        strategyIds,
+        meetingsIds,
+        financialIds
+      );
+
+      // Update local state
+      if (strategyFolders.length > 0) setSelectedStrategyFolder(strategyFolders[0]);
+      if (meetingsFolders.length > 0) setSelectedMeetingsFolder(meetingsFolders[0]);
+      if (financialFolders.length > 0) setSelectedFinancialFolder(financialFolders[0]);
+
+      // Reload connection to get updated state
+      await loadConnection();
+      setShowGuidedSetup(false);
+    } catch (err: any) {
+      setError(err.message || 'Failed to save folder configuration');
+      throw err;
+    } finally {
+      setSavingFolders(false);
     }
   };
 
@@ -616,23 +668,44 @@ export const GoogleDriveSettings: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-semibold text-white">Folder Configuration</h4>
               {isAdmin && (
-                <button
-                  onClick={handleLoadFolders}
-                  disabled={loadingFolders}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-sm rounded transition-colors flex items-center space-x-1"
-                >
-                  {loadingFolders ? (
-                    <>
-                      <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Loading...</span>
-                    </>
-                  ) : (
-                    <>
-                      <FolderOpen className="w-3 h-3" />
-                      <span>Select Folders</span>
-                    </>
-                  )}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleStartGuidedSetup}
+                    disabled={loadingFolders}
+                    className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 disabled:bg-gray-600 text-white text-sm rounded transition-all flex items-center space-x-1"
+                    title="Let Astra guide you through folder selection"
+                  >
+                    {loadingFolders ? (
+                      <>
+                        <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Loading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3 h-3" />
+                        <span>Astra Guided Setup</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleLoadFolders}
+                    disabled={loadingFolders}
+                    className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 text-white text-sm rounded transition-colors flex items-center space-x-1"
+                    title="Manually select folders"
+                  >
+                    {loadingFolders ? (
+                      <>
+                        <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Loading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FolderOpen className="w-3 h-3" />
+                        <span>Manual Setup</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               )}
             </div>
 
@@ -1397,6 +1470,17 @@ export const GoogleDriveSettings: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Astra Guided Setup Modal */}
+      <AstraGuidedSetupModal
+        isOpen={showGuidedSetup}
+        onClose={() => setShowGuidedSetup(false)}
+        folders={folders.map(f => ({ id: f.id, name: f.name }))}
+        onSaveAndSync={handleGuidedSetupSave}
+        existingStrategyIds={connection?.selected_strategy_folder_ids || []}
+        existingMeetingsIds={connection?.selected_meetings_folder_ids || []}
+        existingFinancialIds={connection?.selected_financial_folder_ids || []}
+      />
     </div>
   );
 };
