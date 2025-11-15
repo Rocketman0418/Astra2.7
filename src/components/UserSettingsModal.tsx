@@ -755,29 +755,29 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
 
           {FEATURES.GMAIL_ENABLED && <GmailSettings />}
 
-          {isAdmin && teamId && (
-            <div className="bg-gray-700/50 rounded-lg p-6 border border-gray-600">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <Settings className="w-5 h-5 text-blue-400" />
-                  <h3 className="text-lg font-semibold text-white">Team Settings</h3>
-                </div>
-              </div>
-              <p className="text-sm text-gray-400 mb-4">
-                Configure meeting types and news preferences for your team.
-              </p>
-              <button
-                onClick={() => setShowTeamSettings(true)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
-              >
-                <Settings className="w-4 h-4" />
-                <span>Manage Team Settings</span>
-              </button>
-            </div>
-          )}
-
           {teamId && (
-            <div data-tour="team-panel">
+            <div data-tour="team-panel" className="space-y-6">
+              {isAdmin && (
+                <div className="bg-gray-700/50 rounded-lg p-6 border border-gray-600">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <Settings className="w-5 h-5 text-blue-400" />
+                      <h3 className="text-lg font-semibold text-white">Team Settings</h3>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-400 mb-4">
+                    Configure meeting types and news preferences for your team.
+                  </p>
+                  <button
+                    onClick={() => setShowTeamSettings(true)}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span>Manage Team Settings</span>
+                  </button>
+                </div>
+              )}
+
               <TeamMembersPanel />
             </div>
           )}
