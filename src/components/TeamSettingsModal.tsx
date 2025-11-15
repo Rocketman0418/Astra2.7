@@ -46,9 +46,8 @@ const DEFAULT_MEETING_TYPES: MeetingType[] = [
 ];
 
 const DEFAULT_NEWS_PREFERENCES: NewsPreferences = {
-  enabled: false,
-  industries: [],
-  custom_topics: '',
+  industries: ['AI', 'Technology'],
+  custom_topics: 'AI news, technology trends, business updates',
   max_results: 10,
 };
 

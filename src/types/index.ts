@@ -154,7 +154,6 @@ export interface MeetingType {
 }
 
 export interface NewsPreferences {
-  enabled: boolean;
   industries: string[];
   custom_topics: string;
   max_results: number;
