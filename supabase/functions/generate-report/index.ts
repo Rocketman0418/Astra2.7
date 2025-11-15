@@ -108,36 +108,37 @@ Deno.serve(async (req: Request) => {
 
     // Call n8n webhook to generate report with accurate data
     console.log('🌐 Calling n8n webhook for report generation...');
-    console.log('📤 Webhook payload:', {
+
+    const webhookPayload = {
+      chatInput: latestPrompt,
       user_id: userId,
       user_email: userData.user.email,
       user_name: userName,
+      conversation_id: null,
       team_id: teamId,
       team_name: teamName,
       role: role,
       view_financial: viewFinancial,
-      mode: 'reports'
-    });
+      mode: 'reports',
+      original_message: latestPrompt,
+      mentions: [],
+      report_title: report.title,
+      report_schedule: report.schedule_time,
+      report_frequency: report.schedule_frequency,
+      is_manual_run: true,
+      is_team_report: report.is_team_report || false,
+      created_by_user_id: report.created_by_user_id || null,
+      executed_at: new Date().toISOString()
+    };
+
+    console.log('📤 Webhook payload:', JSON.stringify(webhookPayload, null, 2));
 
     const webhookResponse = await fetch(n8nWebhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        chatInput: latestPrompt,
-        user_id: userId,
-        user_email: userData.user.email,
-        user_name: userName,
-        conversation_id: null,
-        team_id: teamId,
-        team_name: teamName,
-        role: role,
-        view_financial: viewFinancial,
-        mode: 'reports',
-        original_message: latestPrompt,
-        mentions: []
-      })
+      body: JSON.stringify(webhookPayload)
     });
 
     if (!webhookResponse.ok) {

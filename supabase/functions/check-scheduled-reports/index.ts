@@ -147,13 +147,13 @@ Deno.serve(async (req: Request) => {
           mode: 'reports',
           original_message: report.prompt,
           mentions: [],
-          metadata: {
-            report_title: report.title,
-            report_schedule: report.schedule_time,
-            report_frequency: report.schedule_frequency,
-            is_manual_run: false,
-            executed_at: new Date().toISOString()
-          }
+          report_title: report.title,
+          report_schedule: report.schedule_time,
+          report_frequency: report.schedule_frequency,
+          is_manual_run: false,
+          is_team_report: report.is_team_report || false,
+          created_by_user_id: report.created_by_user_id || null,
+          executed_at: new Date().toISOString()
         };
 
         console.log('📦 Full webhook payload:', JSON.stringify(webhookPayload, null, 2));
