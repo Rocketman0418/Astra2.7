@@ -49,6 +49,24 @@
     @apply bg-gray-500;
   }
 
+  /* Custom scrollbar utility class */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-gray-800/50 rounded-lg;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-600 rounded-lg hover:bg-gray-500;
+  }
+
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(75, 85, 99) rgb(31, 41, 55);
+  }
+
   /* Focus styles for accessibility */
   .focus-visible {
     @apply outline-none ring-2 ring-blue-500 ring-offset-2 ring-offset-gray-900;

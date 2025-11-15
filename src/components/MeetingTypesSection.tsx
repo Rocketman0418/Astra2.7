@@ -56,7 +56,7 @@ export const MeetingTypesSection: React.FC<MeetingTypesSectionProps> = ({
           <p>Add your first meeting type to get started.</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           {meetingTypes.map((type, index) => (
             <MeetingTypeCard
               key={index}
