@@ -664,29 +664,29 @@ export const GoogleDriveSettings: React.FC = () => {
             )}
           </div>
 
-          <div className="border-t border-gray-600 pt-4">
+          <div className="border-t border-gray-600 pt-4" id="folder-configuration">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-semibold text-white">Folder Configuration</h4>
-              {isAdmin && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleStartGuidedSetup}
-                    disabled={loadingFolders}
-                    className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 disabled:bg-gray-600 text-white text-sm rounded transition-all flex items-center space-x-1"
-                    title="Let Astra guide you through folder selection"
-                  >
-                    {loadingFolders ? (
-                      <>
-                        <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>Loading...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-3 h-3" />
-                        <span>Astra Guided Setup</span>
-                      </>
-                    )}
-                  </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleStartGuidedSetup}
+                  disabled={loadingFolders || !isAdmin}
+                  className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 disabled:bg-gray-600 disabled:opacity-50 text-white text-sm rounded transition-all flex items-center space-x-1"
+                  title={isAdmin ? "Let Astra guide you through folder selection" : "Only admins can configure folders"}
+                >
+                  {loadingFolders ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Loading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3 h-3" />
+                      <span>Astra Guided Setup</span>
+                    </>
+                  )}
+                </button>
+                {isAdmin && (
                   <button
                     onClick={handleLoadFolders}
                     disabled={loadingFolders}
@@ -705,8 +705,8 @@ export const GoogleDriveSettings: React.FC = () => {
                       </>
                     )}
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -1457,12 +1457,18 @@ export const GoogleDriveSettings: React.FC = () => {
                   <button
                     onClick={() => {
                       setShowNoFoldersNotification(false);
-                      handleLoadFolders();
+                      // Scroll to folder configuration section
+                      setTimeout(() => {
+                        const element = document.getElementById('folder-configuration');
+                        if (element) {
+                          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                      }, 100);
                     }}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
                   >
                     <FolderOpen className="w-4 h-4" />
-                    <span>Select Folders Now</span>
+                    <span>Take Me There</span>
                   </button>
                 )}
               </div>
