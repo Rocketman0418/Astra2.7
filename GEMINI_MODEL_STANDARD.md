@@ -17,12 +17,19 @@ This is a non-negotiable standard unless explicitly changed by project leadershi
 
 This standard applies to ALL Gemini API calls including:
 
-1. **Visualizations** - All chart and dashboard generation
+1. **Visualizations** - All chart and dashboard generation (including report visualizations)
 2. **Ask Astra** - Main chat interactions
-3. **Reports** - Scheduled and manual report generation
-4. **Team Chat Summaries** - Activity summarization
-5. **Help Assistant** - User support interactions
-6. **Any future AI features** - Unless explicitly specified otherwise
+3. **Team Chat Summaries** - Activity summarization
+4. **Help Assistant** - User support interactions
+5. **Any future AI features** - Unless explicitly specified otherwise
+
+### Important: Reports Architecture
+
+**Reports use a hybrid approach:**
+- **Report Generation**: Calls n8n webhook workflow (NOT Gemini directly)
+- **Report Visualization**: Uses Gemini (`gemini-flash-latest`) to create visual dashboards from the report data
+
+The n8n workflow handles the actual report generation logic. Gemini is only used client-side to generate the interactive HTML visualization from the report text.
 
 ## Implementation Pattern
 
@@ -51,11 +58,12 @@ const model = genAI.getGenerativeModel({
 
 Current files that must maintain this standard:
 
-- `src/hooks/useVisualization.ts` - Visualization generation
+- `src/hooks/useVisualization.ts` - Visualization generation (for chats AND reports)
 - `src/components/GroupChat.tsx` - Team chat summaries
 - `src/lib/help-assistant.ts` - Help/support features
-- Any n8n workflows calling Gemini
 - Any future components that integrate Gemini
+
+**Note:** n8n workflows handle their own AI logic and are configured separately in the workflow definitions.
 
 ## Verification Checklist
 
