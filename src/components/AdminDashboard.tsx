@@ -391,15 +391,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
 
       const { count: privateChats } = await supabase
         .from('astra_chats')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
+        .eq('mode', 'private');
 
       const { count: teamMessages } = await supabase
-        .from('astra_team_messages')
-        .select('*', { count: 'exact', head: true });
+        .from('astra_chats')
+        .select('*', { count: 'exact', head: true })
+        .eq('mode', 'team');
 
       const { count: reports } = await supabase
-        .from('user_reports')
-        .select('*', { count: 'exact', head: true });
+        .from('astra_chats')
+        .select('*', { count: 'exact', head: true })
+        .eq('mode', 'reports');
 
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -479,17 +482,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
             .from('astra_chats')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', user.id)
+            .eq('mode', 'private')
             .gte('created_at', todayISO),
           supabase
-            .from('astra_team_messages')
+            .from('astra_chats')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', user.id)
+            .eq('mode', 'team')
             .gte('created_at', todayISO),
           supabase
-            .from('user_reports')
+            .from('astra_chats')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', user.id)
-            .eq('report_type', 'manual')
+            .eq('mode', 'reports')
             .gte('created_at', todayISO)
         ]);
 
@@ -653,10 +658,10 @@ Sign up here: https://airocket.app`;
           { data: gmailAuth },
           { data: driveConn }
         ] = await Promise.all([
-          supabase.from('astra_chats').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-          supabase.from('astra_team_messages').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+          supabase.from('astra_chats').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('mode', 'private'),
+          supabase.from('astra_chats').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('mode', 'team'),
           supabase.from('documents').select('id, folder_type').eq('team_id', user.team_id),
-          supabase.from('user_reports').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+          supabase.from('astra_chats').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('mode', 'reports'),
           supabase.from('gmail_auth').select('is_active').eq('user_id', user.id).maybeSingle(),
           supabase.from('user_drive_connections').select('is_active').eq('user_id', user.id).maybeSingle()
         ]);
