@@ -32,12 +32,9 @@ export const usePWAInstall = () => {
       return;
     }
 
-    // Check localStorage to see if app was previously installed
-    const wasInstalled = localStorage.getItem('pwa-installed') === 'true';
-    if (wasInstalled) {
-      setIsInstalled(true);
-      setIsInstallable(true); // Keep it installable so button shows
-    }
+    // Note: We removed the localStorage check for 'pwa-installed'
+    // The button should always show in browser mode, even if app was previously installed
+    // Chrome's beforeinstallprompt will determine if installation is available
 
     // For iOS, always show install button if not in standalone mode
     if (ios && !isIOSStandalone) {

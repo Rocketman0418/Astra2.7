@@ -12,15 +12,10 @@ export const InstallAppButton: React.FC = () => {
 
   console.log('PWA Button render:', { isRunningInApp, isInstallable, isInstalled, isIOS });
 
-  // Only hide if running in installed app mode
+  // Only hide if running in installed app mode (standalone/fullscreen)
+  // Always show button when in browser mode, regardless of whether app was previously installed
   if (isRunningInApp) {
     console.log('Hiding button - already in app mode');
-    return null;
-  }
-
-  // Hide button if app is already installed on Chrome/Edge (Chrome provides native "Open in App" button)
-  if (isInstalled && !isIOS) {
-    console.log('Hiding button - app installed, Chrome provides native Open in App');
     return null;
   }
 
