@@ -52,6 +52,18 @@ const STEPS: StepContent[] = [
     folderType: 'strategy'
   },
   {
+    title: 'Important Sync Guidelines',
+    astraMessage: "Before we begin selecting folders, there are a few important things to know about what data can currently be synced. Understanding these limitations will help you organize your folders for the best results.",
+    examples: [],
+    samplePrompts: [],
+    bestPractices: [
+      "Currently, only Google Drive folders can be synced. We plan to add more data sources in future updates.",
+      "Currently, only Google Doc and Google Sheet files can be synced. Other files in your folders will not be captured. Note: You can easily convert existing files in your folder to Gdoc and Gsheet format, and enable your settings to auto-convert to these file types for any new uploads.",
+      "Currently, the file sync does NOT support sub-folders in your folders. Meaning only files in your folders will be synced, not folders or other files in those folders. We plan to add sub-folder sync capabilities in the future."
+    ],
+    folderType: 'strategy'
+  },
+  {
     title: 'Strategy Documents',
     astraMessage: "Let's start with your Strategy documents. These are the core documents that define your company's direction and goals. By connecting these, I can help you analyze alignment across your organization and ensure your team is working toward the same vision.",
     examples: [
