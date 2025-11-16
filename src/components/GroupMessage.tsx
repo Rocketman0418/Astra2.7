@@ -1,6 +1,7 @@
 import React from 'react';
 import { BarChart3, Check, RefreshCw, Trash2, Plus, Reply } from 'lucide-react';
 import { GroupMessage as GroupMessageType } from '../types';
+import { formatAstraMessage } from '../utils/formatAstraMessage';
 
 interface Reaction {
   emoji: string;
@@ -59,69 +60,7 @@ interface GroupMessageProps {
 
 const formatMessageContent = (content: string, mentions: string[], isAstraMessage: boolean = false): JSX.Element => {
   if (isAstraMessage) {
-    // Use the same formatting logic as private chat for Astra messages
-    const lines = content.split('\n');
-    const elements: JSX.Element[] = [];
-    
-    lines.forEach((line, index) => {
-      const trimmedLine = line.trim();
-      
-      // Skip empty lines but add spacing
-      if (!trimmedLine) {
-        elements.push(<br key={`br-${index}`} />);
-        return;
-      }
-      
-      // Handle numbered lists (1. 2. 3. etc.)
-      const numberedListMatch = trimmedLine.match(/^(\d+)\.\s*\*\*(.*?)\*\*:\s*(.*)$/);
-      if (numberedListMatch) {
-        const [, number, title, content] = numberedListMatch;
-        elements.push(
-          <div key={index} className="mb-4">
-            <div className="flex items-start space-x-2">
-              <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                {number}
-              </span>
-              <div className="flex-1">
-                <div className="font-bold text-blue-300 mb-1">{title}</div>
-                <div className="text-gray-300 leading-relaxed">{content}</div>
-              </div>
-            </div>
-          </div>
-        );
-        return;
-      }
-      
-      // Handle regular bold text
-      const boldRegex = /\*\*(.*?)\*\*/g;
-      if (boldRegex.test(trimmedLine)) {
-        const parts = trimmedLine.split(boldRegex);
-        const formattedParts = parts.map((part, partIndex) => {
-          if (partIndex % 2 === 1) {
-            return <strong key={partIndex} className="font-bold text-blue-300">{part}</strong>;
-          }
-          return part;
-        });
-        elements.push(<div key={index} className="mb-2">{formattedParts}</div>);
-        return;
-      }
-      
-      // Handle bullet points
-      if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-')) {
-        elements.push(
-          <div key={index} className="flex items-start space-x-2 mb-2 ml-4">
-            <span className="text-blue-400 mt-1">•</span>
-            <span className="text-gray-300">{trimmedLine.substring(1).trim()}</span>
-          </div>
-        );
-        return;
-      }
-      
-      // Regular text
-      elements.push(<div key={index} className="mb-2 text-gray-300">{trimmedLine}</div>);
-    });
-    
-    return <div>{elements}</div>;
+    return formatAstraMessage(content);
   }
 
   // Format user messages with bold @mentions - handle both manual typing and dropdown selections

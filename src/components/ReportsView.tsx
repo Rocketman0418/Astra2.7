@@ -4,6 +4,7 @@ import { useVisualization } from '../hooks/useVisualization';
 import { useReportsContext } from '../contexts/ReportsContext';
 import { ManageReportsModal } from './ManageReportsModal';
 import { VisualizationView } from './VisualizationView';
+import { formatAstraMessage } from '../utils/formatAstraMessage';
 
 export const ReportsView: React.FC = () => {
   const {
@@ -355,9 +356,9 @@ export const ReportsView: React.FC = () => {
                 {expandedTextId === message.id && (
                   <div className="px-4 pb-4">
                     <div className="bg-gray-900 rounded-lg p-4 max-h-96 overflow-y-auto">
-                      <p className="text-sm text-gray-300 whitespace-pre-wrap">
-                        {message.text}
-                      </p>
+                      <div className="text-sm">
+                        {formatAstraMessage(message.text)}
+                      </div>
                     </div>
                   </div>
                 )}
