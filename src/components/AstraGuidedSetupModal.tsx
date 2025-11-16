@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Sparkles, Check, ChevronLeft, ChevronRight, FolderOpen } from 'lucide-react';
+import { X, Sparkles, Check, ChevronLeft, ChevronRight, FolderOpen, FileText, FolderClosed, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -310,8 +310,9 @@ export function AstraGuidedSetupModal({
   if (!isOpen) return null;
 
   const isWelcomeStep = currentStep === 0;
+  const isGuidelinesStep = currentStep === 1;
   const isSummaryStep = currentStep === totalSteps - 1;
-  const showFolderSelection = !isWelcomeStep && !isSummaryStep;
+  const showFolderSelection = !isWelcomeStep && !isGuidelinesStep && !isSummaryStep;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
@@ -423,9 +424,49 @@ export function AstraGuidedSetupModal({
               )}
             </div>
 
-            {/* Folder Selection Panel or Summary */}
+            {/* Folder Selection Panel or Summary or Guidelines Graphic */}
             <div>
-              {showFolderSelection ? (
+              {isGuidelinesStep ? (
+                <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 h-full flex items-center justify-center">
+                  <div className="space-y-6 w-full">
+                    {/* Google Drive Only */}
+                    <div className="text-center">
+                      <div className="w-20 h-20 mx-auto mb-3 rounded-2xl bg-blue-500/20 border-2 border-blue-500 flex items-center justify-center">
+                        <FolderClosed className="w-10 h-10 text-blue-400" />
+                      </div>
+                      <h4 className="text-white font-semibold mb-1">Google Drive Only</h4>
+                      <p className="text-gray-400 text-sm">More sources coming soon</p>
+                    </div>
+
+                    {/* File Types */}
+                    <div className="flex items-center justify-center gap-4">
+                      <div className="text-center">
+                        <div className="w-16 h-16 mx-auto mb-2 rounded-xl bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
+                          <FileText className="w-8 h-8 text-green-400" />
+                        </div>
+                        <p className="text-green-400 text-xs font-semibold">Docs</p>
+                      </div>
+                      <div className="text-white text-2xl font-bold">+</div>
+                      <div className="text-center">
+                        <div className="w-16 h-16 mx-auto mb-2 rounded-xl bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
+                          <FileText className="w-8 h-8 text-green-400" />
+                        </div>
+                        <p className="text-green-400 text-xs font-semibold">Sheets</p>
+                      </div>
+                    </div>
+
+                    {/* No Sub-folders */}
+                    <div className="text-center">
+                      <div className="w-20 h-20 mx-auto mb-3 rounded-2xl bg-orange-500/20 border-2 border-orange-500 flex items-center justify-center relative">
+                        <FolderOpen className="w-10 h-10 text-orange-400" />
+                        <AlertCircle className="w-6 h-6 text-red-400 absolute -top-1 -right-1" />
+                      </div>
+                      <h4 className="text-white font-semibold mb-1">Top-Level Files Only</h4>
+                      <p className="text-gray-400 text-sm">Sub-folders not synced yet</p>
+                    </div>
+                  </div>
+                </div>
+              ) : showFolderSelection ? (
                 <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
                   <div className="flex items-center gap-2 mb-4">
                     <FolderOpen className="w-5 h-5 text-orange-500" />
