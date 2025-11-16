@@ -11,14 +11,21 @@ export const usePWAInstall = () => {
   const [isInstalled, setIsInstalled] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isSafari, setIsSafari] = useState(false);
 
   useEffect(() => {
-    // Detect iOS
+    // Detect iOS devices (iPhone, iPad, iPod)
     const userAgent = window.navigator.userAgent.toLowerCase();
     const ios = /iphone|ipad|ipod/.test(userAgent);
     console.log('[PWA Install] User Agent:', userAgent);
     console.log('[PWA Install] iOS detected:', ios);
     setIsIOS(ios);
+
+    // Detect Safari browser (both iOS and macOS)
+    // Safari is identified by having 'safari' in UA but NOT 'chrome' or 'chromium'
+    const safari = /safari/.test(userAgent) && !/chrome|chromium|edg/.test(userAgent);
+    console.log('[PWA Install] Safari detected:', safari);
+    setIsSafari(safari);
 
     // Detect mobile
     const mobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
@@ -38,8 +45,8 @@ export const usePWAInstall = () => {
     // The button should always show in browser mode, even if app was previously installed
     // Chrome's beforeinstallprompt will determine if installation is available
 
-    // For iOS, always show install button if not in standalone mode
-    if (ios && !isIOSStandalone) {
+    // For Safari (iOS or macOS), always show install button if not in standalone mode
+    if (safari && !isIOSStandalone) {
       setIsInstallable(true);
     }
 
@@ -98,6 +105,7 @@ export const usePWAInstall = () => {
     isInstalled,
     isIOS,
     isMobile,
+    isSafari,
     install,
   };
 };

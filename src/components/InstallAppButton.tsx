@@ -3,8 +3,8 @@ import { ExternalLink, X, Share } from 'lucide-react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 
 export const InstallAppButton: React.FC = () => {
-  const { isInstallable, isInstalled, isIOS, isMobile, install } = usePWAInstall();
-  const [showIOSInstructions, setShowIOSInstructions] = useState(false);
+  const { isInstallable, isInstalled, isIOS, isMobile, isSafari, install } = usePWAInstall();
+  const [showSafariInstructions, setShowSafariInstructions] = useState(false);
 
   const isRunningInApp = window.matchMedia('(display-mode: standalone)').matches ||
                          window.matchMedia('(display-mode: fullscreen)').matches ||
@@ -16,6 +16,7 @@ export const InstallAppButton: React.FC = () => {
     isInstalled,
     isIOS,
     isMobile,
+    isSafari,
     userAgent: window.navigator.userAgent
   });
 
@@ -27,12 +28,12 @@ export const InstallAppButton: React.FC = () => {
   }
 
   const handleClick = async () => {
-    console.log('PWA Button clicked:', { isInstalled, isIOS, isInstallable });
+    console.log('PWA Button clicked:', { isInstalled, isIOS, isSafari, isInstallable });
 
-    // iOS always shows instructions
-    if (isIOS) {
-      console.log('iOS detected - showing instructions');
-      setShowIOSInstructions(true);
+    // Safari (iOS or macOS) always shows instructions
+    if (isSafari) {
+      console.log('Safari detected - showing instructions');
+      setShowSafariInstructions(true);
       return;
     }
 
@@ -72,14 +73,14 @@ export const InstallAppButton: React.FC = () => {
         <span className="hidden md:inline text-white text-sm font-medium whitespace-nowrap">{buttonText}</span>
       </button>
 
-      {showIOSInstructions && (
+      {showSafariInstructions && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full border border-gray-700">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-white">Install AI Rocket</h3>
                 <button
-                  onClick={() => setShowIOSInstructions(false)}
+                  onClick={() => setShowSafariInstructions(false)}
                   className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
                 >
                   <X className="w-5 h-5 text-gray-400" />
@@ -141,7 +142,7 @@ export const InstallAppButton: React.FC = () => {
               </div>
 
               <button
-                onClick={() => setShowIOSInstructions(false)}
+                onClick={() => setShowSafariInstructions(false)}
                 className="w-full mt-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 rounded-lg font-medium transition-all"
               >
                 Got it!
