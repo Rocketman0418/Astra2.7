@@ -32,9 +32,11 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
           }
         });
 
+        // Check for updates every 30 seconds
         setInterval(() => {
+          console.log('[PWA] Checking for service worker updates...');
           registration.update();
-        }, 60000);
+        }, 30000);
       })
       .catch((error) => {
         console.warn('[PWA] Service Worker registration failed:', error);

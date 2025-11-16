@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
 const CURRENT_VERSION = '1.0.0';
-const VERSION_CHECK_INTERVAL = 5 * 60 * 1000;
+const VERSION_CHECK_INTERVAL = 2 * 60 * 1000; // Check every 2 minutes
 
 export const VersionChecker: React.FC = () => {
   const [newVersionAvailable, setNewVersionAvailable] = useState(false);
@@ -10,11 +10,15 @@ export const VersionChecker: React.FC = () => {
 
   const checkVersion = async () => {
     try {
+      console.log('[Version] Checking for updates...');
+
+      // Force bypass all caches
       const response = await fetch(`/version.json?t=${Date.now()}`, {
-        cache: 'no-cache',
+        cache: 'no-store',
         headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
       });
 
@@ -22,8 +26,10 @@ export const VersionChecker: React.FC = () => {
         const data = await response.json();
         const serverVersion = data.version;
 
+        console.log(`[Version] Server: ${serverVersion}, Current: ${CURRENT_VERSION}`);
+
         if (serverVersion && serverVersion !== CURRENT_VERSION) {
-          console.log(`[Version] New version available: ${serverVersion} (current: ${CURRENT_VERSION})`);
+          console.log(`[Version] New version available: ${serverVersion}`);
           setNewVersionAvailable(true);
         }
       }
@@ -33,10 +39,13 @@ export const VersionChecker: React.FC = () => {
   };
 
   useEffect(() => {
+    // Initial check
     checkVersion();
 
+    // Check periodically
     const interval = setInterval(checkVersion, VERSION_CHECK_INTERVAL);
 
+    // Listen for service worker updates
     const handleSWUpdate = () => {
       console.log('[Version] Service worker update detected');
       setNewVersionAvailable(true);
@@ -44,33 +53,54 @@ export const VersionChecker: React.FC = () => {
 
     window.addEventListener('sw-update-available', handleSWUpdate);
 
+    // Check for updates when tab becomes visible
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('[Version] Tab visible, checking for updates');
+        checkVersion();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       clearInterval(interval);
       window.removeEventListener('sw-update-available', handleSWUpdate);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
+    console.log('[Version] Starting update process...');
 
-    if ('serviceWorker' in navigator) {
-      const registration = await navigator.serviceWorker.getRegistration();
-      if (registration && registration.waiting) {
-        console.log('[Version] Activating new service worker');
-        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-      } else {
-        if ('caches' in window) {
-          const cacheNames = await caches.keys();
-          await Promise.all(cacheNames.map(name => caches.delete(name)));
+    try {
+      // Step 1: Unregister all service workers
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        console.log(`[Version] Found ${registrations.length} service worker(s) to unregister`);
+
+        for (const registration of registrations) {
+          await registration.unregister();
+          console.log('[Version] Service worker unregistered');
         }
-        window.location.reload();
       }
-    } else {
+
+      // Step 2: Clear all caches
       if ('caches' in window) {
         const cacheNames = await caches.keys();
+        console.log(`[Version] Clearing ${cacheNames.length} cache(s)`);
         await Promise.all(cacheNames.map(name => caches.delete(name)));
+        console.log('[Version] All caches cleared');
       }
+
+      // Step 3: Hard reload the page
+      console.log('[Version] Performing hard reload...');
       window.location.reload();
+    } catch (error) {
+      console.error('[Version] Update failed:', error);
+      setIsRefreshing(false);
+      alert('Update failed. Please try refreshing manually (Cmd/Ctrl + Shift + R)');
     }
   };
 

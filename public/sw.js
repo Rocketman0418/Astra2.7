@@ -1,5 +1,5 @@
-const CACHE_NAME = 'astra-intelligence-v4';
-const RUNTIME_CACHE = 'astra-runtime-v4';
+const CACHE_NAME = 'astra-intelligence-v5';
+const RUNTIME_CACHE = 'astra-runtime-v5';
 
 const urlsToCache = [
   '/',
@@ -51,25 +51,55 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (event.request.url.includes('/version.json')) {
+  // Never cache version.json or sw.js - always fetch fresh
+  if (event.request.url.includes('/version.json') || event.request.url.includes('/sw.js')) {
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      })
         .then((response) => {
           return response;
         })
         .catch(() => {
-          return new Response(JSON.stringify({ version: '1.0.0' }), {
-            headers: { 'Content-Type': 'application/json' }
-          });
+          if (event.request.url.includes('/version.json')) {
+            return new Response(JSON.stringify({ version: '1.0.0' }), {
+              headers: { 'Content-Type': 'application/json' }
+            });
+          }
+          return response;
         })
     );
     return;
   }
 
+  // Network-first strategy for index.html to always get latest version
+  if (event.request.url.endsWith('/') || event.request.url.includes('index.html')) {
+    event.respondWith(
+      fetch(event.request, {
+        cache: 'no-store'
+      })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Cache-first strategy for other resources
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
         if (response) {
+          // Return cached version but fetch in background to update cache
+          fetch(event.request).then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              caches.open(RUNTIME_CACHE).then((cache) => {
+                cache.put(event.request, networkResponse);
+              });
+            }
+          }).catch(() => {});
           return response;
         }
 
