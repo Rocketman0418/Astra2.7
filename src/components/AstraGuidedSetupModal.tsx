@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Sparkles, Check, ChevronLeft, ChevronRight, FolderOpen, FileText, FolderClosed, AlertCircle } from 'lucide-react';
+import { X, Sparkles, Check, ChevronLeft, ChevronRight, FolderOpen, FileText, FolderClosed, AlertCircle, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -171,6 +171,7 @@ export function AstraGuidedSetupModal({
   });
   const [isSaving, setIsSaving] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const currentStepContent = STEPS[currentStep];
   const totalSteps = STEPS.length;
@@ -266,12 +267,14 @@ export function AstraGuidedSetupModal({
       const nextStep = currentStep + 1;
       setCurrentStep(nextStep);
       await saveProgress(nextStep, newCompletedSteps);
+      setSearchTerm(''); // Clear search when moving to next step
     }
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
+      setSearchTerm(''); // Clear search when going back
     }
   };
 
@@ -313,6 +316,11 @@ export function AstraGuidedSetupModal({
   const isGuidelinesStep = currentStep === 1;
   const isSummaryStep = currentStep === totalSteps - 1;
   const showFolderSelection = !isWelcomeStep && !isGuidelinesStep && !isSummaryStep;
+
+  // Filter folders based on search term
+  const filteredFolders = folders.filter(folder =>
+    folder.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
@@ -475,13 +483,37 @@ export function AstraGuidedSetupModal({
                     </h4>
                   </div>
 
+                  {/* Search Bar */}
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search folders..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                    />
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
                   <div className="space-y-2 max-h-[400px] overflow-y-auto">
                     {folders.length === 0 ? (
                       <p className="text-gray-400 text-sm text-center py-8">
                         No folders available. Please ensure you've connected Google Drive.
                       </p>
+                    ) : filteredFolders.length === 0 ? (
+                      <p className="text-gray-400 text-sm text-center py-8">
+                        No folders match "{searchTerm}"
+                      </p>
                     ) : (
-                      folders.map((folder) => {
+                      filteredFolders.map((folder) => {
                         const isSelected = getCurrentFolderSelection().includes(folder.id);
                         return (
                           <button
