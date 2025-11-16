@@ -42,7 +42,7 @@ const formatMessageText = (text: string): JSX.Element => {
     const headerMatch = trimmedLine.match(/^(#{1,6})\s+(.+)$/);
     if (headerMatch) {
       const level = headerMatch[1].length;
-      const content = headerMatch[2].replace(/[🎯⭐📚💭📋]/g, '').trim();
+      const content = headerMatch[2].trim();
       const sizes = ['text-xl', 'text-lg', 'text-base', 'text-base', 'text-sm', 'text-sm'];
       const marginTop = level === 1 ? 'mt-6' : level === 2 ? 'mt-5' : 'mt-4';
 
