@@ -16,6 +16,8 @@ export const usePWAInstall = () => {
     // Detect iOS
     const userAgent = window.navigator.userAgent.toLowerCase();
     const ios = /iphone|ipad|ipod/.test(userAgent);
+    console.log('[PWA Install] User Agent:', userAgent);
+    console.log('[PWA Install] iOS detected:', ios);
     setIsIOS(ios);
 
     // Detect mobile

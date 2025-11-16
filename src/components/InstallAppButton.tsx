@@ -10,7 +10,14 @@ export const InstallAppButton: React.FC = () => {
                          window.matchMedia('(display-mode: fullscreen)').matches ||
                          (window.navigator as any).standalone === true;
 
-  console.log('PWA Button render:', { isRunningInApp, isInstallable, isInstalled, isIOS });
+  console.log('PWA Button render:', {
+    isRunningInApp,
+    isInstallable,
+    isInstalled,
+    isIOS,
+    isMobile,
+    userAgent: window.navigator.userAgent
+  });
 
   // Only hide if running in installed app mode (standalone/fullscreen)
   // Always show button when in browser mode, regardless of whether app was previously installed
@@ -43,9 +50,12 @@ export const InstallAppButton: React.FC = () => {
       return;
     }
 
-    // This shouldn't happen, but fallback to showing instructions
-    console.log('Unexpected state - showing instructions as fallback');
-    setShowIOSInstructions(true);
+    // For Chrome/Edge when install prompt not available (app already installed)
+    // Chrome provides a native "Open in app" button in the address bar
+    console.log('Chrome: Install prompt not available');
+    alert('Good news! This app is already installed on your device.\n\n' +
+          'Look for the "Open in app" button (📱) in your browser\'s address bar to launch the installed app.\n\n' +
+          'Or find "AI Rocket" in your Applications folder.');
   };
 
   const buttonText = 'Install App';
