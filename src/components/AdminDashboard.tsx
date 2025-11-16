@@ -452,18 +452,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
       today.setHours(0, 0, 0, 0);
       const todayISO = today.toISOString();
 
-      // Get users with teams
-      const { data: usersData, error: usersError } = await supabase
-        .from('users')
-        .select('id, email, team_id');
+      // Fetch dashboard data which includes all users and teams via service role
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-dashboard-data`;
+      const headers = {
+        'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        'Content-Type': 'application/json',
+      };
 
-      if (usersError) throw usersError;
+      const response = await fetch(apiUrl, { headers });
+      if (!response.ok) throw new Error('Failed to fetch dashboard data');
 
-      const { data: teamsData } = await supabase
-        .from('teams')
-        .select('id, name');
+      const dashboardData = await response.json();
+      const usersData = dashboardData.users;
+      const teamsData = dashboardData.teams;
 
-      const teamMap = new Map(teamsData?.map(t => [t.id, t.name]) || []);
+      const teamMap = new Map(teamsData?.map((t: any) => [t.id, t.name]) || []);
 
       // Get today's activity
       const activeUsers = await Promise.all((usersData || []).map(async (user) => {
