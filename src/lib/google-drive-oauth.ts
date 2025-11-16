@@ -243,25 +243,59 @@ export const refreshGoogleDriveToken = async (): Promise<void> => {
 
 /**
  * Updates the folder configuration (meetings and/or strategy folder IDs)
+ * Can accept either single folders or arrays of folder IDs
  */
-export const updateFolderConfiguration = async (folders: {
-  meetings_folder_id?: string | null;
-  meetings_folder_name?: string | null;
-  strategy_folder_id?: string | null;
-  strategy_folder_name?: string | null;
-  financial_folder_id?: string | null;
-  financial_folder_name?: string | null;
-}): Promise<void> => {
+export const updateFolderConfiguration = async (
+  folders: {
+    meetings_folder_id?: string | null;
+    meetings_folder_name?: string | null;
+    strategy_folder_id?: string | null;
+    strategy_folder_name?: string | null;
+    financial_folder_id?: string | null;
+    financial_folder_name?: string | null;
+  } | FolderInfo | null,
+  meetingsFolder?: FolderInfo | null,
+  financialFolder?: FolderInfo | null,
+  strategyIds?: string[],
+  meetingsIds?: string[],
+  financialIds?: string[]
+): Promise<void> => {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
     throw new Error('Not authenticated');
   }
 
-  // Determine if financial sync should be enabled based on whether a folder is configured
-  const updateData = {
-    ...folders,
-    financial_sync_enabled: folders.financial_folder_id ? true : false
-  };
+  let updateData: any = {};
+
+  // Handle the case where we're using arrays (from guided setup)
+  if (strategyIds !== undefined || meetingsIds !== undefined || financialIds !== undefined) {
+    updateData = {
+      selected_strategy_folder_ids: strategyIds || [],
+      selected_meetings_folder_ids: meetingsIds || [],
+      selected_financial_folder_ids: financialIds || [],
+      financial_sync_enabled: (financialIds && financialIds.length > 0) ? true : false
+    };
+  }
+  // Handle the old object-based approach
+  else if (folders && typeof folders === 'object' && 'meetings_folder_id' in folders) {
+    updateData = {
+      ...folders,
+      financial_sync_enabled: folders.financial_folder_id ? true : false
+    };
+  }
+  // Handle the case where folders are passed as separate parameters (legacy support)
+  else {
+    const strategyFolder = folders as FolderInfo | null;
+    updateData = {
+      meetings_folder_id: meetingsFolder?.id || null,
+      meetings_folder_name: meetingsFolder?.name || null,
+      strategy_folder_id: strategyFolder?.id || null,
+      strategy_folder_name: strategyFolder?.name || null,
+      financial_folder_id: financialFolder?.id || null,
+      financial_folder_name: financialFolder?.name || null,
+      financial_sync_enabled: financialFolder?.id ? true : false
+    };
+  }
 
   const { error } = await supabase
     .from('user_drive_connections')
