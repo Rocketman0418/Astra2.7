@@ -272,25 +272,25 @@ export const GoogleDriveSettings: React.FC = () => {
       setSavingFolders(true);
       setError('');
 
-      // Convert folder IDs to folder objects
-      const strategyFolders = folders.filter(f => strategyIds.includes(f.id));
-      const meetingsFolders = folders.filter(f => meetingsIds.includes(f.id));
-      const financialFolders = folders.filter(f => financialIds.includes(f.id));
+      // Convert folder IDs to folder objects (use first selected folder for each type)
+      const strategyFolder = strategyIds.length > 0 ? folders.find(f => f.id === strategyIds[0]) : null;
+      const meetingsFolder = meetingsIds.length > 0 ? folders.find(f => f.id === meetingsIds[0]) : null;
+      const financialFolder = financialIds.length > 0 ? folders.find(f => f.id === financialIds[0]) : null;
 
-      // Update the configuration
-      await updateFolderConfiguration(
-        strategyFolders.length > 0 ? strategyFolders[0] : null,
-        meetingsFolders.length > 0 ? meetingsFolders[0] : null,
-        financialFolders.length > 0 ? financialFolders[0] : null,
-        strategyIds,
-        meetingsIds,
-        financialIds
-      );
+      // Update the configuration using the single folder columns
+      await updateFolderConfiguration({
+        strategy_folder_id: strategyFolder?.id || null,
+        strategy_folder_name: strategyFolder?.name || null,
+        meetings_folder_id: meetingsFolder?.id || null,
+        meetings_folder_name: meetingsFolder?.name || null,
+        financial_folder_id: financialFolder?.id || null,
+        financial_folder_name: financialFolder?.name || null,
+      });
 
       // Update local state
-      if (strategyFolders.length > 0) setSelectedStrategyFolder(strategyFolders[0]);
-      if (meetingsFolders.length > 0) setSelectedMeetingsFolder(meetingsFolders[0]);
-      if (financialFolders.length > 0) setSelectedFinancialFolder(financialFolders[0]);
+      if (strategyFolder) setSelectedStrategyFolder(strategyFolder);
+      if (meetingsFolder) setSelectedMeetingsFolder(meetingsFolder);
+      if (financialFolder) setSelectedFinancialFolder(financialFolder);
 
       // Reload connection to get updated state
       await loadConnection();
