@@ -101,14 +101,14 @@ Deno.serve(async (req: Request) => {
         console.log(`🔍 Fetching team info for user ${report.user_id}...`);
 
         // Query public.users table directly (service role bypasses RLS)
-        const { data: userRecord, error: userError } = await supabase
+        const { data: userRecord, error: userRecordError } = await supabase
           .from('users')
           .select('team_id, role, view_financial, name, teams(name)')
           .eq('id', report.user_id)
           .single();
 
-        if (userError) {
-          console.error(`❌ Error fetching user record:`, userError);
+        if (userRecordError) {
+          console.error(`❌ Error fetching user record:`, userRecordError);
           console.log(`⚠️ Falling back to user_metadata`);
           // Fallback to user_metadata from auth.users
           teamId = userData.user.user_metadata?.team_id || null;
