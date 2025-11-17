@@ -845,10 +845,10 @@ Sign up here: https://airocket.app`;
         msg.id === messageId ? { ...msg, not_resolved: !currentValue } : msg
       ));
 
-      const { error } = await supabase
-        .from('user_feedback_submissions')
-        .update({ not_resolved: !currentValue })
-        .eq('id', messageId);
+      const { error } = await supabase.rpc('toggle_feedback_not_resolved', {
+        submission_id: messageId,
+        new_value: !currentValue
+      });
 
       if (error) {
         console.error('Database update error:', error);
