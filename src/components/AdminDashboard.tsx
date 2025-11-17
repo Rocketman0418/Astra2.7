@@ -840,23 +840,26 @@ Sign up here: https://airocket.app`;
     try {
       console.log('Toggling not_resolved:', { messageId, currentValue, newValue: !currentValue });
 
-      const { data, error } = await supabase
-        .from('user_feedback_submissions')
-        .update({ not_resolved: !currentValue })
-        .eq('id', messageId)
-        .select();
-
-      if (error) {
-        console.error('Database update error:', error);
-        throw error;
-      }
-
-      console.log('Database update successful:', data);
-
       // Update local state immediately for responsive UI
       setSupportMessages(prev => prev.map(msg =>
         msg.id === messageId ? { ...msg, not_resolved: !currentValue } : msg
       ));
+
+      const { error } = await supabase
+        .from('user_feedback_submissions')
+        .update({ not_resolved: !currentValue })
+        .eq('id', messageId);
+
+      if (error) {
+        console.error('Database update error:', error);
+        // Revert the optimistic update on error
+        setSupportMessages(prev => prev.map(msg =>
+          msg.id === messageId ? { ...msg, not_resolved: currentValue } : msg
+        ));
+        throw error;
+      }
+
+      console.log('Database update successful - not_resolved toggled to:', !currentValue);
     } catch (error) {
       console.error('Error toggling not_resolved status:', error);
       alert('Failed to update status. Please check the console for details.');
