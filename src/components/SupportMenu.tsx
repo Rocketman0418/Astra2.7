@@ -147,7 +147,7 @@ export function SupportMenu() {
 
           if (uploadError) {
             console.error('Upload error:', uploadError);
-            throw new Error(`Failed to upload ${file.name}`);
+            throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
           }
 
           // Get public URL
@@ -196,6 +196,7 @@ export function SupportMenu() {
       setError(err instanceof Error ? err.message : 'Failed to submit request');
     } finally {
       setIsSubmitting(false);
+      setUploadingFile(false); // ✅ Always reset upload state
     }
   };
 
