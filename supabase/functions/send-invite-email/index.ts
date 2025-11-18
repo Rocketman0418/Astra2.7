@@ -113,6 +113,12 @@ Deno.serve(async (req: Request) => {
               font-size: 28px;
               font-weight: 700;
             }
+            .header .tagline {
+              margin: 8px 0 0 0;
+              font-size: 14px;
+              opacity: 0.95;
+              font-weight: 500;
+            }
             .content {
               padding: 40px 30px;
             }
@@ -125,7 +131,7 @@ Deno.serve(async (req: Request) => {
             .message {
               font-size: 16px;
               color: #4b5563;
-              margin-bottom: 30px;
+              margin-bottom: 20px;
               line-height: 1.8;
             }
             .invite-box {
@@ -165,22 +171,77 @@ Deno.serve(async (req: Request) => {
               display: inline-block;
               background: linear-gradient(135deg, #f97316 0%, #84cc16 50%, #3b82f6 100%);
               color: white;
-              padding: 20px 60px;
+              padding: 18px 48px;
               border-radius: 12px;
               text-decoration: none;
               font-weight: 700;
-              font-size: 20px;
-              margin: 20px 0;
+              font-size: 18px;
+              margin: 10px 0;
               transition: transform 0.2s;
               box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             }
             .cta-container {
-              background: #f9fafb;
-              border: 2px solid #e5e7eb;
-              border-radius: 12px;
-              padding: 30px;
-              margin: 30px 0;
               text-align: center;
+              margin: 20px 0;
+            }
+            .value-section {
+              background: #f9fafb;
+              border-radius: 8px;
+              padding: 24px;
+              margin: 30px 0;
+            }
+            .value-title {
+              font-size: 18px;
+              font-weight: 700;
+              color: #111827;
+              margin-bottom: 16px;
+            }
+            .feature-list {
+              list-style: none;
+              padding: 0;
+              margin: 0;
+            }
+            .feature-list li {
+              padding: 8px 0 8px 28px;
+              position: relative;
+              color: #374151;
+              font-size: 15px;
+            }
+            .feature-list li:before {
+              content: "✅";
+              position: absolute;
+              left: 0;
+            }
+            .use-case-section {
+              margin: 30px 0;
+            }
+            .use-case-category {
+              margin-bottom: 20px;
+            }
+            .category-title {
+              font-size: 16px;
+              font-weight: 700;
+              color: #111827;
+              margin-bottom: 8px;
+            }
+            .category-title:before {
+              margin-right: 8px;
+            }
+            .use-case-list {
+              list-style: none;
+              padding: 0;
+              margin: 0 0 0 24px;
+            }
+            .use-case-list li {
+              color: #4b5563;
+              font-size: 14px;
+              padding: 4px 0;
+              font-style: italic;
+            }
+            .use-case-list li:before {
+              content: "•";
+              color: #9ca3af;
+              margin-right: 8px;
             }
             .steps {
               background: #eff6ff;
@@ -193,7 +254,7 @@ Deno.serve(async (req: Request) => {
               font-weight: 600;
               color: #1e40af;
               margin-bottom: 12px;
-              font-size: 14px;
+              font-size: 16px;
             }
             .steps ol {
               margin: 0;
@@ -202,6 +263,24 @@ Deno.serve(async (req: Request) => {
             }
             .steps li {
               margin-bottom: 8px;
+              font-size: 14px;
+            }
+            .pro-tips {
+              background: #fef3c7;
+              border-left: 4px solid #f59e0b;
+              padding: 20px;
+              margin: 30px 0;
+              border-radius: 4px;
+            }
+            .pro-tips-title {
+              font-weight: 600;
+              color: #92400e;
+              margin-bottom: 12px;
+              font-size: 16px;
+            }
+            .pro-tips p {
+              margin: 8px 0;
+              color: #78350f;
               font-size: 14px;
             }
             .footer {
@@ -216,20 +295,24 @@ Deno.serve(async (req: Request) => {
               color: #3b82f6;
               text-decoration: none;
             }
+            .divider {
+              border-top: 1px solid #e5e7eb;
+              margin: 30px 0;
+            }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
               <h1>🚀 Welcome to AI Rocket + Astra Intelligence</h1>
+              <p class="tagline">AI Connected to ALL Your Data</p>
             </div>
             <div class="content">
               <div class="greeting">
                 Hi there!
               </div>
               <div class="message">
-                <strong>${inviterName}</strong> has invited you to join <strong>${teamName}</strong> on AI Rocket + Astra Intelligence,
-                your team's AI-powered platform for insights and collaboration.
+                <strong>${inviterName}</strong> has invited you to join <strong>${teamName}</strong> on AI Rocket + Astra Intelligence.
               </div>
 
               <div class="invite-box">
@@ -242,33 +325,111 @@ Deno.serve(async (req: Request) => {
 
               <div class="cta-container">
                 <a href="${appUrl}" class="cta-button">
-                  Create Your Account
+                  Create Your Account →
                 </a>
               </div>
 
+              <div class="divider"></div>
+
+              <div class="value-section">
+                <div class="value-title">What is AI Rocket + Astra?</div>
+                <div class="message" style="margin-bottom: 16px;">
+                  Your team's AI intelligence platform that connects to ALL your data and provides insights you can trust:
+                </div>
+                <ul class="feature-list">
+                  <li><strong>Instant Answers</strong> - Ask questions about meetings, documents, financials, and strategy in plain English</li>
+                  <li><strong>Smart Context</strong> - Astra knows your team's mission, goals, and recent activities</li>
+                  <li><strong>Visual Insights</strong> - Get automatic charts, graphs, and reports from your data</li>
+                  <li><strong>Team Collaboration</strong> - Work together with AI-assisted group chats and @mentions</li>
+                  <li><strong>Private & Secure</strong> - Your data stays with your team, never shared across organizations</li>
+                </ul>
+              </div>
+
+              <div class="use-case-section">
+                <div class="value-title">What Can Astra Do For You?</div>
+
+                <div class="use-case-category">
+                  <div class="category-title">📊 Meeting Intelligence</div>
+                  <ul class="use-case-list">
+                    <li>"What were our key decisions from last week's Leadership Meeting?"</li>
+                    <li>"Show me action items assigned to me this month"</li>
+                    <li>"Summarize client feedback from recent calls"</li>
+                  </ul>
+                </div>
+
+                <div class="use-case-category">
+                  <div class="category-title">📈 Strategic Insights</div>
+                  <ul class="use-case-list">
+                    <li>"How do our recent activities align with our quarterly goals?"</li>
+                    <li>"What are the top initiatives we're working on?"</li>
+                    <li>"Compare this quarter's progress to last quarter"</li>
+                  </ul>
+                </div>
+
+                <div class="use-case-category">
+                  <div class="category-title">💰 Financial Analysis</div>
+                  <ul class="use-case-list">
+                    <li>"What's our revenue trend over the last 6 months?"</li>
+                    <li>"Show me our biggest expenses this quarter"</li>
+                    <li>"How does our current P&L compare to budget?"</li>
+                  </ul>
+                </div>
+
+                <div class="use-case-category">
+                  <div class="category-title">🔍 Smart Search</div>
+                  <ul class="use-case-list">
+                    <li>Find information across ALL your team's documents, meetings, and data</li>
+                    <li>Get answers backed by specific sources and dates</li>
+                    <li>Ask follow-up questions for deeper insights</li>
+                  </ul>
+                </div>
+              </div>
+
               <div class="steps">
-                <div class="steps-title">Getting Started:</div>
+                <div class="steps-title">🎯 Get Started in 3 Minutes:</div>
                 <ol>
                   <li>Click the button above to visit AI Rocket</li>
                   <li>Select "Sign Up" and enter your email: <strong>${email}</strong></li>
                   <li>Create a password for your account</li>
                   <li>Enter your invite code: <strong>${inviteCode}</strong></li>
-                  <li>Start collaborating with your team!</li>
+                  <li>Start asking Astra anything about your team!</li>
                 </ol>
               </div>
 
+              <div class="pro-tips">
+                <div class="pro-tips-title">💡 Pro Tips:</div>
+                <p>• Try asking: "What should I know about our team?" to get started</p>
+                <p>• Use @Astra in group chats to get AI help for everyone</p>
+                <p>• Save your favorite insights as visualizations for quick access</p>
+              </div>
+
               <div class="message">
-                You'll be joining as a <strong>${role}</strong> and will have access to your team's conversations,
-                documents, and AI-powered insights.
+                <strong>Your Role:</strong> You'll be joining as a <strong>${role}</strong> with access to team conversations, AI-powered insights, meeting transcripts, action items, strategy documents, and company goals.
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="invite-box">
+                <div class="invite-label">Your Invite Code</div>
+                <div class="invite-code">${inviteCode}</div>
+                <div class="email-display">
+                  Use with email: <span class="email-value">${email}</span>
+                </div>
+              </div>
+
+              <div class="cta-container">
+                <a href="${appUrl}" class="cta-button">
+                  Create Your Account →
+                </a>
               </div>
             </div>
             <div class="footer">
               <p>
                 This invitation was sent by ${inviterName} from ${teamName}.<br>
-                If you have any questions, please contact your team administrator.
+                Questions? Contact your team administrator.
               </p>
               <p style="margin-top: 20px;">
-                <a href="${appUrl}">AI Rocket + Astra</a> - AI Connected to ALL Your Data
+                <a href="${appUrl}">AI Rocket + Astra</a> - Level Up Entrepreneurs Using AI
               </p>
             </div>
           </div>
