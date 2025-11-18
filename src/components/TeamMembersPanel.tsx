@@ -304,21 +304,21 @@ export const TeamMembersPanel: React.FC = () => {
             body {
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
               line-height: 1.6;
-              color: #333;
+              color: #e5e7eb;
               margin: 0;
               padding: 0;
-              background: #f3f4f6;
+              background: #0f172a;
             }
             .container {
               max-width: 600px;
               margin: 40px auto;
-              background: white;
+              background: #1e293b;
               border-radius: 12px;
               overflow: hidden;
-              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             }
             .header {
-              background: linear-gradient(135deg, #f97316 0%, #84cc16 50%, #3b82f6 100%);
+              background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
               color: white;
               padding: 40px 30px;
               text-align: center;
@@ -340,18 +340,18 @@ export const TeamMembersPanel: React.FC = () => {
             .greeting {
               font-size: 18px;
               font-weight: 600;
-              color: #111827;
+              color: #f3f4f6;
               margin-bottom: 20px;
             }
             .message {
               font-size: 16px;
-              color: #4b5563;
+              color: #d1d5db;
               margin-bottom: 20px;
               line-height: 1.8;
             }
             .invite-box {
-              background: #f9fafb;
-              border: 2px solid #e5e7eb;
+              background: #334155;
+              border: 2px solid #475569;
               border-radius: 8px;
               padding: 24px;
               margin: 30px 0;
@@ -360,7 +360,7 @@ export const TeamMembersPanel: React.FC = () => {
             .invite-label {
               font-size: 12px;
               text-transform: uppercase;
-              color: #6b7280;
+              color: #94a3b8;
               font-weight: 600;
               letter-spacing: 1px;
               margin-bottom: 12px;
@@ -368,23 +368,23 @@ export const TeamMembersPanel: React.FC = () => {
             .invite-code {
               font-size: 32px;
               font-weight: 700;
-              color: #059669;
+              color: #4ade80;
               font-family: 'Courier New', monospace;
               letter-spacing: 3px;
               margin-bottom: 8px;
             }
             .email-display {
               font-size: 14px;
-              color: #6b7280;
+              color: #94a3b8;
               margin-top: 12px;
             }
             .email-value {
               font-weight: 600;
-              color: #111827;
+              color: #e5e7eb;
             }
             .cta-button {
               display: inline-block;
-              background: linear-gradient(135deg, #f97316 0%, #84cc16 50%, #3b82f6 100%);
+              background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
               color: white;
               padding: 18px 48px;
               border-radius: 12px;
@@ -393,14 +393,14 @@ export const TeamMembersPanel: React.FC = () => {
               font-size: 18px;
               margin: 10px 0;
               transition: transform 0.2s;
-              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+              box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
             }
             .cta-container {
               text-align: center;
               margin: 20px 0;
             }
             .value-section {
-              background: #f9fafb;
+              background: #334155;
               border-radius: 8px;
               padding: 24px;
               margin: 30px 0;
@@ -408,7 +408,7 @@ export const TeamMembersPanel: React.FC = () => {
             .value-title {
               font-size: 18px;
               font-weight: 700;
-              color: #111827;
+              color: #f3f4f6;
               margin-bottom: 16px;
             }
             .feature-list {
@@ -419,7 +419,7 @@ export const TeamMembersPanel: React.FC = () => {
             .feature-list li {
               padding: 8px 0 8px 28px;
               position: relative;
-              color: #374151;
+              color: #d1d5db;
               font-size: 15px;
             }
             .feature-list li:before {
@@ -436,7 +436,7 @@ export const TeamMembersPanel: React.FC = () => {
             .category-title {
               font-size: 16px;
               font-weight: 700;
-              color: #111827;
+              color: #f3f4f6;
               margin-bottom: 8px;
             }
             .use-case-list {
@@ -445,18 +445,18 @@ export const TeamMembersPanel: React.FC = () => {
               margin: 0 0 0 24px;
             }
             .use-case-list li {
-              color: #4b5563;
+              color: #9ca3af;
               font-size: 14px;
               padding: 4px 0;
               font-style: italic;
             }
             .use-case-list li:before {
               content: "•";
-              color: #9ca3af;
+              color: #64748b;
               margin-right: 8px;
             }
             .steps {
-              background: #eff6ff;
+              background: #1e3a5f;
               border-left: 4px solid #3b82f6;
               padding: 20px;
               margin: 30px 0;
@@ -464,21 +464,21 @@ export const TeamMembersPanel: React.FC = () => {
             }
             .steps-title {
               font-weight: 600;
-              color: #1e40af;
+              color: #60a5fa;
               margin-bottom: 12px;
               font-size: 16px;
             }
             .steps ol {
               margin: 0;
               padding-left: 20px;
-              color: #1e40af;
+              color: #93c5fd;
             }
             .steps li {
               margin-bottom: 8px;
               font-size: 14px;
             }
             .pro-tips {
-              background: #fef3c7;
+              background: #422006;
               border-left: 4px solid #f59e0b;
               padding: 20px;
               margin: 30px 0;
@@ -486,29 +486,29 @@ export const TeamMembersPanel: React.FC = () => {
             }
             .pro-tips-title {
               font-weight: 600;
-              color: #92400e;
+              color: #fbbf24;
               margin-bottom: 12px;
               font-size: 16px;
             }
             .pro-tips p {
               margin: 8px 0;
-              color: #78350f;
+              color: #fcd34d;
               font-size: 14px;
             }
             .footer {
-              background: #f9fafb;
+              background: #0f172a;
               padding: 30px;
               text-align: center;
-              border-top: 1px solid #e5e7eb;
+              border-top: 1px solid #334155;
               font-size: 13px;
-              color: #6b7280;
+              color: #94a3b8;
             }
             .footer a {
-              color: #3b82f6;
+              color: #60a5fa;
               text-decoration: none;
             }
             .divider {
-              border-top: 1px solid #e5e7eb;
+              border-top: 1px solid #334155;
               margin: 30px 0;
             }
           </style>
