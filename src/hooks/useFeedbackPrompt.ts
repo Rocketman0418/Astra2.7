@@ -47,6 +47,15 @@ export function useFeedbackPrompt() {
     try {
       setLoading(true);
 
+      // Skip feedback prompts for RocketHub team
+      const userTeamId = user.user_metadata?.team_id;
+      const ROCKETHUB_TEAM_ID = 'e2174edc-4291-4509-81e6-7293a769c41f';
+
+      if (userTeamId === ROCKETHUB_TEAM_ID) {
+        setLoading(false);
+        return;
+      }
+
       const { data: status, error: statusError } = await supabase
         .from('user_feedback_status')
         .select('*')
