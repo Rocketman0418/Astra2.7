@@ -59,7 +59,7 @@ export function FeedbackAnalyticsPanel() {
         dateFilter = thirtyDaysAgo.toISOString();
       }
 
-      // Query all feedback answers with submission and user info
+      // Query all feedback answers with submission info (no nested user join)
       let answersQuery = supabase
         .from('user_feedback_answers')
         .select(`
@@ -71,8 +71,7 @@ export function FeedbackAnalyticsPanel() {
           user_feedback_submissions!inner(
             submitted_at,
             user_id,
-            general_feedback,
-            users!inner(name, email)
+            general_feedback
           ),
           feedback_questions(question_text, category)
         `);
@@ -97,6 +96,22 @@ export function FeedbackAnalyticsPanel() {
         throw answersError;
       }
 
+      // Get all unique user IDs from answers
+      const userIds = [...new Set(answers?.map(a => a.user_feedback_submissions?.user_id).filter(Boolean))];
+
+      // Fetch user data separately
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('id, name, email')
+        .in('id', userIds);
+
+      const userMap = new Map(usersData?.map(u => [u.id, { name: u.name, email: u.email }]) || []);
+
+      console.log('[FeedbackAnalytics] Users fetched:', {
+        userCount: usersData?.length || 0,
+        userIds: userIds.length
+      });
+
       // Calculate average ratings by question
       const questionStats: Record<string, { total: number; sum: number }> = {};
       answers?.forEach(answer => {
@@ -117,14 +132,18 @@ export function FeedbackAnalyticsPanel() {
       const recentSuggestions = answers
         ?.filter(a => a.comment && a.comment.trim() !== '')
         .slice(0, 20)
-        .map(a => ({
-          id: a.id,
-          user_name: a.user_feedback_submissions?.users?.name || a.user_feedback_submissions?.users?.email || 'Anonymous',
-          submitted_at: a.user_feedback_submissions?.submitted_at || '',
-          question_text: a.feedback_questions?.question_text || '',
-          rating: a.rating,
-          comment: a.comment || ''
-        })) || [];
+        .map(a => {
+          const userId = a.user_feedback_submissions?.user_id;
+          const userData = userId ? userMap.get(userId) : null;
+          return {
+            id: a.id,
+            user_name: userData?.name || userData?.email || 'Anonymous',
+            submitted_at: a.user_feedback_submissions?.submitted_at || '',
+            question_text: a.feedback_questions?.question_text || '',
+            rating: a.rating,
+            comment: a.comment || ''
+          };
+        }) || [];
 
       // Get unique submissions with general feedback
       const submissionsMap = new Map();
@@ -132,9 +151,10 @@ export function FeedbackAnalyticsPanel() {
         const submission = answer.user_feedback_submissions;
         if (submission && submission.general_feedback && submission.general_feedback.trim() !== '') {
           if (!submissionsMap.has(submission.user_id)) {
+            const userData = userMap.get(submission.user_id);
             submissionsMap.set(submission.user_id, {
               id: answer.submission_id,
-              user_name: submission.users?.name || submission.users?.email || 'Anonymous',
+              user_name: userData?.name || userData?.email || 'Anonymous',
               submitted_at: submission.submitted_at,
               general_feedback: submission.general_feedback
             });
