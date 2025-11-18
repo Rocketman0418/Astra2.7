@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Shield, Edit2, Trash2, Save, X, UserPlus, Key, Info, Mail, Copy } from 'lucide-react';
+import { Users, Shield, Edit2, Trash2, Save, X, UserPlus, Key, Info, Mail, Copy, Eye } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -35,6 +35,8 @@ export const TeamMembersPanel: React.FC = () => {
   const [generatedCode, setGeneratedCode] = useState('');
   const [showInviteMessage, setShowInviteMessage] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
 
   const isAdmin = currentUserData?.role === 'admin';
   const teamId = currentUserData?.team_id;
@@ -284,12 +286,368 @@ export const TeamMembersPanel: React.FC = () => {
       }
 
       setInviteSuccess(`Invite email sent successfully to ${inviteEmail}!`);
+      setEmailSent(true);
     } catch (err: any) {
       console.error('Error sending invite email:', err);
       setInviteError(err.message || 'Failed to send invite email');
     } finally {
       setSendingEmail(false);
     }
+  };
+
+  const getEmailPreviewHTML = () => {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+              line-height: 1.6;
+              color: #333;
+              margin: 0;
+              padding: 0;
+              background: #f3f4f6;
+            }
+            .container {
+              max-width: 600px;
+              margin: 40px auto;
+              background: white;
+              border-radius: 12px;
+              overflow: hidden;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+              background: linear-gradient(135deg, #f97316 0%, #84cc16 50%, #3b82f6 100%);
+              color: white;
+              padding: 40px 30px;
+              text-align: center;
+            }
+            .header h1 {
+              margin: 0;
+              font-size: 28px;
+              font-weight: 700;
+            }
+            .header .tagline {
+              margin: 8px 0 0 0;
+              font-size: 14px;
+              opacity: 0.95;
+              font-weight: 500;
+            }
+            .content {
+              padding: 40px 30px;
+            }
+            .greeting {
+              font-size: 18px;
+              font-weight: 600;
+              color: #111827;
+              margin-bottom: 20px;
+            }
+            .message {
+              font-size: 16px;
+              color: #4b5563;
+              margin-bottom: 20px;
+              line-height: 1.8;
+            }
+            .invite-box {
+              background: #f9fafb;
+              border: 2px solid #e5e7eb;
+              border-radius: 8px;
+              padding: 24px;
+              margin: 30px 0;
+              text-align: center;
+            }
+            .invite-label {
+              font-size: 12px;
+              text-transform: uppercase;
+              color: #6b7280;
+              font-weight: 600;
+              letter-spacing: 1px;
+              margin-bottom: 12px;
+            }
+            .invite-code {
+              font-size: 32px;
+              font-weight: 700;
+              color: #059669;
+              font-family: 'Courier New', monospace;
+              letter-spacing: 3px;
+              margin-bottom: 8px;
+            }
+            .email-display {
+              font-size: 14px;
+              color: #6b7280;
+              margin-top: 12px;
+            }
+            .email-value {
+              font-weight: 600;
+              color: #111827;
+            }
+            .cta-button {
+              display: inline-block;
+              background: linear-gradient(135deg, #f97316 0%, #84cc16 50%, #3b82f6 100%);
+              color: white;
+              padding: 18px 48px;
+              border-radius: 12px;
+              text-decoration: none;
+              font-weight: 700;
+              font-size: 18px;
+              margin: 10px 0;
+              transition: transform 0.2s;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+            .cta-container {
+              text-align: center;
+              margin: 20px 0;
+            }
+            .value-section {
+              background: #f9fafb;
+              border-radius: 8px;
+              padding: 24px;
+              margin: 30px 0;
+            }
+            .value-title {
+              font-size: 18px;
+              font-weight: 700;
+              color: #111827;
+              margin-bottom: 16px;
+            }
+            .feature-list {
+              list-style: none;
+              padding: 0;
+              margin: 0;
+            }
+            .feature-list li {
+              padding: 8px 0 8px 28px;
+              position: relative;
+              color: #374151;
+              font-size: 15px;
+            }
+            .feature-list li:before {
+              content: "✅";
+              position: absolute;
+              left: 0;
+            }
+            .use-case-section {
+              margin: 30px 0;
+            }
+            .use-case-category {
+              margin-bottom: 20px;
+            }
+            .category-title {
+              font-size: 16px;
+              font-weight: 700;
+              color: #111827;
+              margin-bottom: 8px;
+            }
+            .use-case-list {
+              list-style: none;
+              padding: 0;
+              margin: 0 0 0 24px;
+            }
+            .use-case-list li {
+              color: #4b5563;
+              font-size: 14px;
+              padding: 4px 0;
+              font-style: italic;
+            }
+            .use-case-list li:before {
+              content: "•";
+              color: #9ca3af;
+              margin-right: 8px;
+            }
+            .steps {
+              background: #eff6ff;
+              border-left: 4px solid #3b82f6;
+              padding: 20px;
+              margin: 30px 0;
+              border-radius: 4px;
+            }
+            .steps-title {
+              font-weight: 600;
+              color: #1e40af;
+              margin-bottom: 12px;
+              font-size: 16px;
+            }
+            .steps ol {
+              margin: 0;
+              padding-left: 20px;
+              color: #1e40af;
+            }
+            .steps li {
+              margin-bottom: 8px;
+              font-size: 14px;
+            }
+            .pro-tips {
+              background: #fef3c7;
+              border-left: 4px solid #f59e0b;
+              padding: 20px;
+              margin: 30px 0;
+              border-radius: 4px;
+            }
+            .pro-tips-title {
+              font-weight: 600;
+              color: #92400e;
+              margin-bottom: 12px;
+              font-size: 16px;
+            }
+            .pro-tips p {
+              margin: 8px 0;
+              color: #78350f;
+              font-size: 14px;
+            }
+            .footer {
+              background: #f9fafb;
+              padding: 30px;
+              text-align: center;
+              border-top: 1px solid #e5e7eb;
+              font-size: 13px;
+              color: #6b7280;
+            }
+            .footer a {
+              color: #3b82f6;
+              text-decoration: none;
+            }
+            .divider {
+              border-top: 1px solid #e5e7eb;
+              margin: 30px 0;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🚀 Welcome to AI Rocket + Astra Intelligence</h1>
+              <p class="tagline">AI that Works for You</p>
+            </div>
+            <div class="content">
+              <div class="greeting">
+                Hi there!
+              </div>
+              <div class="message">
+                <strong>${user?.user_metadata?.full_name || user?.email}</strong> has invited you to join <strong>${teamName || 'your team'}</strong> on AI Rocket + Astra Intelligence.
+              </div>
+
+              <div class="invite-box">
+                <div class="invite-label">Your Invite Code</div>
+                <div class="invite-code">${generatedCode}</div>
+                <div class="email-display">
+                  Use with email: <span class="email-value">${inviteEmail}</span>
+                </div>
+              </div>
+
+              <div class="cta-container">
+                <a href="${window.location.origin}" class="cta-button">
+                  Create Your Account →
+                </a>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="value-section">
+                <div class="value-title">What is AI Rocket + Astra?</div>
+                <div class="message" style="margin-bottom: 16px;">
+                  Your team's AI intelligence platform that connects to ALL your data and provides insights you can trust:
+                </div>
+                <ul class="feature-list">
+                  <li><strong>Instant Answers</strong> - Ask questions about meetings, documents, financials, and strategy in plain English</li>
+                  <li><strong>Smart Context</strong> - Astra knows your team's mission, goals, and recent activities</li>
+                  <li><strong>Visual Insights</strong> - Get automatic charts, graphs, and reports from your data</li>
+                  <li><strong>Team Collaboration</strong> - Work together with AI-assisted group chats and @mentions</li>
+                  <li><strong>Private & Secure</strong> - Your data stays with your team, never shared across organizations</li>
+                </ul>
+              </div>
+
+              <div class="use-case-section">
+                <div class="value-title">What Can Astra Do For You?</div>
+
+                <div class="use-case-category">
+                  <div class="category-title">📊 Meeting Intelligence</div>
+                  <ul class="use-case-list">
+                    <li>"What were our key decisions from last week's Leadership Meeting?"</li>
+                    <li>"Show me action items assigned to me this month"</li>
+                    <li>"Summarize client feedback from recent calls"</li>
+                  </ul>
+                </div>
+
+                <div class="use-case-category">
+                  <div class="category-title">📈 Strategic Insights</div>
+                  <ul class="use-case-list">
+                    <li>"How do our recent activities align with our quarterly goals?"</li>
+                    <li>"What are the top initiatives we're working on?"</li>
+                    <li>"Compare this quarter's progress to last quarter"</li>
+                  </ul>
+                </div>
+
+                <div class="use-case-category">
+                  <div class="category-title">💰 Financial Analysis</div>
+                  <ul class="use-case-list">
+                    <li>"What's our revenue trend over the last 6 months?"</li>
+                    <li>"Show me our biggest expenses this quarter"</li>
+                    <li>"How does our current P&L compare to budget?"</li>
+                  </ul>
+                </div>
+
+                <div class="use-case-category">
+                  <div class="category-title">🔍 Smart Search</div>
+                  <ul class="use-case-list">
+                    <li>Find information across ALL your team's documents, meetings, and data</li>
+                    <li>Get answers backed by specific sources and dates</li>
+                    <li>Ask follow-up questions for deeper insights</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="steps">
+                <div class="steps-title">🎯 Get Started in 3 Minutes:</div>
+                <ol>
+                  <li>Click the button above to visit AI Rocket</li>
+                  <li>Select "Sign Up" and enter your email: <strong>${inviteEmail}</strong></li>
+                  <li>Create a password for your account</li>
+                  <li>Enter your invite code: <strong>${generatedCode}</strong></li>
+                  <li>Start asking Astra anything about your team!</li>
+                </ol>
+              </div>
+
+              <div class="pro-tips">
+                <div class="pro-tips-title">💡 Pro Tips:</div>
+                <p>• Try asking: "What should I know about our team?" to get started</p>
+                <p>• Use @Astra in group chats to get AI help for everyone</p>
+                <p>• Save your favorite insights as visualizations for quick access</p>
+              </div>
+
+              <div class="message">
+                <strong>Your Role:</strong> You'll be joining as a <strong>${inviteRole}</strong> with access to team conversations, AI-powered insights, meeting transcripts, action items, strategy documents, and company goals.
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="invite-box">
+                <div class="invite-label">Your Invite Code</div>
+                <div class="invite-code">${generatedCode}</div>
+                <div class="email-display">
+                  Use with email: <span class="email-value">${inviteEmail}</span>
+                </div>
+              </div>
+
+              <div class="cta-container">
+                <a href="${window.location.origin}" class="cta-button">
+                  Create Your Account →
+                </a>
+              </div>
+            </div>
+            <div class="footer">
+              <p>
+                This invitation was sent by ${user?.user_metadata?.full_name || user?.email} from ${teamName || 'your team'}.<br>
+                Questions? Contact your team administrator.
+              </p>
+              <p style="margin-top: 20px;">
+                <a href="${window.location.origin}">AI Rocket + Astra</a> - AI that Works for You
+              </p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
   };
 
   const copyInviteMessage = () => {
@@ -313,6 +671,8 @@ Sign up here: ${window.location.origin}`;
     setInviteError('');
     setInviteSuccess('');
     setShowAddMember(false);
+    setEmailSent(false);
+    setShowEmailPreview(false);
   };
 
   // Show panel for all team members, just hide admin controls for non-admins
@@ -637,7 +997,7 @@ Sign up here: ${window.location.origin}`;
                     Sign up here: <span className="text-blue-400">{window.location.origin}</span>
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 mb-3">
                   <button
                     onClick={sendInviteEmail}
                     disabled={sendingEmail}
@@ -651,7 +1011,7 @@ Sign up here: ${window.location.origin}`;
                     ) : (
                       <>
                         <Mail className="w-4 h-4" />
-                        <span>Send Invite Email</span>
+                        <span>{emailSent ? 'Send Again' : 'Send Invite Email'}</span>
                       </>
                     )}
                   </button>
@@ -669,6 +1029,13 @@ Sign up here: ${window.location.origin}`;
                     Done
                   </button>
                 </div>
+                <button
+                  onClick={() => setShowEmailPreview(true)}
+                  className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors flex items-center justify-center space-x-2"
+                >
+                  <Eye className="w-4 h-4" />
+                  <span>Preview Invite Email</span>
+                </button>
               </div>
 
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
@@ -682,6 +1049,30 @@ Sign up here: ${window.location.origin}`;
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {showEmailPreview && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Invite Email Preview</h3>
+              <button
+                onClick={() => setShowEmailPreview(false)}
+                className="p-2 hover:bg-gray-100 rounded transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto">
+              <iframe
+                srcDoc={getEmailPreviewHTML()}
+                className="w-full h-full border-0"
+                title="Email Preview"
+                style={{ minHeight: '600px' }}
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>
