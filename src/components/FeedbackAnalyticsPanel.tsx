@@ -29,27 +29,20 @@ export function FeedbackAnalyticsPanel() {
   const [error, setError] = useState('');
   const [dateRange, setDateRange] = useState<'7days' | '30days' | 'all'>('7days');
 
-  const isAdmin = user?.user_metadata?.role === 'admin';
   const superAdminEmails = ['clay@rockethub.ai', 'derek@rockethub.ai', 'marshall@rockethub.ai'];
   const isSuperAdmin = user?.email && superAdminEmails.includes(user.email);
-  const teamId = user?.user_metadata?.team_id;
 
   useEffect(() => {
-    if (isSuperAdmin || (isAdmin && teamId)) {
+    if (isSuperAdmin) {
       loadFeedbackStats();
     }
-  }, [isAdmin, isSuperAdmin, teamId, dateRange]);
+  }, [isSuperAdmin, dateRange]);
 
   const loadFeedbackStats = async () => {
-    // Super-admin can view all teams, regular admin needs teamId
-    if (!isSuperAdmin && !teamId) return;
+    // Only super admins can access this panel
+    if (!isSuperAdmin) return;
 
-    console.log('[FeedbackAnalytics] Loading stats...', {
-      isSuperAdmin,
-      isAdmin,
-      userEmail: user?.email,
-      teamId
-    });
+    console.log('[FeedbackAnalytics] Loading stats for super admin:', user?.email);
 
     try {
       setLoading(true);
@@ -66,67 +59,33 @@ export function FeedbackAnalyticsPanel() {
         dateFilter = thirtyDaysAgo.toISOString();
       }
 
-      let query = supabase
-        .from('user_feedback_submissions')
-        .select(`
-          id,
-          user_id,
-          submitted_at,
-          general_feedback
-        `);
-
-      // Only filter by team if not super-admin
-      if (!isSuperAdmin && teamId) {
-        query = query.eq('team_id', teamId);
-      }
-
-      if (dateFilter) {
-        query = query.gte('submitted_at', dateFilter);
-      }
-
-      const { data: submissions, error: submissionsError } = await query;
-
-      console.log('[FeedbackAnalytics] Submissions fetched:', {
-        count: submissions?.length || 0,
-        isSuperAdmin,
-        appliedTeamFilter: !isSuperAdmin && teamId ? teamId : 'none'
-      });
-
-      if (submissionsError) {
-        if (submissionsError.code === '42P01') {
-          console.warn('Feedback tables not yet created');
-          setLoading(false);
-          return;
-        }
-        throw submissionsError;
-      }
-
+      // Query all feedback answers with submission and user info
       let answersQuery = supabase
         .from('user_feedback_answers')
         .select(`
           id,
           rating,
           comment,
+          created_at,
           submission_id,
-          user_feedback_submissions!inner(submitted_at, team_id, user_id),
+          user_feedback_submissions!inner(
+            submitted_at,
+            user_id,
+            general_feedback,
+            users!inner(name, email)
+          ),
           feedback_questions(question_text, category)
         `);
 
-      // Only filter by team if not super-admin
-      if (!isSuperAdmin && teamId) {
-        answersQuery = answersQuery.eq('user_feedback_submissions.team_id', teamId);
-      }
-
       if (dateFilter) {
-        answersQuery = answersQuery.gte('user_feedback_submissions.submitted_at', dateFilter);
+        answersQuery = answersQuery.gte('created_at', dateFilter);
       }
 
       const { data: answers, error: answersError } = await answersQuery;
 
       console.log('[FeedbackAnalytics] Answers fetched:', {
         count: answers?.length || 0,
-        isSuperAdmin,
-        appliedTeamFilter: !isSuperAdmin && teamId ? teamId : 'none'
+        dateRange
       });
 
       if (answersError) {
@@ -138,6 +97,7 @@ export function FeedbackAnalyticsPanel() {
         throw answersError;
       }
 
+      // Calculate average ratings by question
       const questionStats: Record<string, { total: number; sum: number }> = {};
       answers?.forEach(answer => {
         const questionText = answer.feedback_questions?.question_text || 'Unknown';
@@ -153,53 +113,42 @@ export function FeedbackAnalyticsPanel() {
         avgRatings[question] = stats.sum / stats.total;
       });
 
-      // Get unique user IDs from answers
-      const userIds = new Set(answers?.map(a => a.user_feedback_submissions?.user_id).filter(Boolean));
-      const userIdArray = Array.from(userIds);
-
-      // Fetch user names from public.users table
-      const { data: usersData } = await supabase
-        .from('users')
-        .select('id, name')
-        .in('id', userIdArray);
-
-      const userMap = new Map(usersData?.map(u => [u.id, u.name || 'Anonymous']) || []);
-
+      // Get recent suggestions with comments
       const recentSuggestions = answers
         ?.filter(a => a.comment && a.comment.trim() !== '')
         .slice(0, 20)
         .map(a => ({
           id: a.id,
-          user_name: userMap.get(a.user_feedback_submissions?.user_id || '') || 'Anonymous',
+          user_name: a.user_feedback_submissions?.users?.name || a.user_feedback_submissions?.users?.email || 'Anonymous',
           submitted_at: a.user_feedback_submissions?.submitted_at || '',
           question_text: a.feedback_questions?.question_text || '',
           rating: a.rating,
           comment: a.comment || ''
         })) || [];
 
-      // Get general feedback from submissions
-      const submissionUserIds = new Set(submissions?.map(s => s.user_id).filter(Boolean));
-      const submissionUserIdArray = Array.from(submissionUserIds);
+      // Get unique submissions with general feedback
+      const submissionsMap = new Map();
+      answers?.forEach(answer => {
+        const submission = answer.user_feedback_submissions;
+        if (submission && submission.general_feedback && submission.general_feedback.trim() !== '') {
+          if (!submissionsMap.has(submission.user_id)) {
+            submissionsMap.set(submission.user_id, {
+              id: answer.submission_id,
+              user_name: submission.users?.name || submission.users?.email || 'Anonymous',
+              submitted_at: submission.submitted_at,
+              general_feedback: submission.general_feedback
+            });
+          }
+        }
+      });
 
-      // Fetch user names for submissions
-      const { data: submissionUsersData } = await supabase
-        .from('users')
-        .select('id, name')
-        .in('id', submissionUserIdArray);
+      const generalFeedback = Array.from(submissionsMap.values());
 
-      const submissionUserMap = new Map(submissionUsersData?.map(u => [u.id, u.name || 'Anonymous']) || []);
-
-      const generalFeedback = submissions
-        ?.filter(s => s.general_feedback && s.general_feedback.trim() !== '')
-        .map(s => ({
-          id: s.id,
-          user_name: submissionUserMap.get(s.user_id) || 'Anonymous',
-          submitted_at: s.submitted_at,
-          general_feedback: s.general_feedback
-        })) || [];
+      // Count unique submissions
+      const uniqueSubmissions = new Set(answers?.map(a => a.submission_id));
 
       setStats({
-        totalSubmissions: submissions?.length || 0,
+        totalSubmissions: uniqueSubmissions.size,
         avgRatings,
         recentSuggestions,
         generalFeedback
