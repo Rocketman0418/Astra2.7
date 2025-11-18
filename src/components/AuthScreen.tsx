@@ -14,7 +14,7 @@ export const AuthScreen: React.FC = () => {
         <div className="max-w-5xl mx-auto px-4">
           <div className="text-center mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-              AI that Works for You
+              AI that Works for Work
             </h2>
             <p className="text-lg text-gray-400 max-w-2xl mx-auto">
               Built for Entrepreneurs and their Teams
@@ -135,7 +135,7 @@ export const AuthScreen: React.FC = () => {
           {/* Value Proposition */}
           <div className="bg-gradient-to-br from-blue-500/10 via-emerald-500/10 to-purple-500/10 border border-gray-700 rounded-2xl p-8 text-center">
             <h3 className="text-2xl font-bold text-white mb-4">
-              AI That Works For You
+              AI That Works For Work
             </h3>
             <p className="text-gray-300 text-lg mb-6 max-w-3xl mx-auto">
               Stop switching between apps. Get instant answers from your business data, collaborate with your team in real-time, and make data-driven decisions with AI-powered insights—all in one place.

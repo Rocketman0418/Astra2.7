@@ -320,7 +320,7 @@ Deno.serve(async (req: Request) => {
             <div class=\"container\">
             <div class=\"header\">
               <h1>🚀 Welcome to AI Rocket + Astra Intelligence</h1>
-              <p class=\"tagline\">AI that Works for You</p>
+              <p class=\"tagline\">AI that Works for Work</p>
             </div>
             <div class=\"content\">
               <div class=\"greeting\">
@@ -444,7 +444,7 @@ Deno.serve(async (req: Request) => {
                 Questions? Contact your team administrator.
               </p>
               <p style=\"margin-top: 20px;\">
-                <a href=\"${appUrl}\">AI Rocket + Astra</a> - AI that Works for You
+                <a href=\"${appUrl}\">AI Rocket + Astra</a> - AI that Works for Work
               </p>
             </div>
             </div>

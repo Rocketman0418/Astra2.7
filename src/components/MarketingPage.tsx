@@ -30,7 +30,7 @@ export const MarketingPage: React.FC = () => {
         {/* Main Tagline */}
         <div className="text-center mb-16">
           <h3 className="text-4xl font-bold text-white mb-3">
-            AI that Works for You
+            AI that Works for Work
           </h3>
           <p className="text-xl text-gray-400">
             Built for Entrepreneurs and their Teams
@@ -153,7 +153,7 @@ export const MarketingPage: React.FC = () => {
         {/* Closing Block Section */}
         <div className="max-w-[1200px] mx-auto bg-gradient-to-br from-blue-500/10 via-emerald-500/10 to-purple-500/10 border border-gray-700 rounded-2xl p-10 text-center">
           <h3 className="text-3xl font-bold text-white mb-4">
-            AI That Works For You
+            AI That Works For Work
           </h3>
           <p className="text-gray-300 text-xl mb-6 mx-auto">
             Stop switching between apps. Get instant answers from your business data, collaborate with your team in real-time, and make data-driven decisions with AI-powered insights—all in one place.

@@ -531,7 +531,7 @@ export const TeamMembersPanel: React.FC = () => {
             <div class="container">
             <div class="header">
               <h1>🚀 Welcome to AI Rocket + Astra Intelligence</h1>
-              <p class="tagline">AI that Works for You</p>
+              <p class="tagline">AI that Works for Work</p>
             </div>
             <div class="content">
               <div class="greeting">
@@ -671,7 +671,7 @@ export const TeamMembersPanel: React.FC = () => {
 
     const message = `
 🚀 Welcome to AI Rocket + Astra Intelligence
-AI that Works for You
+AI that Works for Work
 
 Hi there!
 
@@ -758,7 +758,7 @@ Use with email: ${inviteEmail}
 This invitation was sent by ${inviterName} from ${teamName || 'your team'}.
 Questions? Contact your team administrator.
 
-AI Rocket + Astra - AI that Works for You
+AI Rocket + Astra - AI that Works for Work
 ${appUrl}
 `.trim();
 
