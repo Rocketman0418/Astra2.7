@@ -651,15 +651,104 @@ export const TeamMembersPanel: React.FC = () => {
   };
 
   const copyInviteMessage = () => {
-    const message = `You've been invited to join ${teamName || 'our team'} on Astra Intelligence!
+    const inviterName = user?.user_metadata?.full_name || user?.email || 'Your teammate';
+    const appUrl = window.location.origin;
 
-Use this invite code to create your account: ${generatedCode}
-Email: ${inviteEmail}
+    const message = `
+🚀 Welcome to AI Rocket + Astra Intelligence
+AI that Works for You
 
-Sign up here: ${window.location.origin}`;
+Hi there!
+
+${inviterName} has invited you to join ${teamName || 'your team'} on AI Rocket + Astra Intelligence.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+YOUR INVITE CODE
+${generatedCode}
+
+Use with email: ${inviteEmail}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👉 Create Your Account: ${appUrl}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+What is AI Rocket + Astra?
+
+Your team's AI intelligence platform that connects to ALL your data and provides insights you can trust:
+
+✅ Instant Answers - Ask questions about meetings, documents, financials, and strategy in plain English
+✅ Smart Context - Astra knows your team's mission, goals, and recent activities
+✅ Visual Insights - Get automatic charts, graphs, and reports from your data
+✅ Team Collaboration - Work together with AI-assisted group chats and @mentions
+✅ Private & Secure - Your data stays with your team, never shared across organizations
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+What Can Astra Do For You?
+
+📊 Meeting Intelligence
+• "What were our key decisions from last week's Leadership Meeting?"
+• "Show me action items assigned to me this month"
+• "Summarize client feedback from recent calls"
+
+📈 Strategic Insights
+• "How do our recent activities align with our quarterly goals?"
+• "What are the top initiatives we're working on?"
+• "Compare this quarter's progress to last quarter"
+
+💰 Financial Analysis
+• "What's our revenue trend over the last 6 months?"
+• "Show me our biggest expenses this quarter"
+• "How does our current P&L compare to budget?"
+
+🔍 Smart Search
+• Find information across ALL your team's documents, meetings, and data
+• Get answers backed by specific sources and dates
+• Ask follow-up questions for deeper insights
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 Get Started in 3 Minutes:
+
+1. Visit ${appUrl}
+2. Select "Sign Up" and enter your email: ${inviteEmail}
+3. Create a password for your account
+4. Enter your invite code: ${generatedCode}
+5. Start asking Astra anything about your team!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 Pro Tips:
+
+• Try asking: "What should I know about our team?" to get started
+• Use @Astra in group chats to get AI help for everyone
+• Save your favorite insights as visualizations for quick access
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Your Role: You'll be joining as a ${inviteRole} with access to team conversations, AI-powered insights, meeting transcripts, action items, strategy documents, and company goals.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+YOUR INVITE CODE (reminder)
+${generatedCode}
+
+Use with email: ${inviteEmail}
+
+👉 Create Your Account: ${appUrl}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This invitation was sent by ${inviterName} from ${teamName || 'your team'}.
+Questions? Contact your team administrator.
+
+AI Rocket + Astra - AI that Works for You
+${appUrl}
+`.trim();
 
     navigator.clipboard.writeText(message);
-    setInviteSuccess('Invite message copied to clipboard!');
+    setInviteSuccess('Full invite email copied to clipboard!');
   };
 
   const resetInviteForm = () => {
