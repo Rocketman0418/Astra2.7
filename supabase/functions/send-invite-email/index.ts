@@ -58,15 +58,16 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.admin.getUserById(userId);
+    const result = await supabaseAdmin.auth.admin.getUserById(userId);
 
-    if (authError || !user) {
+    if (result.error || !result.data.user) {
       return new Response(
-        JSON.stringify({ error: `Unauthorized: ${authError?.message || 'User not found'}` }),
+        JSON.stringify({ error: 'Unauthorized: User not found' }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    const user = result.data.user;
     const { email, inviteCode, teamName, role }: InviteRequest = await req.json();
 
     if (!email || !inviteCode || !teamName) {
@@ -85,22 +86,35 @@ Deno.serve(async (req: Request) => {
       <!DOCTYPE html>
       <html>
         <head>
+          <meta name=\"color-scheme\" content=\"light dark\">
+          <meta name=\"supported-color-schemes\" content=\"light dark\">
           <style>
+            :root {
+              color-scheme: light dark;
+              supported-color-schemes: light dark;
+            }
             body {
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
               line-height: 1.6;
-              color: #e5e7eb;
-              margin: 0;
-              padding: 0;
-              background: #0f172a;
+              color: #e5e7eb !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background-color: #0f172a !important;
+            }
+            body[data-outlook-cycle] {
+              background-color: #0f172a !important;
             }
             .container {
               max-width: 600px;
               margin: 40px auto;
-              background: #1e293b;
+              background-color: #1e293b !important;
               border-radius: 12px;
               overflow: hidden;
               box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            }
+            .email-wrapper {
+              background-color: #0f172a !important;
+              padding: 20px;
             }
             .header {
               background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
@@ -208,7 +222,7 @@ Deno.serve(async (req: Request) => {
               font-size: 15px;
             }
             .feature-list li:before {
-              content: "✅";
+              content: \"✅\";
               position: absolute;
               left: 0;
             }
@@ -239,7 +253,7 @@ Deno.serve(async (req: Request) => {
               font-style: italic;
             }
             .use-case-list li:before {
-              content: "•";
+              content: \"•\";
               color: #64748b;
               margin-right: 8px;
             }
@@ -302,41 +316,42 @@ Deno.serve(async (req: Request) => {
           </style>
         </head>
         <body>
-          <div class="container">
-            <div class="header">
+          <div class=\"email-wrapper\">
+            <div class=\"container\">
+            <div class=\"header\">
               <h1>🚀 Welcome to AI Rocket + Astra Intelligence</h1>
-              <p class="tagline">AI that Works for You</p>
+              <p class=\"tagline\">AI that Works for You</p>
             </div>
-            <div class="content">
-              <div class="greeting">
+            <div class=\"content\">
+              <div class=\"greeting\">
                 Hi there!
               </div>
-              <div class="message">
+              <div class=\"message\">
                 <strong>${inviterName}</strong> has invited you to join <strong>${teamName}</strong> on AI Rocket + Astra Intelligence.
               </div>
 
-              <div class="invite-box">
-                <div class="invite-label">Your Invite Code</div>
-                <div class="invite-code">${inviteCode}</div>
-                <div class="email-display">
-                  Use with email: <span class="email-value">${email}</span>
+              <div class=\"invite-box\">
+                <div class=\"invite-label\">Your Invite Code</div>
+                <div class=\"invite-code\">${inviteCode}</div>
+                <div class=\"email-display\">
+                  Use with email: <span class=\"email-value\">${email}</span>
                 </div>
               </div>
 
-              <div class="cta-container">
-                <a href="${appUrl}" class="cta-button">
+              <div class=\"cta-container\">
+                <a href=\"${appUrl}\" class=\"cta-button\">
                   Create Your Account →
                 </a>
               </div>
 
-              <div class="divider"></div>
+              <div class=\"divider\"></div>
 
-              <div class="value-section">
-                <div class="value-title">What is AI Rocket + Astra?</div>
-                <div class="message" style="margin-bottom: 16px;">
+              <div class=\"value-section\">
+                <div class=\"value-title\">What is AI Rocket + Astra?</div>
+                <div class=\"message\" style=\"margin-bottom: 16px;\">
                   Your team's AI intelligence platform that connects to ALL your data and provides insights you can trust:
                 </div>
-                <ul class="feature-list">
+                <ul class=\"feature-list\">
                   <li><strong>Instant Answers</strong> - Ask questions about meetings, documents, financials, and strategy in plain English</li>
                   <li><strong>Smart Context</strong> - Astra knows your team's mission, goals, and recent activities</li>
                   <li><strong>Visual Insights</strong> - Get automatic charts, graphs, and reports from your data</li>
@@ -345,39 +360,39 @@ Deno.serve(async (req: Request) => {
                 </ul>
               </div>
 
-              <div class="use-case-section">
-                <div class="value-title">What Can Astra Do For You?</div>
+              <div class=\"use-case-section\">
+                <div class=\"value-title\">What Can Astra Do For You?</div>
 
-                <div class="use-case-category">
-                  <div class="category-title">📊 Meeting Intelligence</div>
-                  <ul class="use-case-list">
-                    <li>"What were our key decisions from last week's Leadership Meeting?"</li>
-                    <li>"Show me action items assigned to me this month"</li>
-                    <li>"Summarize client feedback from recent calls"</li>
+                <div class=\"use-case-category\">
+                  <div class=\"category-title\">📊 Meeting Intelligence</div>
+                  <ul class=\"use-case-list\">
+                    <li>\"What were our key decisions from last week's Leadership Meeting?\"</li>
+                    <li>\"Show me action items assigned to me this month\"</li>
+                    <li>\"Summarize client feedback from recent calls\"</li>
                   </ul>
                 </div>
 
-                <div class="use-case-category">
-                  <div class="category-title">📈 Strategic Insights</div>
-                  <ul class="use-case-list">
-                    <li>"How do our recent activities align with our quarterly goals?"</li>
-                    <li>"What are the top initiatives we're working on?"</li>
-                    <li>"Compare this quarter's progress to last quarter"</li>
+                <div class=\"use-case-category\">
+                  <div class=\"category-title\">📈 Strategic Insights</div>
+                  <ul class=\"use-case-list\">
+                    <li>\"How do our recent activities align with our quarterly goals?\"</li>
+                    <li>\"What are the top initiatives we're working on?\"</li>
+                    <li>\"Compare this quarter's progress to last quarter\"</li>
                   </ul>
                 </div>
 
-                <div class="use-case-category">
-                  <div class="category-title">💰 Financial Analysis</div>
-                  <ul class="use-case-list">
-                    <li>"What's our revenue trend over the last 6 months?"</li>
-                    <li>"Show me our biggest expenses this quarter"</li>
-                    <li>"How does our current P&L compare to budget?"</li>
+                <div class=\"use-case-category\">
+                  <div class=\"category-title\">💰 Financial Analysis</div>
+                  <ul class=\"use-case-list\">
+                    <li>\"What's our revenue trend over the last 6 months?\"</li>
+                    <li>\"Show me our biggest expenses this quarter\"</li>
+                    <li>\"How does our current P&L compare to budget?\"</li>
                   </ul>
                 </div>
 
-                <div class="use-case-category">
-                  <div class="category-title">🔍 Smart Search</div>
-                  <ul class="use-case-list">
+                <div class=\"use-case-category\">
+                  <div class=\"category-title\">🔍 Smart Search</div>
+                  <ul class=\"use-case-list\">
                     <li>Find information across ALL your team's documents, meetings, and data</li>
                     <li>Get answers backed by specific sources and dates</li>
                     <li>Ask follow-up questions for deeper insights</li>
@@ -385,52 +400,53 @@ Deno.serve(async (req: Request) => {
                 </div>
               </div>
 
-              <div class="steps">
-                <div class="steps-title">🎯 Get Started in 3 Minutes:</div>
+              <div class=\"steps\">
+                <div class=\"steps-title\">🎯 Get Started in 3 Minutes:</div>
                 <ol>
                   <li>Click the button above to visit AI Rocket</li>
-                  <li>Select "Sign Up" and enter your email: <strong>${email}</strong></li>
+                  <li>Select \"Sign Up\" and enter your email: <strong>${email}</strong></li>
                   <li>Create a password for your account</li>
                   <li>Enter your invite code: <strong>${inviteCode}</strong></li>
                   <li>Start asking Astra anything about your team!</li>
                 </ol>
               </div>
 
-              <div class="pro-tips">
-                <div class="pro-tips-title">💡 Pro Tips:</div>
-                <p>• Try asking: "What should I know about our team?" to get started</p>
+              <div class=\"pro-tips\">
+                <div class=\"pro-tips-title\">💡 Pro Tips:</div>
+                <p>• Try asking: \"What should I know about our team?\" to get started</p>
                 <p>• Use @Astra in group chats to get AI help for everyone</p>
                 <p>• Save your favorite insights as visualizations for quick access</p>
               </div>
 
-              <div class="message">
+              <div class=\"message\">
                 <strong>Your Role:</strong> You'll be joining as a <strong>${role}</strong> with access to team conversations, AI-powered insights, meeting transcripts, action items, strategy documents, and company goals.
               </div>
 
-              <div class="divider"></div>
+              <div class=\"divider\"></div>
 
-              <div class="invite-box">
-                <div class="invite-label">Your Invite Code</div>
-                <div class="invite-code">${inviteCode}</div>
-                <div class="email-display">
-                  Use with email: <span class="email-value">${email}</span>
+              <div class=\"invite-box\">
+                <div class=\"invite-label\">Your Invite Code</div>
+                <div class=\"invite-code\">${inviteCode}</div>
+                <div class=\"email-display\">
+                  Use with email: <span class=\"email-value\">${email}</span>
                 </div>
               </div>
 
-              <div class="cta-container">
-                <a href="${appUrl}" class="cta-button">
+              <div class=\"cta-container\">
+                <a href=\"${appUrl}\" class=\"cta-button\">
                   Create Your Account →
                 </a>
               </div>
             </div>
-            <div class="footer">
+            <div class=\"footer\">
               <p>
                 This invitation was sent by ${inviterName} from ${teamName}.<br>
                 Questions? Contact your team administrator.
               </p>
-              <p style="margin-top: 20px;">
-                <a href="${appUrl}">AI Rocket + Astra</a> - AI that Works for You
+              <p style=\"margin-top: 20px;\">
+                <a href=\"${appUrl}\">AI Rocket + Astra</a> - AI that Works for You
               </p>
+            </div>
             </div>
           </div>
         </body>

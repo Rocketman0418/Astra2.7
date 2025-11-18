@@ -300,22 +300,35 @@ export const TeamMembersPanel: React.FC = () => {
       <!DOCTYPE html>
       <html>
         <head>
+          <meta name="color-scheme" content="light dark">
+          <meta name="supported-color-schemes" content="light dark">
           <style>
+            :root {
+              color-scheme: light dark;
+              supported-color-schemes: light dark;
+            }
             body {
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
               line-height: 1.6;
-              color: #e5e7eb;
-              margin: 0;
-              padding: 0;
-              background: #0f172a;
+              color: #e5e7eb !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background-color: #0f172a !important;
+            }
+            body[data-outlook-cycle] {
+              background-color: #0f172a !important;
             }
             .container {
               max-width: 600px;
               margin: 40px auto;
-              background: #1e293b;
+              background-color: #1e293b !important;
               border-radius: 12px;
               overflow: hidden;
               box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            }
+            .email-wrapper {
+              background-color: #0f172a !important;
+              padding: 20px;
             }
             .header {
               background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
@@ -514,7 +527,8 @@ export const TeamMembersPanel: React.FC = () => {
           </style>
         </head>
         <body>
-          <div class="container">
+          <div class="email-wrapper">
+            <div class="container">
             <div class="header">
               <h1>🚀 Welcome to AI Rocket + Astra Intelligence</h1>
               <p class="tagline">AI that Works for You</p>
@@ -643,6 +657,7 @@ export const TeamMembersPanel: React.FC = () => {
               <p style="margin-top: 20px;">
                 <a href="${window.location.origin}">AI Rocket + Astra</a> - AI that Works for You
               </p>
+            </div>
             </div>
           </div>
         </body>
