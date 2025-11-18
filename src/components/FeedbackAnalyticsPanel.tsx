@@ -44,6 +44,13 @@ export function FeedbackAnalyticsPanel() {
     // Super-admin can view all teams, regular admin needs teamId
     if (!isSuperAdmin && !teamId) return;
 
+    console.log('[FeedbackAnalytics] Loading stats...', {
+      isSuperAdmin,
+      isAdmin,
+      userEmail: user?.email,
+      teamId
+    });
+
     try {
       setLoading(true);
       setError('');
@@ -79,6 +86,12 @@ export function FeedbackAnalyticsPanel() {
 
       const { data: submissions, error: submissionsError } = await query;
 
+      console.log('[FeedbackAnalytics] Submissions fetched:', {
+        count: submissions?.length || 0,
+        isSuperAdmin,
+        appliedTeamFilter: !isSuperAdmin && teamId ? teamId : 'none'
+      });
+
       if (submissionsError) {
         if (submissionsError.code === '42P01') {
           console.warn('Feedback tables not yet created');
@@ -109,6 +122,12 @@ export function FeedbackAnalyticsPanel() {
       }
 
       const { data: answers, error: answersError } = await answersQuery;
+
+      console.log('[FeedbackAnalytics] Answers fetched:', {
+        count: answers?.length || 0,
+        isSuperAdmin,
+        appliedTeamFilter: !isSuperAdmin && teamId ? teamId : 'none'
+      });
 
       if (answersError) {
         if (answersError.code === '42P01') {
