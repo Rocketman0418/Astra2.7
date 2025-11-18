@@ -97,8 +97,12 @@ export function FeedbackAnalyticsPanel() {
           submission_id,
           user_feedback_submissions!inner(submitted_at, team_id, user_id),
           feedback_questions(question_text, category)
-        `)
-        .eq('user_feedback_submissions.team_id', teamId);
+        `);
+
+      // Only filter by team if not super-admin
+      if (!isSuperAdmin && teamId) {
+        answersQuery = answersQuery.eq('user_feedback_submissions.team_id', teamId);
+      }
 
       if (dateFilter) {
         answersQuery = answersQuery.gte('user_feedback_submissions.submitted_at', dateFilter);
