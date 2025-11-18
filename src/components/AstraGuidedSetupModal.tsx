@@ -82,8 +82,7 @@ const STEPS: StepContent[] = [
     bestPractices: [
       "Include high-level planning documents",
       "Add folders with mission-critical content",
-      "Avoid folders with sensitive personal data",
-      "You can select multiple folders"
+      "Avoid folders with sensitive personal data"
     ],
     folderType: 'strategy'
   },
@@ -106,8 +105,7 @@ const STEPS: StepContent[] = [
     bestPractices: [
       "Include regular team meeting folders",
       "Add folders with recurring meetings",
-      "Notes can be in any format (Docs, Sheets, PDFs)",
-      "More data = better insights"
+      "Ensure proper team access permissions"
     ],
     folderType: 'meetings'
   },
@@ -144,7 +142,7 @@ const STEPS: StepContent[] = [
       "Syncing typically takes 5-15 minutes",
       "You'll receive a notification when sync completes",
       "You can start chatting immediately",
-      "More folders = more comprehensive insights"
+      "You can adjust selections later in User Settings"
     ],
     folderType: 'strategy'
   }
@@ -243,9 +241,10 @@ export function AstraGuidedSetupModal({
     const key = `${folderType}_folders_selected` as keyof SetupProgress;
     const currentSelection = progress[key] as string[];
 
+    // Only allow selecting ONE folder (radio button behavior)
     const newSelection = currentSelection.includes(folderId)
-      ? currentSelection.filter(id => id !== folderId)
-      : [...currentSelection, folderId];
+      ? [] // Deselect if clicking the same folder
+      : [folderId]; // Select only this folder
 
     setProgress(prev => ({
       ...prev,
@@ -543,10 +542,15 @@ export function AstraGuidedSetupModal({
                     )}
                   </div>
 
-                  <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                    <p className="text-xs text-blue-300">
-                      💡 Tip: You can select multiple folders. Choose all that contain relevant {currentStepContent.folderType} documents.
-                    </p>
+                  <div className="mt-4 p-4 bg-amber-500/10 border-2 border-amber-500/50 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-amber-200 font-medium">
+                        {currentStepContent.folderType === 'financial'
+                          ? 'Remember, only Google Sheets files can be synced in this folder'
+                          : 'Remember, only Google Doc files can be synced in this folder'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ) : isSummaryStep ? (
