@@ -588,7 +588,7 @@ export const GoogleDriveSettings: React.FC = () => {
                                       <div className="flex-1 min-w-0">
                                         <p className="text-xs text-white truncate">{doc.title}</p>
                                         <p className="text-xs text-gray-500">
-                                          {doc.folder_type} • {new Date(doc.created_at).toLocaleDateString()}
+                                          {doc.folder_type} • Doc: {doc.source_modified_time ? new Date(doc.source_modified_time).toLocaleDateString() : 'N/A'} • Synced: {new Date(doc.created_at).toLocaleDateString()}
                                         </p>
                                       </div>
                                     </div>
@@ -900,7 +900,7 @@ export const GoogleDriveSettings: React.FC = () => {
                                 <div className="flex-1 min-w-0">
                                   <p className="text-xs text-white truncate">{doc.title}</p>
                                   <p className="text-xs text-gray-500">
-                                    {doc.folder_type} • {new Date(doc.created_at).toLocaleDateString()}
+                                    {doc.folder_type} • Doc: {doc.source_modified_time ? new Date(doc.source_modified_time).toLocaleDateString() : 'N/A'} • Synced: {new Date(doc.created_at).toLocaleDateString()}
                                   </p>
                                 </div>
                               </div>
@@ -1354,7 +1354,9 @@ export const GoogleDriveSettings: React.FC = () => {
                             <div className="flex items-center space-x-3 text-xs text-gray-400">
                               <span className="capitalize">{doc.folder_type}</span>
                               <span>•</span>
-                              <span>{new Date(doc.created_at).toLocaleString()}</span>
+                              <span>Doc: {doc.source_modified_time ? new Date(doc.source_modified_time).toLocaleDateString() : 'N/A'}</span>
+                              <span>•</span>
+                              <span>Synced: {new Date(doc.created_at).toLocaleDateString()}</span>
                             </div>
                             {doc.source_url && (
                               <a
