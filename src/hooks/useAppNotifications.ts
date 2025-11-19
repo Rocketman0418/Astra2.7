@@ -206,7 +206,8 @@ export const useAppNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, fetchNotifications]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // Request notification permission
   const requestNotificationPermission = useCallback(async () => {
@@ -223,7 +224,8 @@ export const useAppNotifications = () => {
       fetchNotifications(true); // Load all notifications initially
       requestNotificationPermission(); // Request permission for browser notifications
     }
-  }, [user, fetchNotifications, requestNotificationPermission]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   return {
     notifications,

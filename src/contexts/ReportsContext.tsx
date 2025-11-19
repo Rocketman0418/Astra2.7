@@ -373,7 +373,8 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
         supabase.removeChannel(messagesChannel);
       };
     }
-  }, [user, fetchTemplates, fetchUserReports, fetchReportMessages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   return (
     <ReportsContext.Provider

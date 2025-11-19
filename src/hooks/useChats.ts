@@ -63,7 +63,8 @@ export const useChats = () => {
     if (user) {
       fetchUserProfile();
     }
-  }, [user, fetchUserProfile]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // Fetch user's conversations
   const fetchConversations = useCallback(async () => {
@@ -449,7 +450,8 @@ export const useChats = () => {
       fetchConversations();
       setHasInitialized(true);
     }
-  }, [user, fetchConversations]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // Set up real-time subscription for chat updates
   useEffect(() => {
@@ -480,7 +482,8 @@ export const useChats = () => {
       console.log('📡 Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
-  }, [user, fetchConversations]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   return {
     conversations,

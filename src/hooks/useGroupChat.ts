@@ -598,7 +598,8 @@ export const useGroupChat = () => {
     if (user) {
       fetchMessages();
     }
-  }, [user, fetchMessages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   return {
     messages,

@@ -769,7 +769,8 @@ export const useReports = () => {
         supabase.removeChannel(reportsChannel);
       };
     }
-  }, [user, fetchTemplates, fetchUserReports, fetchReportMessages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   return {
     templates,
