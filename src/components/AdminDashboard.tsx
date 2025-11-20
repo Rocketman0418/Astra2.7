@@ -79,6 +79,9 @@ interface PreviewRequest {
   email: string;
   created_at: string;
   updated_at: string;
+  invite_sent: boolean;
+  invite_sent_at: string | null;
+  invite_code: string | null;
 }
 
 interface FeedbackStats {
@@ -603,6 +606,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
       if (!response.ok) {
         throw new Error(result.error || 'Failed to send invite email');
       }
+
+      // Update the preview request to mark invite as sent
+      const { error: updateError } = await supabase
+        .from('preview_requests')
+        .update({
+          invite_sent: true,
+          invite_sent_at: new Date().toISOString(),
+          invite_code: generatedPreviewCode
+        })
+        .eq('email', previewInviteEmail);
+
+      if (updateError) {
+        console.error('Error updating preview request:', updateError);
+        // Don't throw - email was sent successfully
+      }
+
+      // Refresh the preview requests list to show updated status
+      await loadPreviewRequests();
 
       setPreviewInviteSuccess(`Invite email sent successfully to ${previewInviteEmail}!`);
     } catch (err: any) {
@@ -1665,11 +1686,24 @@ Sign up here: https://airocket.app`;
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
+                              {request.invite_sent && (
+                                <CheckCircle className="w-5 h-5 text-green-400" />
+                              )}
                               <Mail className="w-4 h-4 text-blue-400" />
                               <span className="font-medium text-white">{request.email}</span>
                             </div>
-                            <div className="text-xs text-gray-400">
-                              Requested: {format(new Date(request.created_at), 'MMM d, yyyy h:mm a')}
+                            <div className="text-xs text-gray-400 space-y-1">
+                              <div>Requested: {format(new Date(request.created_at), 'MMM d, yyyy h:mm a')}</div>
+                              {request.invite_sent && request.invite_sent_at && (
+                                <div className="text-green-400">
+                                  Invite sent: {format(new Date(request.invite_sent_at), 'MMM d, yyyy h:mm a')}
+                                </div>
+                              )}
+                              {request.invite_code && (
+                                <div className="text-gray-500">
+                                  Code: <span className="font-mono">{request.invite_code}</span>
+                                </div>
+                              )}
                             </div>
                           </div>
 
@@ -1690,7 +1724,7 @@ Sign up here: https://airocket.app`;
                                   ) : (
                                     <>
                                       <Mail className="w-3 h-3" />
-                                      <span>Send Email</span>
+                                      <span>{request.invite_sent ? 'Send Again' : 'Send Email'}</span>
                                     </>
                                   )}
                                 </button>
