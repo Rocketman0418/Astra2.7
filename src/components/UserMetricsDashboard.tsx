@@ -294,7 +294,7 @@ export const UserMetricsDashboard: React.FC = () => {
     startDate.setDate(startDate.getDate() - timeRange);
 
     // Get chat messages with response times
-    const { data: chatData } = await supabase
+    const { data: chatData, error } = await supabase
       .from('astra_chats')
       .select('created_at, mode, response_time_ms, message_type')
       .gte('created_at', startDate.toISOString())
@@ -303,38 +303,51 @@ export const UserMetricsDashboard: React.FC = () => {
       .gt('response_time_ms', 0)
       .order('created_at', { ascending: true });
 
-    if (chatData) {
-      const grouped: { [key: string]: { times: number[], successes: number, total: number } } = {};
-
-      chatData.forEach(log => {
-        const date = log.created_at.split('T')[0];
-        let mode = log.mode || 'unknown';
-        // Map mode to display names
-        if (mode === 'private') mode = 'chat';
-        if (mode === 'reports') mode = 'reports';
-
-        const key = `${date}-${mode}`;
-        if (!grouped[key]) {
-          grouped[key] = { times: [], successes: 0, total: 0 };
-        }
-        grouped[key].times.push(log.response_time_ms);
-        grouped[key].successes++;
-        grouped[key].total++;
-      });
-
-      const perfStats = Object.entries(grouped).map(([key, val]) => {
-        const [date, mode] = key.split('-');
-        return {
-          date,
-          mode: mode || 'unknown',
-          avg_response_ms: Math.round(val.times.reduce((a, b) => a + b, 0) / val.times.length),
-          success_rate: Math.round((val.successes / val.total) * 100) / 100,
-          total_requests: val.total
-        };
-      });
-
-      setPerformance(perfStats);
+    if (error) {
+      console.error('Error fetching performance stats:', error);
+      setPerformance([]);
+      return;
     }
+
+    if (!chatData || chatData.length === 0) {
+      console.log('No performance data found for time range');
+      setPerformance([]);
+      return;
+    }
+
+    console.log(`Found ${chatData.length} performance records`);
+
+    const grouped: { [key: string]: { times: number[], successes: number, total: number } } = {};
+
+    chatData.forEach(log => {
+      const date = log.created_at.split('T')[0];
+      let mode = log.mode || 'unknown';
+      // Map mode to display names
+      if (mode === 'private') mode = 'chat';
+      if (mode === 'reports') mode = 'reports';
+
+      const key = `${date}-${mode}`;
+      if (!grouped[key]) {
+        grouped[key] = { times: [], successes: 0, total: 0 };
+      }
+      grouped[key].times.push(log.response_time_ms);
+      grouped[key].successes++;
+      grouped[key].total++;
+    });
+
+    const perfStats = Object.entries(grouped).map(([key, val]) => {
+      const [date, mode] = key.split('-');
+      return {
+        date,
+        mode: mode || 'unknown',
+        avg_response_ms: Math.round(val.times.reduce((a, b) => a + b, 0) / val.times.length),
+        success_rate: Math.round((val.successes / val.total) * 100) / 100,
+        total_requests: val.total
+      };
+    });
+
+    console.log('Performance stats:', perfStats);
+    setPerformance(perfStats);
   };
 
   const formatNumber = (num: number) => {
@@ -654,40 +667,60 @@ const PerformanceTab: React.FC<{
   performance: PerformanceStats[];
   formatNumber: (n: number) => string;
   formatDate: (d: string) => string;
-}> = ({ performance, formatNumber, formatDate }) => (
-  <div className="space-y-6">
-    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-      <h2 className="text-lg font-semibold mb-4">Response Times by Mode</h2>
-      <div className="space-y-4">
-        {['chat', 'reports', 'visualization'].map(mode => {
-          const modeData = performance.filter(p => p.mode === mode);
-          const avgTime = modeData.length > 0
-            ? Math.round(modeData.reduce((sum, p) => sum + p.avg_response_ms, 0) / modeData.length)
-            : 0;
-          const avgSuccess = modeData.length > 0
-            ? Math.round(modeData.reduce((sum, p) => sum + p.success_rate, 0) / modeData.length)
-            : 0;
+}> = ({ performance, formatNumber, formatDate }) => {
+  // Get unique modes from actual data
+  const modes = Array.from(new Set(performance.map(p => p.mode)));
+  const hasData = performance.length > 0;
 
-          return (
-            <div key={mode} className="p-4 bg-gray-900 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-medium capitalize">{mode}</span>
-                <span className="text-sm text-gray-400">{formatNumber(avgTime)}ms avg</span>
-              </div>
-              <div className="w-full bg-gray-700 rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-green-500 to-green-400 h-2 rounded-full"
-                  style={{ width: `${avgSuccess}%` }}
-                ></div>
-              </div>
-              <div className="text-xs text-gray-500 mt-1">{avgSuccess}% success rate</div>
-            </div>
-          );
-        })}
+  return (
+    <div className="space-y-6">
+      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <h2 className="text-lg font-semibold mb-4">Response Times by Mode</h2>
+
+        {!hasData && (
+          <div className="text-center py-8 text-gray-400">
+            <p>No performance data available for the selected time range.</p>
+            <p className="text-sm mt-2">Performance metrics are recorded when AI responses include timing data.</p>
+          </div>
+        )}
+
+        {hasData && (
+          <div className="space-y-4">
+            {modes.map(mode => {
+              const modeData = performance.filter(p => p.mode === mode);
+              const avgTime = modeData.length > 0
+                ? Math.round(modeData.reduce((sum, p) => sum + p.avg_response_ms, 0) / modeData.length)
+                : 0;
+              const avgSuccess = modeData.length > 0
+                ? Math.round(modeData.reduce((sum, p) => sum + p.success_rate, 0) / modeData.length * 100)
+                : 0;
+              const totalRequests = modeData.reduce((sum, p) => sum + p.total_requests, 0);
+
+              return (
+                <div key={mode} className="p-4 bg-gray-900 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <span className="font-medium capitalize">{mode}</span>
+                      <span className="text-xs text-gray-500 ml-2">({formatNumber(totalRequests)} requests)</span>
+                    </div>
+                    <span className="text-sm text-gray-400">{formatNumber(avgTime)}ms avg</span>
+                  </div>
+                  <div className="w-full bg-gray-700 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-green-500 to-green-400 h-2 rounded-full"
+                      style={{ width: `${avgSuccess}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">{avgSuccess}% success rate</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Milestones Tab Component
 const MilestonesTab: React.FC<{
