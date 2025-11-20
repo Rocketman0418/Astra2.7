@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/supabase';
+import { useMetricsTracking } from './useMetricsTracking';
 
 type SavedVisualization = Database['public']['Tables']['saved_visualizations']['Row'];
 
 export function useSavedVisualizations(userId: string | undefined) {
+  const { trackVisualizationCreation } = useMetricsTracking();
   const [savedVisualizations, setSavedVisualizations] = useState<SavedVisualization[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -120,6 +122,9 @@ export function useSavedVisualizations(userId: string | undefined) {
       }
 
       console.log('✅ Visualization saved successfully:', data);
+
+      // Track visualization creation metric
+      trackVisualizationCreation(chatMessageId);
 
       // Optimistically update local state immediately
       if (data && data.length > 0) {

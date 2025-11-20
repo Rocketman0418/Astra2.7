@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { ReportMessage } from '../types';
+import { useMetricsTracking } from './useMetricsTracking';
 
 export interface ReportTemplate {
   id: string;
@@ -34,6 +35,7 @@ export interface UserReport {
 
 export const useReports = () => {
   const { user } = useAuth();
+  const { trackReportGeneration } = useMetricsTracking();
   const [templates, setTemplates] = useState<ReportTemplate[]>([]);
   const [userReports, setUserReports] = useState<UserReport[]>([]);
   const [reportMessages, setReportMessages] = useState<ReportMessage[]>([]);
@@ -669,7 +671,10 @@ export const useReports = () => {
       }
 
       console.log('✅ Report saved to astra_chats with ID:', chatData.id);
-      
+
+      // Track report generation metrics
+      trackReportGeneration(id, report.report_template_id || undefined);
+
       // Force refresh report messages immediately and with a delay to ensure UI updates
       console.log('🔄 Refreshing report messages after execution...');
       await fetchReportMessages();

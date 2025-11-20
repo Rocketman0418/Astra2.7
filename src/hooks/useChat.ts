@@ -6,12 +6,14 @@ import { supabase } from '../lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import { N8NTemplate } from '../lib/n8n-templates';
 import { n8nService } from '../lib/n8n-service';
+import { useMetricsTracking } from './useMetricsTracking';
 
 const WEBHOOK_URL = import.meta.env.VITE_N8N_WEBHOOK_URL;
 
 export const useChat = () => {
   const { logChatMessage, currentMessages, currentConversationId, loading: chatsLoading, loadConversation, startNewConversation: chatsStartNewConversation, updateVisualizationStatus, conversations, hasInitialized, getVisualizationState, updateVisualizationState, updateVisualizationData } = useChats();
   const { user } = useAuth();
+  const { trackMessageSent, trackAIPerformance } = useMetricsTracking();
   const [userProfile, setUserProfile] = useState<{ name: string | null } | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -407,14 +409,25 @@ export const useChat = () => {
         );
         
         console.log('✅ Logged Astra response to database:', chatId);
-        
+
+        // Track metrics for successful message
+        if (chatId) {
+          trackMessageSent(chatId, 'private');
+          trackAIPerformance({
+            chatId: chatId,
+            responseTimeMs: responseTimeMs,
+            success: true,
+            mode: 'chat'
+          });
+        }
+
         // Refresh messages to ensure UI is updated with database changes
         await refreshMessages();
-        
+
         // Update the message in state with the database chatId
         if (chatId) {
-          setMessages(prev => prev.map(msg => 
-            msg.id === astraMessage.id 
+          setMessages(prev => prev.map(msg =>
+            msg.id === astraMessage.id
               ? { ...msg, chatId: chatId }
               : msg
           ));
@@ -426,6 +439,15 @@ export const useChat = () => {
       }
     } catch (error) {
       console.error('Error sending message:', error);
+
+      // Track failed AI response
+      const failedDuration = Date.now() - startTime;
+      trackAIPerformance({
+        responseTimeMs: failedDuration,
+        success: false,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        mode: 'chat'
+      });
       
       let errorMessage = "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.";
       
