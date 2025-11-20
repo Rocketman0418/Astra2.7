@@ -654,7 +654,7 @@ export const BuildAgentsPage: React.FC = () => {
           )}
 
         {/* Agents Grid - Compact Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3">
           {workflows.length === 0 && !loading ? (
             <div className="col-span-full bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-12 text-center">
               <Workflow className="w-16 h-16 text-gray-600 mx-auto mb-4" />
@@ -698,31 +698,26 @@ export const BuildAgentsPage: React.FC = () => {
               return (
                 <div
                   key={workflow.id}
-                  className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-purple-500/50 transition-all group"
+                  className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-3 hover:border-purple-500/50 transition-all group"
                 >
                   {/* Header with Status */}
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-white truncate flex-1 pr-2 group-hover:text-purple-400 transition-colors">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-xs font-semibold text-white truncate flex-1 pr-1 group-hover:text-purple-400 transition-colors leading-tight">
                       {workflow.name}
                     </h3>
-                    <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-1 ${workflow.active ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`} />
+                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-0.5 ${workflow.active ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`} />
                   </div>
 
-                  {/* Description */}
-                  {metadata?.description && (
-                    <p className="text-xs text-gray-400 line-clamp-2 mb-3 min-h-[32px]">{metadata.description}</p>
-                  )}
-
-                  {/* Stats */}
-                  <div className="flex items-center gap-3 mb-3 text-xs text-gray-500">
+                  {/* Stats - More Compact */}
+                  <div className="flex items-center gap-2 mb-2 text-xs text-gray-500">
                     {workflow.nodes && (
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-0.5">
                         <Settings className="w-3 h-3" />
                         <span>{workflow.nodes.length}</span>
                       </div>
                     )}
                     {workflow.executionCount !== undefined && (
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-0.5">
                         <Play className="w-3 h-3" />
                         <span>
                           {workflow.executionCount < 0
@@ -734,39 +729,31 @@ export const BuildAgentsPage: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Actions - Compact */}
-                  <div className="flex items-center gap-2">
+                  {/* Actions - Super Compact */}
+                  <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => openWorkflowInN8N(workflow.id)}
-                      className="flex-1 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded transition-colors flex items-center justify-center gap-1.5 font-medium"
+                      className="flex-1 px-2 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded transition-colors flex items-center justify-center gap-1 font-medium"
                       title="Edit in N8N"
                     >
                       <ExternalLink className="w-3 h-3" />
-                      <span>Edit</span>
+                      <span className="hidden lg:inline">Edit</span>
                     </button>
                     <button
                       onClick={() => toggleWorkflowStatus(workflow.id, workflow.active)}
-                      className={`p-2 ${workflow.active ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'} text-white rounded transition-colors`}
+                      className={`p-1.5 ${workflow.active ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'} text-white rounded transition-colors`}
                       title={workflow.active ? 'Deactivate' : 'Activate'}
                     >
-                      {workflow.active ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                      {workflow.active ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
                     </button>
                     <button
                       onClick={() => deleteWorkflow(workflow.id, workflow.name)}
-                      className="p-2 bg-red-600/80 hover:bg-red-600 text-white rounded transition-colors"
+                      className="p-1.5 bg-red-600/80 hover:bg-red-600 text-white rounded transition-colors"
                       title="Delete"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
-
-                  {workflow.updatedAt && (
-                    <p className="text-xs text-gray-500 mt-4">
-                      Updated: {typeof workflow.updatedAt === 'string'
-                        ? new Date(workflow.updatedAt).toLocaleString()
-                        : 'Recently'}
-                    </p>
-                  )}
                 </div>
               );
             })
