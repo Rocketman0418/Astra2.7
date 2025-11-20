@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Workflow, Play, Pause, Trash2, Plus, ExternalLink, RefreshCw, Settings, Eye, Download, Upload, AlertCircle, CheckCircle, Loader, Search, ArrowUpDown, Sparkles } from 'lucide-react';
+import { Workflow, Play, Pause, Trash2, Plus, ExternalLink, RefreshCw, Settings, Eye, Download, Upload, AlertCircle, CheckCircle, Loader, Search, ArrowUpDown, Sparkles, Pencil } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Header } from './Header';
 import { AstraGuidedAgentBuilder } from './AstraGuidedAgentBuilder';
@@ -17,6 +17,8 @@ interface N8NWorkflow {
   updatedAt?: string;
   nodes?: any[];
   executionCount?: number;
+  lastRunAt?: string;
+  successRate?: number;
 }
 
 interface WorkflowMetadata {
@@ -161,9 +163,11 @@ export const BuildAgentsPage: React.FC = () => {
     return data.data || [];
   };
 
-  const fetchWorkflowExecutionCount = async (workflowId: string): Promise<number> => {
+  const fetchWorkflowExecutionData = async (workflowId: string): Promise<{ count: number; lastRunAt?: string; successRate?: number }> => {
     try {
       let totalCount = 0;
+      let successCount = 0;
+      let lastRunAt: string | undefined = undefined;
       let cursor: string | undefined = undefined;
       let hasMore = true;
 
@@ -171,6 +175,7 @@ export const BuildAgentsPage: React.FC = () => {
       // We'll fetch up to 10 pages (1000 executions) for performance
       const maxPages = 10;
       let pageCount = 0;
+      let allExecutions: any[] = [];
 
       while (hasMore && pageCount < maxPages) {
         const cursorParam = cursor ? `&cursor=${cursor}` : '';
@@ -190,12 +195,13 @@ export const BuildAgentsPage: React.FC = () => {
 
         const data = await response.json();
 
-        // Add count from this page
-        const pageResults = data.data?.length || 0;
-        totalCount += pageResults;
+        // Add executions from this page
+        const pageResults = data.data || [];
+        allExecutions = allExecutions.concat(pageResults);
+        totalCount += pageResults.length;
 
         // Check if there are more pages
-        if (data.nextCursor && pageResults === 100) {
+        if (data.nextCursor && pageResults.length === 100) {
           cursor = data.nextCursor;
           pageCount++;
         } else {
@@ -203,31 +209,44 @@ export const BuildAgentsPage: React.FC = () => {
         }
       }
 
-      // If we hit max pages, add a "+" indicator by returning a negative number
-      // The UI can interpret negative numbers as "at least this many"
-      if (hasMore && pageCount >= maxPages) {
-        return -(totalCount); // Negative indicates "1000+"
+      // Calculate success rate from all executions
+      if (allExecutions.length > 0) {
+        // Get most recent execution date
+        lastRunAt = allExecutions[0]?.stoppedAt || allExecutions[0]?.startedAt;
+
+        // Count successful executions
+        successCount = allExecutions.filter(exec => exec.status === 'success' || exec.finished === true).length;
       }
 
-      return totalCount;
+      const successRate = totalCount > 0 ? Math.round((successCount / totalCount) * 100) : undefined;
+
+      // If we hit max pages, add a "+" indicator by returning a negative number
+      const count = hasMore && pageCount >= maxPages ? -(totalCount) : totalCount;
+
+      return { count, lastRunAt, successRate };
     } catch (error) {
-      console.error(`Failed to fetch execution count for workflow ${workflowId}:`, error);
-      return 0;
+      console.error(`Failed to fetch execution data for workflow ${workflowId}:`, error);
+      return { count: 0 };
     }
   };
 
   const loadExecutionCounts = async (workflows: N8NWorkflow[]) => {
     try {
       setLoadingExecutions(true);
-      const workflowsWithCounts = await Promise.all(
+      const workflowsWithData = await Promise.all(
         workflows.map(async (workflow) => {
-          const executionCount = await fetchWorkflowExecutionCount(workflow.id);
-          return { ...workflow, executionCount };
+          const { count, lastRunAt, successRate } = await fetchWorkflowExecutionData(workflow.id);
+          return {
+            ...workflow,
+            executionCount: count,
+            lastRunAt,
+            successRate
+          };
         })
       );
-      setWorkflows(workflowsWithCounts);
+      setWorkflows(workflowsWithData);
     } catch (error) {
-      console.error('Error loading execution counts:', error);
+      console.error('Error loading execution data:', error);
     } finally {
       setLoadingExecutions(false);
     }
@@ -653,8 +672,8 @@ export const BuildAgentsPage: React.FC = () => {
             </div>
           )}
 
-        {/* Agents Grid - Compact Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3">
+        {/* Agents Grid - Optimized Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
           {workflows.length === 0 && !loading ? (
             <div className="col-span-full bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-12 text-center">
               <Workflow className="w-16 h-16 text-gray-600 mx-auto mb-4" />
@@ -698,60 +717,89 @@ export const BuildAgentsPage: React.FC = () => {
               return (
                 <div
                   key={workflow.id}
-                  className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-3 hover:border-purple-500/50 transition-all group"
+                  className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-blue-500/50 transition-all group"
                 >
                   {/* Header with Status */}
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-xs font-semibold text-white truncate flex-1 pr-1 group-hover:text-purple-400 transition-colors leading-tight">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-white flex-1 pr-2 group-hover:text-blue-400 transition-colors leading-tight">
                       {workflow.name}
                     </h3>
-                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-0.5 ${workflow.active ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`} />
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-0.5 ${workflow.active ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`} />
                   </div>
 
-                  {/* Stats - More Compact */}
-                  <div className="flex items-center gap-2 mb-2 text-xs text-gray-500">
-                    {workflow.nodes && (
-                      <div className="flex items-center gap-0.5">
-                        <Settings className="w-3 h-3" />
-                        <span>{workflow.nodes.length}</span>
+                  {/* Stats Grid */}
+                  <div className="space-y-2 mb-3 text-xs">
+                    {/* Row 1: Nodes & Executions */}
+                    <div className="flex items-center justify-between text-gray-400">
+                      <div className="flex items-center gap-1.5">
+                        <Settings className="w-3.5 h-3.5" />
+                        <span>{workflow.nodes?.length || 0} nodes</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Play className="w-3.5 h-3.5" />
+                        <span>
+                          {workflow.executionCount !== undefined
+                            ? workflow.executionCount < 0
+                              ? `${Math.abs(workflow.executionCount)}+`
+                              : workflow.executionCount
+                            : '0'} runs
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Row 2: Updated Date */}
+                    {workflow.updatedAt && (
+                      <div className="text-gray-500">
+                        <span className="text-gray-400">Updated:</span> {new Date(workflow.updatedAt).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}
                       </div>
                     )}
-                    {workflow.executionCount !== undefined && (
-                      <div className="flex items-center gap-0.5">
-                        <Play className="w-3 h-3" />
-                        <span>
-                          {workflow.executionCount < 0
-                            ? `${Math.abs(workflow.executionCount)}+`
-                            : workflow.executionCount
-                          }
+
+                    {/* Row 3: Last Run */}
+                    <div className="text-gray-500">
+                      <span className="text-gray-400">Last run:</span>{' '}
+                      {workflow.lastRunAt
+                        ? `${new Date(workflow.lastRunAt).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })} ${new Date(workflow.lastRunAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`
+                        : 'Never'}
+                    </div>
+
+                    {/* Row 4: Success Rate */}
+                    {workflow.successRate !== undefined && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">Success rate:</span>
+                        <span className={`font-semibold ${
+                          workflow.successRate >= 80 ? 'text-green-400' :
+                          workflow.successRate >= 50 ? 'text-yellow-400' :
+                          'text-red-400'
+                        }`}>
+                          {workflow.successRate}%
                         </span>
                       </div>
                     )}
                   </div>
 
-                  {/* Actions - Super Compact */}
-                  <div className="flex items-center gap-1.5">
+                  {/* Actions */}
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => openWorkflowInN8N(workflow.id)}
-                      className="flex-1 px-2 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded transition-colors flex items-center justify-center gap-1 font-medium"
+                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors flex items-center justify-center gap-1.5 font-medium"
                       title="Edit in N8N"
                     >
-                      <ExternalLink className="w-3 h-3" />
-                      <span className="hidden lg:inline">Edit</span>
+                      <Pencil className="w-3.5 h-3.5" />
+                      <span>Edit</span>
                     </button>
                     <button
                       onClick={() => toggleWorkflowStatus(workflow.id, workflow.active)}
-                      className={`p-1.5 ${workflow.active ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'} text-white rounded transition-colors`}
+                      className={`p-2 ${workflow.active ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'} text-white rounded transition-colors`}
                       title={workflow.active ? 'Deactivate' : 'Activate'}
                     >
-                      {workflow.active ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                      {workflow.active ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                     </button>
                     <button
                       onClick={() => deleteWorkflow(workflow.id, workflow.name)}
-                      className="p-1.5 bg-red-600/80 hover:bg-red-600 text-white rounded transition-colors"
+                      className="p-2 bg-red-600/80 hover:bg-red-600 text-white rounded transition-colors"
                       title="Delete"
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
