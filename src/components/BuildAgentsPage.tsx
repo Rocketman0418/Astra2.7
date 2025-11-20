@@ -5,6 +5,7 @@ import { Workflow, Play, Pause, Trash2, Plus, ExternalLink, RefreshCw, Settings,
 import { supabase } from '../lib/supabase';
 import { Header } from './Header';
 import { AstraGuidedAgentBuilder } from './AstraGuidedAgentBuilder';
+import TemplateBrowser from './TemplateBrowser';
 
 interface N8NWorkflow {
   id: string;
@@ -39,6 +40,7 @@ export const BuildAgentsPage: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAstraBuilder, setShowAstraBuilder] = useState(false);
   const [showCreateChoice, setShowCreateChoice] = useState(false);
+  const [showTemplateBrowser, setShowTemplateBrowser] = useState(false);
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [newWorkflowDescription, setNewWorkflowDescription] = useState('');
   const [criticalError, setCriticalError] = useState<string | null>(null);
@@ -709,6 +711,17 @@ export const BuildAgentsPage: React.FC = () => {
         />
       )}
 
+      {/* Template Browser */}
+      {showTemplateBrowser && (
+        <TemplateBrowser
+          onClose={() => setShowTemplateBrowser(false)}
+          onTemplateImport={(workflowId) => {
+            setShowTemplateBrowser(false);
+            navigate(`/build-agents/workflow/${workflowId}`);
+          }}
+        />
+      )}
+
       {/* Create Choice Modal */}
       {showCreateChoice && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -749,6 +762,43 @@ export const BuildAgentsPage: React.FC = () => {
                       <li className="flex items-center space-x-2">
                         <CheckCircle className="w-4 h-4 flex-shrink-0" />
                         <span>Learn best practices as you build</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowCreateChoice(false);
+                  setShowTemplateBrowser(true);
+                }}
+                className="w-full p-6 bg-gradient-to-br from-orange-900/50 to-pink-900/50 hover:from-orange-900/70 hover:to-pink-900/70 border-2 border-orange-500/50 hover:border-orange-500 rounded-lg transition-all text-left"
+              >
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                    <Download className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-xl font-bold text-white mb-2 flex items-center space-x-2">
+                      <span>Browse Templates</span>
+                      <span className="text-xs px-2 py-1 bg-orange-500/20 text-orange-400 rounded">6,600+ Templates</span>
+                    </h4>
+                    <p className="text-gray-400 mb-3">
+                      Explore the n8n community template library. Find and import pre-built workflows for common use cases, then customize them to your needs.
+                    </p>
+                    <ul className="space-y-1 text-sm text-orange-300">
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                        <span>Search thousands of community templates</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                        <span>Browse by category (AI, Marketing, Sales, etc.)</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                        <span>One-click import to your workspace</span>
                       </li>
                     </ul>
                   </div>
