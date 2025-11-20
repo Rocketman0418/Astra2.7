@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import { Header } from './Header';
 import { AstraGuidedAgentBuilder } from './AstraGuidedAgentBuilder';
 import TemplateBrowser from './TemplateBrowser';
+import { TemplateSearchDemo } from './TemplateSearchDemo';
 
 interface N8NWorkflow {
   id: string;
@@ -41,6 +42,7 @@ export const BuildAgentsPage: React.FC = () => {
   const [showAstraBuilder, setShowAstraBuilder] = useState(false);
   const [showCreateChoice, setShowCreateChoice] = useState(false);
   const [showTemplateBrowser, setShowTemplateBrowser] = useState(false);
+  const [showTemplateSearchDemo, setShowTemplateSearchDemo] = useState(false);
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [newWorkflowDescription, setNewWorkflowDescription] = useState('');
   const [criticalError, setCriticalError] = useState<string | null>(null);
@@ -528,6 +530,14 @@ export const BuildAgentsPage: React.FC = () => {
                 <span>Refresh</span>
               </button>
               <button
+                onClick={() => setShowTemplateSearchDemo(true)}
+                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white rounded-lg transition-all flex items-center space-x-2 font-semibold border border-purple-400/30"
+                title="Preview Astra AI template search"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>AI Search Demo</span>
+              </button>
+              <button
                 onClick={() => setShowCreateChoice(true)}
                 className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2 font-semibold"
               >
@@ -720,6 +730,11 @@ export const BuildAgentsPage: React.FC = () => {
             navigate(`/build-agents/workflow/${workflowId}`);
           }}
         />
+      )}
+
+      {/* Template Search Demo */}
+      {showTemplateSearchDemo && (
+        <TemplateSearchDemo />
       )}
 
       {/* Create Choice Modal */}
