@@ -87,65 +87,74 @@ export const UserMetricsDashboard: React.FC = () => {
   const fetchOverviewMetrics = async () => {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - timeRange);
+    const today = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     // Total users
     const { count: totalUsers } = await supabase
       .from('users')
       .select('*', { count: 'exact', head: true });
 
-    // Active users today
-    const today = new Date().toISOString().split('T')[0];
-    const { data: activeToday } = await supabase
-      .from('user_metrics_daily')
+    // Active users from astra_chats (actual activity)
+    const { data: activeTodayData } = await supabase
+      .from('astra_chats')
       .select('user_id')
-      .eq('metric_date', today);
+      .gte('created_at', today.toISOString().split('T')[0])
+      .lt('created_at', new Date(today.getTime() + 86400000).toISOString().split('T')[0]);
 
-    // Active users last 7 days
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const { data: active7Days } = await supabase
-      .from('user_metrics_daily')
+    const { data: active7DaysData } = await supabase
+      .from('astra_chats')
       .select('user_id')
-      .gte('metric_date', sevenDaysAgo.toISOString().split('T')[0]);
+      .gte('created_at', sevenDaysAgo.toISOString());
 
-    // Active users last 30 days
-    const { data: active30Days } = await supabase
-      .from('user_metrics_daily')
+    const { data: active30DaysData } = await supabase
+      .from('astra_chats')
       .select('user_id')
-      .gte('metric_date', startDate.toISOString().split('T')[0]);
-
-    // Total activity metrics
-    const { data: activityData } = await supabase
-      .from('user_metrics_daily')
-      .select('messages_sent, reports_generated, visualizations_created')
-      .gte('metric_date', startDate.toISOString().split('T')[0]);
-
-    // Performance metrics
-    const { data: perfData } = await supabase
-      .from('astra_performance_logs')
-      .select('response_time_ms, success')
       .gte('created_at', startDate.toISOString());
 
-    const totalMessages = activityData?.reduce((sum, d) => sum + (d.messages_sent || 0), 0) || 0;
-    const totalReports = activityData?.reduce((sum, d) => sum + (d.reports_generated || 0), 0) || 0;
-    const totalVisualizations = activityData?.reduce((sum, d) => sum + (d.visualizations_created || 0), 0) || 0;
+    // Total messages from astra_chats
+    const { count: totalMessages } = await supabase
+      .from('astra_chats')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', startDate.toISOString());
+
+    // Total reports from astra_reports
+    const { count: totalReports } = await supabase
+      .from('astra_reports')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', startDate.toISOString());
+
+    // Total visualizations from astra_chats
+    const { count: totalVisualizations } = await supabase
+      .from('astra_chats')
+      .select('*', { count: 'exact', head: true })
+      .eq('visualization', true)
+      .gte('created_at', startDate.toISOString());
+
+    // Performance metrics from astra_chats response_time_ms
+    const { data: perfData } = await supabase
+      .from('astra_chats')
+      .select('response_time_ms')
+      .gte('created_at', startDate.toISOString())
+      .not('response_time_ms', 'is', null)
+      .gt('response_time_ms', 0);
 
     const avgResponseTime = perfData?.length
-      ? Math.round(perfData.reduce((sum, p) => sum + p.response_time_ms, 0) / perfData.length)
+      ? Math.round(perfData.reduce((sum, p) => sum + (p.response_time_ms || 0), 0) / perfData.length)
       : 0;
 
-    const errorRate = perfData?.length
-      ? Math.round((perfData.filter(p => !p.success).length / perfData.length) * 100)
-      : 0;
+    // Error rate is 0 since we don't have error tracking yet
+    const errorRate = 0;
 
     setOverview({
       totalUsers: totalUsers || 0,
-      activeUsersToday: new Set(activeToday?.map(d => d.user_id)).size,
-      activeUsers7Days: new Set(active7Days?.map(d => d.user_id)).size,
-      activeUsers30Days: new Set(active30Days?.map(d => d.user_id)).size,
-      totalMessages,
-      totalReports,
-      totalVisualizations,
+      activeUsersToday: new Set(activeTodayData?.map(d => d.user_id)).size,
+      activeUsers7Days: new Set(active7DaysData?.map(d => d.user_id)).size,
+      activeUsers30Days: new Set(active30DaysData?.map(d => d.user_id)).size,
+      totalMessages: totalMessages || 0,
+      totalReports: totalReports || 0,
+      totalVisualizations: totalVisualizations || 0,
       avgResponseTime,
       errorRate
     });
@@ -155,67 +164,117 @@ export const UserMetricsDashboard: React.FC = () => {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - timeRange);
 
-    const { data } = await supabase.rpc('get_daily_metrics_aggregated', {
-      p_start_date: startDate.toISOString().split('T')[0],
-      p_end_date: new Date().toISOString().split('T')[0]
-    });
+    // Fetch from astra_chats and aggregate by date
+    const { data: chatData } = await supabase
+      .from('astra_chats')
+      .select('created_at, user_id, visualization')
+      .gte('created_at', startDate.toISOString())
+      .order('created_at', { ascending: true });
 
-    if (data) {
-      setDailyMetrics(data);
-    } else {
-      // Fallback manual aggregation
-      const { data: rawData } = await supabase
-        .from('user_metrics_daily')
-        .select('metric_date, messages_sent, reports_generated, visualizations_created, user_id')
-        .gte('metric_date', startDate.toISOString().split('T')[0])
-        .order('metric_date', { ascending: true });
+    // Fetch reports
+    const { data: reportsData } = await supabase
+      .from('astra_reports')
+      .select('created_at')
+      .gte('created_at', startDate.toISOString());
 
-      if (rawData) {
-        const aggregated: { [key: string]: DailyMetric } = {};
-        rawData.forEach(row => {
-          if (!aggregated[row.metric_date]) {
-            aggregated[row.metric_date] = {
-              metric_date: row.metric_date,
-              daily_active_users: 0,
-              total_messages: 0,
-              total_reports: 0,
-              total_visualizations: 0
-            };
-          }
-          aggregated[row.metric_date].daily_active_users++;
-          aggregated[row.metric_date].total_messages += row.messages_sent || 0;
-          aggregated[row.metric_date].total_reports += row.reports_generated || 0;
-          aggregated[row.metric_date].total_visualizations += row.visualizations_created || 0;
-        });
-        setDailyMetrics(Object.values(aggregated));
-      }
+    if (chatData) {
+      const aggregated: { [key: string]: DailyMetric } = {};
+
+      // Aggregate chat data
+      chatData.forEach(row => {
+        const date = row.created_at.split('T')[0];
+        if (!aggregated[date]) {
+          aggregated[date] = {
+            metric_date: date,
+            daily_active_users: 0,
+            total_messages: 0,
+            total_reports: 0,
+            total_visualizations: 0
+          };
+        }
+        aggregated[date].total_messages++;
+        if (row.visualization) {
+          aggregated[date].total_visualizations++;
+        }
+      });
+
+      // Count unique users per day
+      chatData.forEach(row => {
+        const date = row.created_at.split('T')[0];
+        if (aggregated[date]) {
+          const dayUsers = chatData
+            .filter(c => c.created_at.split('T')[0] === date)
+            .map(c => c.user_id);
+          aggregated[date].daily_active_users = new Set(dayUsers).size;
+        }
+      });
+
+      // Add reports
+      reportsData?.forEach(row => {
+        const date = row.created_at.split('T')[0];
+        if (aggregated[date]) {
+          aggregated[date].total_reports++;
+        }
+      });
+
+      setDailyMetrics(Object.values(aggregated).sort((a, b) =>
+        a.metric_date.localeCompare(b.metric_date)
+      ));
     }
   };
 
   const fetchMilestoneStats = async () => {
-    const { data: totalUsersData } = await supabase
+    const { count: totalUsers } = await supabase
       .from('users')
-      .select('id', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true });
 
-    const { data } = await supabase
-      .from('user_milestones')
-      .select('milestone_type');
+    // Calculate milestones from actual data
+    const { data: usersWithMessages } = await supabase
+      .from('astra_chats')
+      .select('user_id');
 
-    if (data) {
-      const stats: { [key: string]: number } = {};
-      data.forEach(m => {
-        stats[m.milestone_type] = (stats[m.milestone_type] || 0) + 1;
-      });
+    const { data: usersWithReports } = await supabase
+      .from('astra_reports')
+      .select('user_id');
 
-      const totalUsers = totalUsersData || 0;
-      const milestoneStats = Object.entries(stats).map(([type, count]) => ({
-        milestone_type: type,
-        users_achieved: count,
-        achievement_rate_pct: totalUsers ? Math.round((count / (totalUsers as any)) * 100) : 0
-      }));
+    const { data: usersWithVisualizations } = await supabase
+      .from('astra_chats')
+      .select('user_id')
+      .eq('visualization', true);
 
-      setMilestones(milestoneStats);
-    }
+    const { data: usersWithSavedViz } = await supabase
+      .from('saved_visualizations')
+      .select('user_id');
+
+    const uniqueMessageUsers = new Set(usersWithMessages?.map(u => u.user_id)).size;
+    const uniqueReportUsers = new Set(usersWithReports?.map(u => u.user_id)).size;
+    const uniqueVizUsers = new Set(usersWithVisualizations?.map(u => u.user_id)).size;
+    const uniqueSavedVizUsers = new Set(usersWithSavedViz?.map(u => u.user_id)).size;
+
+    const milestoneStats = [
+      {
+        milestone_type: 'first_message',
+        users_achieved: uniqueMessageUsers,
+        achievement_rate_pct: totalUsers ? Math.round((uniqueMessageUsers / totalUsers) * 100) : 0
+      },
+      {
+        milestone_type: 'first_report',
+        users_achieved: uniqueReportUsers,
+        achievement_rate_pct: totalUsers ? Math.round((uniqueReportUsers / totalUsers) * 100) : 0
+      },
+      {
+        milestone_type: 'first_visualization',
+        users_achieved: uniqueVizUsers,
+        achievement_rate_pct: totalUsers ? Math.round((uniqueVizUsers / totalUsers) * 100) : 0
+      },
+      {
+        milestone_type: 'saved_visualization',
+        users_achieved: uniqueSavedVizUsers,
+        achievement_rate_pct: totalUsers ? Math.round((uniqueSavedVizUsers / totalUsers) * 100) : 0
+      }
+    ];
+
+    setMilestones(milestoneStats);
   };
 
   const fetchPerformanceStats = async () => {
@@ -223,9 +282,11 @@ export const UserMetricsDashboard: React.FC = () => {
     startDate.setDate(startDate.getDate() - timeRange);
 
     const { data } = await supabase
-      .from('astra_performance_logs')
-      .select('created_at, mode, response_time_ms, success')
+      .from('astra_chats')
+      .select('created_at, mode, response_time_ms')
       .gte('created_at', startDate.toISOString())
+      .not('response_time_ms', 'is', null)
+      .gt('response_time_ms', 0)
       .order('created_at', { ascending: true });
 
     if (data) {
@@ -233,12 +294,12 @@ export const UserMetricsDashboard: React.FC = () => {
 
       data.forEach(log => {
         const date = log.created_at.split('T')[0];
-        const key = `${date}-${log.mode}`;
+        const key = `${date}-${log.mode || 'unknown'}`;
         if (!grouped[key]) {
           grouped[key] = { times: [], successes: 0, total: 0 };
         }
         grouped[key].times.push(log.response_time_ms);
-        if (log.success) grouped[key].successes++;
+        grouped[key].successes++; // Assume success if we have response time
         grouped[key].total++;
       });
 
@@ -246,9 +307,9 @@ export const UserMetricsDashboard: React.FC = () => {
         const [date, mode] = key.split('-');
         return {
           date,
-          mode,
+          mode: mode || 'unknown',
           avg_response_ms: Math.round(val.times.reduce((a, b) => a + b, 0) / val.times.length),
-          success_rate: Math.round((val.successes / val.total) * 100),
+          success_rate: Math.round((val.successes / val.total) * 100) / 100, // Convert to decimal
           total_requests: val.total
         };
       });
