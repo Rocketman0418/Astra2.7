@@ -61,6 +61,7 @@ export const UserMetricsDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'engagement' | 'performance' | 'milestones' | 'guide' | 'ask-astra'>('overview');
   const [timeRange, setTimeRange] = useState<7 | 30 | 90>(30);
+  const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -119,11 +120,14 @@ export const UserMetricsDashboard: React.FC = () => {
       .select('*', { count: 'exact', head: true })
       .gte('created_at', startDate.toISOString());
 
-    // Total reports from astra_reports
-    const { count: totalReports } = await supabase
+    // Total reports executed (count last_run_at within timeframe)
+    const { data: executedReports } = await supabase
       .from('astra_reports')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', startDate.toISOString());
+      .select('last_run_at')
+      .not('last_run_at', 'is', null)
+      .gte('last_run_at', startDate.toISOString());
+
+    const totalReports = executedReports?.length || 0;
 
     // Total visualizations from astra_chats
     const { count: totalVisualizations } = await supabase
@@ -171,11 +175,12 @@ export const UserMetricsDashboard: React.FC = () => {
       .gte('created_at', startDate.toISOString())
       .order('created_at', { ascending: true });
 
-    // Fetch reports
+    // Fetch executed reports (using last_run_at)
     const { data: reportsData } = await supabase
       .from('astra_reports')
-      .select('created_at')
-      .gte('created_at', startDate.toISOString());
+      .select('last_run_at')
+      .not('last_run_at', 'is', null)
+      .gte('last_run_at', startDate.toISOString());
 
     if (chatData) {
       const aggregated: { [key: string]: DailyMetric } = {};
@@ -209,12 +214,19 @@ export const UserMetricsDashboard: React.FC = () => {
         }
       });
 
-      // Add reports
+      // Add executed reports
       reportsData?.forEach(row => {
-        const date = row.created_at.split('T')[0];
-        if (aggregated[date]) {
-          aggregated[date].total_reports++;
+        const date = row.last_run_at.split('T')[0];
+        if (!aggregated[date]) {
+          aggregated[date] = {
+            metric_date: date,
+            daily_active_users: 0,
+            total_messages: 0,
+            total_reports: 0,
+            total_visualizations: 0
+          };
         }
+        aggregated[date].total_reports++;
       });
 
       setDailyMetrics(Object.values(aggregated).sort((a, b) =>
@@ -281,25 +293,32 @@ export const UserMetricsDashboard: React.FC = () => {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - timeRange);
 
-    const { data } = await supabase
+    // Get chat messages with response times
+    const { data: chatData } = await supabase
       .from('astra_chats')
-      .select('created_at, mode, response_time_ms')
+      .select('created_at, mode, response_time_ms, message_type')
       .gte('created_at', startDate.toISOString())
+      .eq('message_type', 'astra')
       .not('response_time_ms', 'is', null)
       .gt('response_time_ms', 0)
       .order('created_at', { ascending: true });
 
-    if (data) {
+    if (chatData) {
       const grouped: { [key: string]: { times: number[], successes: number, total: number } } = {};
 
-      data.forEach(log => {
+      chatData.forEach(log => {
         const date = log.created_at.split('T')[0];
-        const key = `${date}-${log.mode || 'unknown'}`;
+        let mode = log.mode || 'unknown';
+        // Map mode to display names
+        if (mode === 'private') mode = 'chat';
+        if (mode === 'reports') mode = 'reports';
+
+        const key = `${date}-${mode}`;
         if (!grouped[key]) {
           grouped[key] = { times: [], successes: 0, total: 0 };
         }
         grouped[key].times.push(log.response_time_ms);
-        grouped[key].successes++; // Assume success if we have response time
+        grouped[key].successes++;
         grouped[key].total++;
       });
 
@@ -309,7 +328,7 @@ export const UserMetricsDashboard: React.FC = () => {
           date,
           mode: mode || 'unknown',
           avg_response_ms: Math.round(val.times.reduce((a, b) => a + b, 0) / val.times.length),
-          success_rate: Math.round((val.successes / val.total) * 100) / 100, // Convert to decimal
+          success_rate: Math.round((val.successes / val.total) * 100) / 100,
           total_requests: val.total
         };
       });
@@ -409,6 +428,13 @@ export const UserMetricsDashboard: React.FC = () => {
                 label="Total Users"
                 value={formatNumber(overview.totalUsers)}
                 iconColor="text-blue-500"
+                onClick={() => setSelectedMetric(selectedMetric === 'users' ? null : 'users')}
+                details={selectedMetric === 'users' ? [
+                  `Active today: ${overview.activeUsersToday} users`,
+                  `Active last 7 days: ${overview.activeUsers7Days} users`,
+                  `Active last 30 days: ${overview.activeUsers30Days} users`,
+                  `Engagement rate: ${overview.totalUsers ? Math.round((overview.activeUsers30Days / overview.totalUsers) * 100) : 0}%`
+                ] : undefined}
               />
               <StatCard
                 icon={Users}
@@ -416,18 +442,37 @@ export const UserMetricsDashboard: React.FC = () => {
                 value={formatNumber(overview.activeUsersToday)}
                 subtitle={`${overview.activeUsers7Days} (7d) · ${overview.activeUsers30Days} (30d)`}
                 iconColor="text-green-500"
+                onClick={() => setSelectedMetric(selectedMetric === 'active' ? null : 'active')}
+                details={selectedMetric === 'active' ? [
+                  `Daily active: ${overview.activeUsersToday} users`,
+                  `Weekly active: ${overview.activeUsers7Days} users`,
+                  `Monthly active: ${overview.activeUsers30Days} users`,
+                  `WAU/MAU ratio: ${overview.activeUsers30Days ? Math.round((overview.activeUsers7Days / overview.activeUsers30Days) * 100) : 0}%`
+                ] : undefined}
               />
               <StatCard
                 icon={MessageSquare}
                 label="Messages Sent"
                 value={formatNumber(overview.totalMessages)}
                 iconColor="text-orange-500"
+                onClick={() => setSelectedMetric(selectedMetric === 'messages' ? null : 'messages')}
+                details={selectedMetric === 'messages' ? [
+                  `Total messages: ${formatNumber(overview.totalMessages)}`,
+                  `Avg per day: ${formatNumber(Math.round(overview.totalMessages / timeRange))}`,
+                  `Avg per active user: ${overview.activeUsers30Days ? formatNumber(Math.round(overview.totalMessages / overview.activeUsers30Days)) : 0}`
+                ] : undefined}
               />
               <StatCard
                 icon={FileText}
                 label="Reports Generated"
                 value={formatNumber(overview.totalReports)}
                 iconColor="text-purple-500"
+                onClick={() => setSelectedMetric(selectedMetric === 'reports' ? null : 'reports')}
+                details={selectedMetric === 'reports' ? [
+                  `Total executed: ${formatNumber(overview.totalReports)}`,
+                  `Avg per day: ${formatNumber(Math.round(overview.totalReports / timeRange))}`,
+                  `Usage rate: ${overview.activeUsers30Days ? Math.round((overview.totalReports / overview.activeUsers30Days) * 100) : 0}%`
+                ] : undefined}
               />
             </div>
 
@@ -437,18 +482,36 @@ export const UserMetricsDashboard: React.FC = () => {
                 label="Visualizations"
                 value={formatNumber(overview.totalVisualizations)}
                 iconColor="text-cyan-500"
+                onClick={() => setSelectedMetric(selectedMetric === 'viz' ? null : 'viz')}
+                details={selectedMetric === 'viz' ? [
+                  `Total created: ${formatNumber(overview.totalVisualizations)}`,
+                  `Avg per day: ${formatNumber(Math.round(overview.totalVisualizations / timeRange))}`,
+                  `Per active user: ${overview.activeUsers30Days ? formatNumber(Math.round(overview.totalVisualizations / overview.activeUsers30Days)) : 0}`
+                ] : undefined}
               />
               <StatCard
                 icon={Clock}
                 label="Avg Response Time"
                 value={`${formatNumber(overview.avgResponseTime)}ms`}
                 iconColor="text-yellow-500"
+                onClick={() => setSelectedMetric(selectedMetric === 'time' ? null : 'time')}
+                details={selectedMetric === 'time' ? [
+                  `Average: ${formatNumber(overview.avgResponseTime)}ms`,
+                  `Target: < 30,000ms`,
+                  `Status: ${overview.avgResponseTime < 30000 ? '✓ Within target' : '⚠ Above target'}`
+                ] : undefined}
               />
               <StatCard
                 icon={AlertCircle}
                 label="Error Rate"
                 value={`${overview.errorRate}%`}
                 iconColor={overview.errorRate > 5 ? 'text-red-500' : 'text-green-500'}
+                onClick={() => setSelectedMetric(selectedMetric === 'errors' ? null : 'errors')}
+                details={selectedMetric === 'errors' ? [
+                  `Current rate: ${overview.errorRate}%`,
+                  `Target: < 5%`,
+                  `Status: ${overview.errorRate <= 5 ? '✓ Within target' : '⚠ Above target'}`
+                ] : undefined}
               />
             </div>
 
@@ -521,13 +584,27 @@ const StatCard: React.FC<{
   value: string;
   subtitle?: string;
   iconColor: string;
-}> = ({ icon: Icon, label, value, subtitle, iconColor }) => (
-  <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-gray-600 transition-all">
+  onClick?: () => void;
+  details?: string[];
+}> = ({ icon: Icon, label, value, subtitle, iconColor, onClick, details }) => (
+  <div
+    className={`bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-gray-600 transition-all ${
+      onClick ? 'cursor-pointer hover:bg-gray-750' : ''
+    }`}
+    onClick={onClick}
+  >
     <div className="flex items-start justify-between">
       <div className="flex-1">
         <p className="text-gray-400 text-sm font-medium">{label}</p>
         <p className="text-2xl font-bold mt-2">{value}</p>
         {subtitle && <p className="text-gray-500 text-xs mt-1">{subtitle}</p>}
+        {details && details.length > 0 && (
+          <div className="mt-3 space-y-1">
+            {details.map((detail, idx) => (
+              <p key={idx} className="text-xs text-gray-400">{detail}</p>
+            ))}
+          </div>
+        )}
       </div>
       <div className={`p-3 rounded-lg bg-gray-900 ${iconColor}`}>
         <Icon className="w-6 h-6" />
