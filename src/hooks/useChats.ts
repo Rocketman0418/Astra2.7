@@ -63,6 +63,8 @@ export const useChats = () => {
     if (user) {
       fetchUserProfile();
     }
+    // Only depend on [user] to avoid re-running on every render.
+    // fetchUserProfile only uses 'user' internally, so this is safe.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -450,6 +452,8 @@ export const useChats = () => {
       fetchConversations();
       setHasInitialized(true);
     }
+    // Only depend on [user] to avoid re-running on every render.
+    // fetchConversations only uses 'user' internally, so this is safe.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -482,6 +486,8 @@ export const useChats = () => {
       console.log('📡 Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
+    // Only depend on [user] to avoid subscription loops that cause rate limiting.
+    // fetchConversations only uses 'user' internally, so this is safe.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 

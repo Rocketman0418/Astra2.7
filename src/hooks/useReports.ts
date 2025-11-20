@@ -769,6 +769,8 @@ export const useReports = () => {
         supabase.removeChannel(reportsChannel);
       };
     }
+    // Only depend on [user] to avoid subscription loops that cause rate limiting.
+    // The fetch functions only use 'user' internally, so this is safe.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 

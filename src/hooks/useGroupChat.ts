@@ -598,6 +598,8 @@ export const useGroupChat = () => {
     if (user) {
       fetchMessages();
     }
+    // Only depend on [user] to avoid re-running on every render.
+    // fetchMessages only uses 'user' internally, so this is safe.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 

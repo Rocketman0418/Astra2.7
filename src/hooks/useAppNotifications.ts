@@ -206,6 +206,8 @@ export const useAppNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
+    // Only depend on [user] to avoid subscription loops that cause rate limiting.
+    // fetchNotifications only uses 'user' internally, so this is safe.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -224,6 +226,8 @@ export const useAppNotifications = () => {
       fetchNotifications(true); // Load all notifications initially
       requestNotificationPermission(); // Request permission for browser notifications
     }
+    // Only depend on [user] to avoid re-running on every render.
+    // Both functions only use 'user' internally, so this is safe.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
