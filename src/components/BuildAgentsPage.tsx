@@ -49,6 +49,7 @@ export const BuildAgentsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'active' | 'name' | 'updated' | 'nodes' | 'executions'>('active');
   const [loadingExecutions, setLoadingExecutions] = useState(false);
+  const [showActiveOnly, setShowActiveOnly] = useState(true);
 
   useEffect(() => {
     try {
@@ -432,9 +433,11 @@ export const BuildAgentsPage: React.FC = () => {
   }
 
   const filteredAndSortedWorkflows = useMemo(() => {
-    let filtered = workflows.filter(workflow =>
-      workflow.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    let filtered = workflows.filter(workflow => {
+      const matchesSearch = workflow.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesActive = showActiveOnly ? workflow.active : true;
+      return matchesSearch && matchesActive;
+    });
 
     filtered.sort((a, b) => {
       switch (sortBy) {
@@ -467,7 +470,7 @@ export const BuildAgentsPage: React.FC = () => {
     });
 
     return filtered;
-  }, [workflows, searchQuery, sortBy]);
+  }, [workflows, searchQuery, sortBy, showActiveOnly]);
 
   if (loading) {
     return (
@@ -508,42 +511,60 @@ export const BuildAgentsPage: React.FC = () => {
       />
       <div className="pt-24 p-6">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <Workflow className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-white">Build Agents</h1>
-                <p className="text-gray-400">Create and manage AI workflow automations</p>
-              </div>
+
+          {/* Hero Section - Marketing Focused */}
+          <div className="mb-12 text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600 mb-6 mx-auto">
+              <Workflow className="w-10 h-10 text-white" />
             </div>
-            <div className="flex items-center space-x-3">
+            <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-orange-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+              Build Intelligent Agents
+            </h1>
+            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+              Automate your workflows with AI-powered agents. Start from templates or build from scratch.
+            </p>
+
+            {/* CTA Buttons */}
+            <div className="flex items-center justify-center gap-4 flex-wrap">
               <button
-                onClick={loadWorkflows}
-                disabled={loading}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center space-x-2"
+                onClick={() => setShowCreateChoice(true)}
+                className="px-8 py-4 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white rounded-xl transition-all flex items-center space-x-3 font-bold text-lg shadow-lg shadow-orange-500/25 transform hover:scale-105"
               >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                <span>Refresh</span>
+                <Plus className="w-6 h-6" />
+                <span>Create Your First Agent</span>
               </button>
               <button
                 onClick={() => setShowTemplateSearchDemo(true)}
-                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white rounded-lg transition-all flex items-center space-x-2 font-semibold border border-purple-400/30"
-                title="Preview Astra AI template search"
+                className="px-8 py-4 bg-gray-800 hover:bg-gray-700 border border-purple-500/30 text-white rounded-xl transition-all flex items-center space-x-3 font-semibold text-lg"
               >
-                <Sparkles className="w-4 h-4" />
-                <span>AI Search Demo</span>
+                <Sparkles className="w-5 h-5 text-purple-400" />
+                <span>Try AI Search</span>
               </button>
-              <button
-                onClick={() => setShowCreateChoice(true)}
-                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2 font-semibold"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Create Agent</span>
-              </button>
+            </div>
+
+            {/* Features Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-4xl mx-auto">
+              <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
+                <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                  <Sparkles className="w-6 h-6 text-blue-400" />
+                </div>
+                <h3 className="text-white font-semibold mb-2">AI-Guided Builder</h3>
+                <p className="text-gray-400 text-sm">Let Astra help you design the perfect workflow</p>
+              </div>
+              <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
+                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                  <Download className="w-6 h-6 text-purple-400" />
+                </div>
+                <h3 className="text-white font-semibold mb-2">6,600+ Templates</h3>
+                <p className="text-gray-400 text-sm">Import community workflows in one click</p>
+              </div>
+              <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
+                <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                  <Settings className="w-6 h-6 text-green-400" />
+                </div>
+                <h3 className="text-white font-semibold mb-2">Full Control</h3>
+                <p className="text-gray-400 text-sm">Build custom workflows from scratch</p>
+              </div>
             </div>
           </div>
 
@@ -570,37 +591,70 @@ export const BuildAgentsPage: React.FC = () => {
             </div>
           )}
 
-          {/* Search and Sort Controls */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search workflows by name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <ArrowUpDown className="w-5 h-5 text-gray-400" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'active' | 'name' | 'updated' | 'nodes' | 'executions')}
-                className="px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="active">Sort by Active</option>
-                <option value="name">Sort by Name</option>
-                <option value="updated">Sort by Updated</option>
-                <option value="nodes">Sort by Nodes</option>
-                <option value="executions">Sort by Executions</option>
-              </select>
-            </div>
-          </div>
-        </div>
+          {/* Manage Agents Section */}
+          {workflows.length > 0 && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white">Manage Agents</h2>
+                <button
+                  onClick={loadWorkflows}
+                  disabled={loading}
+                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors flex items-center space-x-2"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                  <span className="hidden sm:inline">Refresh</span>
+                </button>
+              </div>
 
-        {/* Workflows Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Search, Filter, Sort Controls */}
+              <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search agents..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                  />
+                </div>
+
+                {/* Active Only Toggle */}
+                <button
+                  onClick={() => setShowActiveOnly(!showActiveOnly)}
+                  className={`px-4 py-2.5 rounded-lg border transition-all text-sm font-medium whitespace-nowrap ${
+                    showActiveOnly
+                      ? 'bg-green-500/20 border-green-500/50 text-green-400'
+                      : 'bg-gray-800/50 border-gray-700 text-gray-400 hover:border-gray-600'
+                  }`}
+                >
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-2 h-2 rounded-full ${showActiveOnly ? 'bg-green-400' : 'bg-gray-500'}`} />
+                    <span>Active Only</span>
+                  </div>
+                </button>
+
+                {/* Sort Dropdown */}
+                <div className="flex items-center space-x-2">
+                  <ArrowUpDown className="w-4 h-4 text-gray-400" />
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as 'active' | 'name' | 'updated' | 'nodes' | 'executions')}
+                    className="px-4 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                  >
+                    <option value="active">Active First</option>
+                    <option value="name">Name A-Z</option>
+                    <option value="updated">Recently Updated</option>
+                    <option value="nodes">Node Count</option>
+                    <option value="executions">Most Runs</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+        {/* Agents Grid - Compact Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {workflows.length === 0 && !loading ? (
             <div className="col-span-full bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-12 text-center">
               <Workflow className="w-16 h-16 text-gray-600 mx-auto mb-4" />
@@ -617,14 +671,26 @@ export const BuildAgentsPage: React.FC = () => {
           ) : filteredAndSortedWorkflows.length === 0 ? (
             <div className="col-span-full bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-12 text-center">
               <Search className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">No Workflows Found</h3>
-              <p className="text-gray-400 mb-6">No workflows match your search criteria</p>
-              <button
-                onClick={() => setSearchQuery('')}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
-                Clear Search
-              </button>
+              <h3 className="text-xl font-semibold text-white mb-2">No Agents Found</h3>
+              <p className="text-gray-400 mb-6">
+                {showActiveOnly ? 'No active agents. Try disabling "Active Only" filter.' : 'No agents match your search.'}
+              </p>
+              <div className="flex items-center justify-center gap-3">
+                {showActiveOnly && (
+                  <button
+                    onClick={() => setShowActiveOnly(false)}
+                    className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                  >
+                    Show All Agents
+                  </button>
+                )}
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                >
+                  Clear Search
+                </button>
+              </div>
             </div>
           ) : (
             filteredAndSortedWorkflows.map((workflow) => {
@@ -632,67 +698,65 @@ export const BuildAgentsPage: React.FC = () => {
               return (
                 <div
                   key={workflow.id}
-                  className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-6 hover:border-gray-600 transition-all"
+                  className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-purple-500/50 transition-all group"
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-white truncate mb-1">
-                        {workflow.name}
-                      </h3>
-                      {metadata?.description && (
-                        <p className="text-sm text-gray-400 line-clamp-2">{metadata.description}</p>
-                      )}
-                    </div>
-                    <div className={`ml-3 w-2 h-2 rounded-full flex-shrink-0 mt-2 ${workflow.active ? 'bg-green-500' : 'bg-gray-500'}`} />
+                  {/* Header with Status */}
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-white truncate flex-1 pr-2 group-hover:text-purple-400 transition-colors">
+                      {workflow.name}
+                    </h3>
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-1 ${workflow.active ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`} />
                   </div>
 
-                  <div className="flex items-center flex-wrap gap-2 mb-4">
-                    {workflow.tags?.map((tag, index) => (
-                      <span key={`${workflow.id}-tag-${index}`} className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded">
-                        {typeof tag === 'string' ? tag : (tag?.name || 'Tag')}
-                      </span>
-                    ))}
+                  {/* Description */}
+                  {metadata?.description && (
+                    <p className="text-xs text-gray-400 line-clamp-2 mb-3 min-h-[32px]">{metadata.description}</p>
+                  )}
+
+                  {/* Stats */}
+                  <div className="flex items-center gap-3 mb-3 text-xs text-gray-500">
                     {workflow.nodes && (
-                      <span className="text-xs text-gray-400">
-                        {workflow.nodes.length} nodes
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <Settings className="w-3 h-3" />
+                        <span>{workflow.nodes.length}</span>
+                      </div>
                     )}
-                    {workflow.executionCount !== undefined ? (
-                      <span className="text-xs text-gray-400">
-                        {workflow.executionCount < 0
-                          ? `${Math.abs(workflow.executionCount)}+ executions`
-                          : `${workflow.executionCount} executions`
-                        }
-                      </span>
-                    ) : loadingExecutions && (
-                      <span className="text-xs text-gray-500 italic">
-                        Loading...
-                      </span>
+                    {workflow.executionCount !== undefined && (
+                      <div className="flex items-center gap-1">
+                        <Play className="w-3 h-3" />
+                        <span>
+                          {workflow.executionCount < 0
+                            ? `${Math.abs(workflow.executionCount)}+`
+                            : workflow.executionCount
+                          }
+                        </span>
+                      </div>
                     )}
                   </div>
 
-                  <div className="flex items-center space-x-2">
+                  {/* Actions - Compact */}
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => openWorkflowInN8N(workflow.id)}
-                      className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors flex items-center justify-center space-x-2"
+                      className="flex-1 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded transition-colors flex items-center justify-center gap-1.5 font-medium"
                       title="Edit in N8N"
                     >
-                      <ExternalLink className="w-4 h-4" />
+                      <ExternalLink className="w-3 h-3" />
                       <span>Edit</span>
                     </button>
                     <button
                       onClick={() => toggleWorkflowStatus(workflow.id, workflow.active)}
-                      className={`px-3 py-2 ${workflow.active ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'} text-white text-sm rounded transition-colors`}
+                      className={`p-2 ${workflow.active ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'} text-white rounded transition-colors`}
                       title={workflow.active ? 'Deactivate' : 'Activate'}
                     >
-                      {workflow.active ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                      {workflow.active ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                     </button>
                     <button
                       onClick={() => deleteWorkflow(workflow.id, workflow.name)}
-                      className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors"
+                      className="p-2 bg-red-600/80 hover:bg-red-600 text-white rounded transition-colors"
                       title="Delete"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
