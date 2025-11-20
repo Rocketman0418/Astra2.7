@@ -82,6 +82,9 @@ interface PreviewRequest {
   invite_sent: boolean;
   invite_sent_at: string | null;
   invite_code: string | null;
+  user_onboarded?: boolean;
+  team_name?: string | null;
+  team_created_at?: string | null;
 }
 
 interface FeedbackStats {
@@ -439,10 +442,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
 
   const loadPreviewRequests = async () => {
     try {
-      const { data, error} = await supabase
-        .from('preview_requests')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.rpc('get_preview_requests_with_onboarding');
 
       if (error) throw error;
 
@@ -1686,7 +1686,13 @@ Sign up here: https://airocket.app`;
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              {request.invite_sent && (
+                              {request.user_onboarded && (
+                                <div className="flex items-center gap-1 bg-green-500/20 border border-green-500/50 px-2 py-1 rounded">
+                                  <CheckCircle className="w-4 h-4 text-green-400" />
+                                  <span className="text-xs font-medium text-green-400">Onboarded</span>
+                                </div>
+                              )}
+                              {request.invite_sent && !request.user_onboarded && (
                                 <CheckCircle className="w-5 h-5 text-green-400" />
                               )}
                               <Mail className="w-4 h-4 text-blue-400" />
@@ -1702,6 +1708,16 @@ Sign up here: https://airocket.app`;
                               {request.invite_code && (
                                 <div className="text-gray-500">
                                   Code: <span className="font-mono">{request.invite_code}</span>
+                                </div>
+                              )}
+                              {request.user_onboarded && request.team_name && (
+                                <div className="text-green-400">
+                                  Team: <span className="font-medium">{request.team_name}</span>
+                                  {request.team_created_at && (
+                                    <span className="text-gray-500 ml-2">
+                                      (Created: {format(new Date(request.team_created_at), 'MMM d, yyyy')})
+                                    </span>
+                                  )}
                                 </div>
                               )}
                             </div>
