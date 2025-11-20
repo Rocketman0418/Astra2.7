@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MessageSquare, Send, Sparkles, X } from 'lucide-react';
+import { MessageSquare, Send, Sparkles } from 'lucide-react';
 
 interface FeedbackQuestion {
   id: string;
@@ -91,10 +91,9 @@ export function FeedbackModal({ questions, onSubmit, onSkip }: FeedbackModalProp
             <button
               onClick={handleSkip}
               disabled={isSkipping || isSubmitting}
-              className="flex-shrink-0 p-2 text-gray-400 hover:text-gray-300 hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Skip for today"
+              className="flex-shrink-0 px-3 py-2 text-sm text-gray-400 hover:text-gray-300 hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <X className="w-5 h-5" />
+              Skip for Today
             </button>
           </div>
 
