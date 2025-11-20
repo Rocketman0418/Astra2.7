@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Workflow, Play, Pause, Trash2, Plus, ExternalLink, RefreshCw, Settings, Eye, Download, Upload, AlertCircle, CheckCircle, Loader, Search, ArrowUpDown } from 'lucide-react';
+import { Workflow, Play, Pause, Trash2, Plus, ExternalLink, RefreshCw, Settings, Eye, Download, Upload, AlertCircle, CheckCircle, Loader, Search, ArrowUpDown, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Header } from './Header';
+import { AstraGuidedAgentBuilder } from './AstraGuidedAgentBuilder';
 
 interface N8NWorkflow {
   id: string;
@@ -35,6 +37,8 @@ export const BuildAgentsPage: React.FC = () => {
   const [success, setSuccess] = useState('');
   const [creatingWorkflow, setCreatingWorkflow] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showAstraBuilder, setShowAstraBuilder] = useState(false);
+  const [showCreateChoice, setShowCreateChoice] = useState(false);
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [newWorkflowDescription, setNewWorkflowDescription] = useState('');
   const [criticalError, setCriticalError] = useState<string | null>(null);
@@ -522,11 +526,11 @@ export const BuildAgentsPage: React.FC = () => {
                 <span>Refresh</span>
               </button>
               <button
-                onClick={() => setShowCreateModal(true)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+                onClick={() => setShowCreateChoice(true)}
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2 font-semibold"
               >
                 <Plus className="w-4 h-4" />
-                <span>Create</span>
+                <span>Create Agent</span>
               </button>
             </div>
           </div>
@@ -693,6 +697,110 @@ export const BuildAgentsPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Astra Guided Agent Builder */}
+      {showAstraBuilder && (
+        <AstraGuidedAgentBuilder
+          onClose={() => setShowAstraBuilder(false)}
+          onComplete={(workflowId) => {
+            setShowAstraBuilder(false);
+            navigate(`/build-agents/workflow/${workflowId}`);
+          }}
+        />
+      )}
+
+      {/* Create Choice Modal */}
+      {showCreateChoice && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl border border-gray-700">
+            <div className="px-6 py-4 border-b border-gray-700">
+              <h3 className="text-lg font-semibold text-white">How Would You Like to Create Your Agent?</h3>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <button
+                onClick={() => {
+                  setShowCreateChoice(false);
+                  setShowAstraBuilder(true);
+                }}
+                className="w-full p-6 bg-gradient-to-br from-purple-900/50 to-blue-900/50 hover:from-purple-900/70 hover:to-blue-900/70 border-2 border-purple-500/50 hover:border-purple-500 rounded-lg transition-all text-left"
+              >
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-xl font-bold text-white mb-2 flex items-center space-x-2">
+                      <span>Astra-Guided Builder</span>
+                      <span className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded">Recommended</span>
+                    </h4>
+                    <p className="text-gray-400 mb-3">
+                      Perfect for beginners! Astra will guide you through choosing a use case, understanding how workflows work, and building your first agent step-by-step.
+                    </p>
+                    <ul className="space-y-1 text-sm text-purple-300">
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                        <span>Choose from common automation scenarios</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                        <span>Get AI-powered guidance and explanations</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                        <span>Learn best practices as you build</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowCreateChoice(false);
+                  setShowCreateModal(true);
+                }}
+                className="w-full p-6 bg-gray-900/50 hover:bg-gray-900/70 border-2 border-gray-700 hover:border-gray-600 rounded-lg transition-all text-left"
+              >
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0">
+                    <Plus className="w-6 h-6 text-gray-300" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-xl font-bold text-white mb-2">Build Manually</h4>
+                    <p className="text-gray-400 mb-3">
+                      For experienced users who know exactly what they want to build. Create a blank workflow and configure it yourself in the N8N editor.
+                    </p>
+                    <ul className="space-y-1 text-sm text-gray-400">
+                      <li className="flex items-center space-x-2">
+                        <Settings className="w-4 h-4 flex-shrink-0" />
+                        <span>Full control over workflow configuration</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <Settings className="w-4 h-4 flex-shrink-0" />
+                        <span>Direct access to N8N editor</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <Settings className="w-4 h-4 flex-shrink-0" />
+                        <span>For advanced automation needs</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-700 flex justify-end">
+              <button
+                onClick={() => setShowCreateChoice(false)}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Create Workflow Modal */}
       {showCreateModal && (
