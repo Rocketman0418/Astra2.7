@@ -15,6 +15,8 @@ import AdminDashboardPage from './components/AdminDashboardPage';
 import { BuildAgentsPage } from './components/BuildAgentsPage';
 import { MarketingPage } from './components/MarketingPage';
 import { MarketingLogo } from './components/MarketingLogo';
+import { UserMetricsDashboard } from './components/UserMetricsDashboard';
+import { ProtectedMetricsRoute } from './components/ProtectedMetricsRoute';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
 import { useFeedbackPrompt } from './hooks/useFeedbackPrompt';
 import { useActivityTracking } from './hooks/useActivityTracking';
@@ -91,6 +93,16 @@ const AppContent: React.FC = () => {
           <ProtectedAdminRoute>
             <AdminDashboardPage />
           </ProtectedAdminRoute>
+        }
+      />
+
+      {/* User Metrics Dashboard - Super Admin Only */}
+      <Route
+        path="/user-metrics"
+        element={
+          <ProtectedMetricsRoute>
+            <UserMetricsDashboard />
+          </ProtectedMetricsRoute>
         }
       />
 
