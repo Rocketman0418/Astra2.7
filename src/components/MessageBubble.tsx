@@ -3,6 +3,8 @@ import { Bookmark, Reply, Copy, Check } from 'lucide-react';
 import { VisualizationButton } from './VisualizationButton';
 import { Message } from '../types';
 import { formatAstraMessage } from '../utils/formatAstraMessage';
+import { TemplateSearchResults } from './TemplateSearchResults';
+import { N8NTemplate } from '../lib/n8n-templates';
 
 interface MessageBubbleProps {
   message: Message;
@@ -13,6 +15,7 @@ interface MessageBubbleProps {
   onViewVisualization?: (messageId: string) => void;
   visualizationState?: any;
   onReply?: (messageId: string, messageText: string) => void;
+  onTemplateImport?: (template: N8NTemplate) => Promise<string | undefined>;
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -22,8 +25,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   isFavorited = false,
   onCreateVisualization,
   onViewVisualization,
- visualizationState,
- onReply
+  visualizationState,
+  onReply,
+  onTemplateImport
 }) => {
   const [copied, setCopied] = useState(false);
   const isLongMessage = message.text.length > 800;
@@ -224,6 +228,21 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                 visualizationState={visualizationState}
               />
             )}
+          </div>
+        )}
+
+        {/* Template Search Results */}
+        {!message.isUser &&
+         message.metadata?.action_type === 'template_search' &&
+         message.metadata?.templates &&
+         onTemplateImport && (
+          <div className="mt-3">
+            <TemplateSearchResults
+              templates={message.metadata.templates}
+              totalResults={message.metadata.total_results || message.metadata.templates.length}
+              searchQuery={message.metadata.search_query || ''}
+              onImport={onTemplateImport}
+            />
           </div>
         )}
         </div>

@@ -58,7 +58,8 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
     updateVisualizationData,
     replyState,
     startReply,
-    cancelReply
+    cancelReply,
+    handleTemplateImportFromChat
   } = useChat();
 
   // Notify parent component when conversation changes
@@ -402,6 +403,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
                 isFavorited={isFavorited(message.id)}
                 visualizationState={getLocalVisualizationState(message.chatId || message.id)}
                 onReply={startReply}
+                onTemplateImport={handleTemplateImportFromChat}
               />
             </div>
           ))}

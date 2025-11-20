@@ -4,6 +4,8 @@ import { useChats } from './useChats';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
+import { N8NTemplate } from '../lib/n8n-templates';
+import { n8nService } from '../lib/n8n-service';
 
 const WEBHOOK_URL = import.meta.env.VITE_N8N_WEBHOOK_URL;
 
@@ -535,6 +537,64 @@ export const useChat = () => {
     return newConversationId;
   }, [chatsStartNewConversation]);
 
+  const handleTemplateImportFromChat = useCallback(async (template: N8NTemplate): Promise<string | undefined> => {
+    const loadingMessage: Message = {
+      id: `importing-${template.id}`,
+      text: `Importing "${template.name}"...`,
+      isUser: false,
+      timestamp: new Date(),
+      messageType: 'system'
+    };
+    setMessages(prev => [...prev, loadingMessage]);
+
+    try {
+      const workflow = await n8nService.createWorkflow({
+        name: template.name,
+        nodes: template.workflow.nodes,
+        connections: template.workflow.connections,
+        settings: {},
+      });
+
+      await n8nService.saveWorkflowMetadata(
+        workflow.id,
+        template.name,
+        `${template.description}\n\nImported from n8n Templates (ID: ${template.id})\nOriginal Author: ${template.user.username}\nImported via Astra AI`
+      );
+
+      setMessages(prev => prev.filter(m => m.id !== `importing-${template.id}`));
+
+      const successMessage: Message = {
+        id: `imported-${template.id}`,
+        text: `✅ Successfully imported "${template.name}"`,
+        isUser: false,
+        timestamp: new Date(),
+        messageType: 'system',
+        metadata: {
+          action_type: 'template_imported',
+          workflow_id: workflow.id,
+          template_name: template.name
+        }
+      };
+      setMessages(prev => [...prev, successMessage]);
+
+      return workflow.id;
+    } catch (error) {
+      console.error('Failed to import template:', error);
+      setMessages(prev => prev.filter(m => m.id !== `importing-${template.id}`));
+
+      const errorMessage: Message = {
+        id: `error-${template.id}`,
+        text: `❌ Failed to import "${template.name}". Please try again or browse templates manually.`,
+        isUser: false,
+        timestamp: new Date(),
+        messageType: 'system'
+      };
+      setMessages(prev => [...prev, errorMessage]);
+
+      return undefined;
+    }
+  }, [setMessages]);
+
   return {
     messages,
     isLoading,
@@ -553,6 +613,7 @@ export const useChat = () => {
     updateVisualizationData,
     replyState,
     startReply,
-    cancelReply
+    cancelReply,
+    handleTemplateImportFromChat
   };
 };
