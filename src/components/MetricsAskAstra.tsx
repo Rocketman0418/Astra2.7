@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Loader2, MessageSquare, TrendingUp, Database, Sparkles } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
+import { getMetricsResponse } from '../lib/metrics-assistant';
 
 interface Message {
   id: string;
@@ -89,85 +89,31 @@ export const MetricsAskAstra: React.FC<MetricsAskAstraProps> = ({ metricsData })
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const question = inputValue.trim();
     setInputValue('');
     setIsLoading(true);
 
     try {
-      const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
-
-      if (!webhookUrl) {
-        throw new Error('Webhook URL not configured');
+      if (!metricsData) {
+        throw new Error('Metrics data not available. Please refresh the page.');
       }
 
-      // Get user team info
-      const { data: userData } = await supabase
-        .rpc('get_user_team_info', { p_user_id: user!.id });
-
-      const userInfo = userData?.[0] || {};
-
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chatInput: inputValue.trim(),
-          user_id: user!.id,
-          user_email: user!.email,
-          user_name: userInfo.user_name || user!.email?.split('@')[0],
-          team_id: userInfo.team_id || '',
-          team_name: userInfo.team_name || '',
-          role: userInfo.role || 'member',
-          view_financial: userInfo.view_financial !== false,
-          mode: 'metrics',
-          metadata: {
-            context: 'user_metrics_dashboard',
-            is_super_admin: true,
-            query_type: 'metrics_analysis',
-            metrics_data: metricsData ? {
-              overview: metricsData.overview,
-              daily_metrics_count: metricsData.dailyMetrics?.length || 0,
-              milestones_count: metricsData.milestones?.length || 0,
-              performance_count: metricsData.performance?.length || 0,
-              time_range_days: metricsData.timeRange || 30,
-              recent_daily_metrics: metricsData.dailyMetrics?.slice(-7) || [],
-              all_milestones: metricsData.milestones || [],
-              recent_performance: metricsData.performance?.slice(-7) || []
-            } : null
-          }
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to get response: ${response.status}`);
-      }
-
-      const responseText = await response.text();
-      let messageText = responseText;
-
-      try {
-        const jsonResponse = JSON.parse(responseText);
-        if (jsonResponse.output) {
-          messageText = jsonResponse.output;
-        }
-      } catch (e) {
-        // Use raw text if not JSON
-      }
+      const responseText = await getMetricsResponse(question, metricsData);
 
       const astraMessage: Message = {
         id: `astra-${Date.now()}`,
-        text: messageText || "I apologize, but I couldn't generate a response. Please try rephrasing your question.",
+        text: responseText || "I apologize, but I couldn't generate a response. Please try rephrasing your question.",
         isUser: false,
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, astraMessage]);
-    } catch (error) {
-      console.error('Error sending message to Astra:', error);
+    } catch (error: any) {
+      console.error('Error getting metrics response:', error);
 
       const errorMessage: Message = {
         id: `error-${Date.now()}`,
-        text: "I'm having trouble connecting right now. Please try again in a moment.",
+        text: error?.message || "I'm having trouble processing your request. Please try again in a moment.",
         isUser: false,
         timestamp: new Date()
       };
@@ -200,8 +146,8 @@ export const MetricsAskAstra: React.FC<MetricsAskAstraProps> = ({ metricsData })
           <div className="flex-1">
             <h2 className="text-xl font-bold mb-2">Ask Astra About Metrics</h2>
             <p className="text-gray-400 text-sm">
-              Query your user metrics using natural language. Astra has access to all engagement data,
-              performance logs, and milestone information.
+              Powered by Gemini AI. Query your metrics using natural language - Astra analyzes all engagement data,
+              performance logs, trends, and milestone achievements to provide intelligent insights.
             </p>
           </div>
         </div>
@@ -307,7 +253,7 @@ export const MetricsAskAstra: React.FC<MetricsAskAstraProps> = ({ metricsData })
             <div>
               <h4 className="font-semibold text-sm mb-1">Real-Time Data</h4>
               <p className="text-xs text-gray-400">
-                Astra queries live database for up-to-date metrics
+                Powered by Gemini AI with instant access to all metrics
               </p>
             </div>
           </div>
@@ -319,7 +265,7 @@ export const MetricsAskAstra: React.FC<MetricsAskAstraProps> = ({ metricsData })
             <div>
               <h4 className="font-semibold text-sm mb-1">Trend Analysis</h4>
               <p className="text-xs text-gray-400">
-                Ask about patterns and trends over time
+                Calculate growth rates and identify patterns
               </p>
             </div>
           </div>
@@ -329,9 +275,9 @@ export const MetricsAskAstra: React.FC<MetricsAskAstraProps> = ({ metricsData })
           <div className="flex items-start gap-3">
             <Sparkles className="w-5 h-5 text-purple-500 mt-1" />
             <div>
-              <h4 className="font-semibold text-sm mb-1">Natural Language</h4>
+              <h4 className="font-semibold text-sm mb-1">Intelligent Insights</h4>
               <p className="text-xs text-gray-400">
-                Ask questions in plain English
+                Get actionable recommendations based on data
               </p>
             </div>
           </div>
