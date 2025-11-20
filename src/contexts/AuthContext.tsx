@@ -38,17 +38,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      // Ignore auth errors to prevent logout loops caused by rate limiting
-      // Users will stay logged in even if token refresh fails temporarily
-      if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+      console.log('🔐 Auth state change:', event, session?.user?.id);
+
+      // Handle all legitimate auth state changes
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        // New login or initial session load
+        setSession(session);
+        setUser(session?.user ?? null);
+      } else if (event === 'TOKEN_REFRESHED') {
+        // Token refreshed - only update if user ID actually changed (shouldn't happen)
+        // This prevents unnecessary re-renders that cause subscription loops
+        setSession(session);
+        setUser((prevUser) => {
+          if (prevUser?.id === session?.user?.id) {
+            return prevUser; // Keep same user object reference
+          }
+          return session?.user ?? null; // User changed, update
+        });
+      } else if (event === 'USER_UPDATED') {
+        // User profile updated - always update to reflect changes
         setSession(session);
         setUser(session?.user ?? null);
       } else if (event === 'SIGNED_OUT') {
-        // Only log out on explicit sign out
+        // Explicit sign out
         setSession(null);
         setUser(null);
       }
-      // Ignore USER_UPDATED and other events to prevent unnecessary updates
+      // PASSWORD_RECOVERY and MFA_CHALLENGE_VERIFIED are intentionally ignored
       setLoading(false);
     });
 
