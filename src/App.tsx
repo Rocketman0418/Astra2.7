@@ -18,6 +18,7 @@ import { MarketingLogo } from './components/MarketingLogo';
 import { UserMetricsDashboard } from './components/UserMetricsDashboard';
 import { ProtectedMetricsRoute } from './components/ProtectedMetricsRoute';
 import { PricingStrategyPage } from './components/PricingStrategyPage';
+import { MCPStrategyPage } from './components/MCPStrategyPage';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
 import { useFeedbackPrompt } from './hooks/useFeedbackPrompt';
 import { useActivityTracking } from './hooks/useActivityTracking';
@@ -113,6 +114,16 @@ const AppContent: React.FC = () => {
         element={
           <ProtectedMetricsRoute>
             <PricingStrategyPage />
+          </ProtectedMetricsRoute>
+        }
+      />
+
+      {/* MCP Strategy - Super Admin Only */}
+      <Route
+        path="/mcp-strategy"
+        element={
+          <ProtectedMetricsRoute>
+            <MCPStrategyPage />
           </ProtectedMetricsRoute>
         }
       />
