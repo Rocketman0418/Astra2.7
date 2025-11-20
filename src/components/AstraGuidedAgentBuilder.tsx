@@ -6,6 +6,7 @@ import {
   Database, Clock, Mail, Webhook, FileText, BarChart
 } from 'lucide-react';
 import { n8nService } from '../lib/n8n-service';
+import { generateNodesForUseCase } from '../lib/workflow-node-generator';
 import { useAuth } from '../contexts/AuthContext';
 
 interface UseCaseScenario {
@@ -337,19 +338,22 @@ ${requirements ? `\n**Specific to your needs:** ${requirements}` : ''}
     setError('');
 
     try {
-      // Create the workflow in n8n
+      // Generate nodes for the selected use case
+      const nodeTemplate = generateNodesForUseCase(selectedUseCase.id, customRequirements);
+
+      // Create the workflow in n8n with pre-configured nodes
       const workflow = await n8nService.createWorkflow({
         name: workflowName,
-        nodes: [],
-        connections: {},
+        nodes: nodeTemplate.nodes,
+        connections: nodeTemplate.connections,
         settings: {},
       });
 
-      // Save metadata
+      // Save metadata with setup instructions
       await n8nService.saveWorkflowMetadata(
         workflow.id,
         workflowName,
-        `${workflowDescription}\n\nUse Case: ${selectedUseCase.title}\n${customRequirements ? `Requirements: ${customRequirements}` : ''}`
+        `${workflowDescription}\n\nUse Case: ${selectedUseCase.title}\n${customRequirements ? `\nRequirements: ${customRequirements}` : ''}\n\n${nodeTemplate.instructions}`
       );
 
       // Navigate to the workflow detail page
