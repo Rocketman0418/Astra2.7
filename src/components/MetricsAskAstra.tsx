@@ -10,12 +10,50 @@ interface Message {
   timestamp: Date;
 }
 
-export const MetricsAskAstra: React.FC = () => {
+interface MetricsData {
+  overview?: {
+    totalUsers: number;
+    activeUsersToday: number;
+    activeUsers7Days: number;
+    activeUsers30Days: number;
+    totalMessages: number;
+    totalReports: number;
+    totalVisualizations: number;
+    avgResponseTime: number;
+    errorRate: number;
+  };
+  dailyMetrics?: Array<{
+    metric_date: string;
+    daily_active_users: number;
+    total_messages: number;
+    total_reports: number;
+    total_visualizations: number;
+  }>;
+  milestones?: Array<{
+    milestone_type: string;
+    users_achieved: number;
+    achievement_rate_pct: number;
+  }>;
+  performance?: Array<{
+    date: string;
+    mode: string;
+    avg_response_ms: number;
+    success_rate: number;
+    total_requests: number;
+  }>;
+  timeRange?: 7 | 30 | 90;
+}
+
+interface MetricsAskAstraProps {
+  metricsData?: MetricsData;
+}
+
+export const MetricsAskAstra: React.FC<MetricsAskAstraProps> = ({ metricsData }) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
-      text: "Hi! I'm Astra, your metrics assistant. Ask me anything about user engagement, performance stats, milestones, or trends. For example:\n\n• 'How many users were active last week?'\n• 'What's the average AI response time?'\n• 'Show me milestone achievement rates'\n• 'What are the engagement trends?'",
+      text: `Hi! I'm Astra, your metrics assistant with access to real-time data. I can analyze:\n\n• User engagement (${metricsData?.overview?.totalUsers || 'N/A'} total users)\n• Activity trends (${metricsData?.dailyMetrics?.length || 0} days of data)\n• Performance metrics (${metricsData?.overview?.avgResponseTime?.toFixed(0) || 'N/A'}ms avg response)\n• Milestone achievements (${metricsData?.milestones?.length || 0} tracked)\n\nAsk me anything about patterns, trends, or specific metrics!`,
       isUser: false,
       timestamp: new Date()
     }
@@ -33,11 +71,11 @@ export const MetricsAskAstra: React.FC = () => {
   }, [messages]);
 
   const suggestedQuestions = [
-    "How many users are active today?",
-    "What's the average response time this week?",
-    "Show me the most popular features",
-    "Which milestones have the highest adoption?",
-    "What's the error rate trend?"
+    "What's the user growth trend over the last 30 days?",
+    "Compare message volume vs report generation",
+    "Which day had the highest activity?",
+    "What's the success rate for AI responses?",
+    "Show me milestone completion rates"
   ];
 
   const handleSendMessage = async () => {
@@ -85,7 +123,17 @@ export const MetricsAskAstra: React.FC = () => {
           metadata: {
             context: 'user_metrics_dashboard',
             is_super_admin: true,
-            query_type: 'metrics_analysis'
+            query_type: 'metrics_analysis',
+            metrics_data: metricsData ? {
+              overview: metricsData.overview,
+              daily_metrics_count: metricsData.dailyMetrics?.length || 0,
+              milestones_count: metricsData.milestones?.length || 0,
+              performance_count: metricsData.performance?.length || 0,
+              time_range_days: metricsData.timeRange || 30,
+              recent_daily_metrics: metricsData.dailyMetrics?.slice(-7) || [],
+              all_milestones: metricsData.milestones || [],
+              recent_performance: metricsData.performance?.slice(-7) || []
+            } : null
           }
         })
       });

@@ -438,7 +438,15 @@ export const UserMetricsDashboard: React.FC = () => {
         )}
 
         {activeTab === 'ask-astra' && (
-          <MetricsAskAstra />
+          <MetricsAskAstra
+            metricsData={{
+              overview,
+              dailyMetrics,
+              milestones,
+              performance,
+              timeRange
+            }}
+          />
         )}
       </div>
     </div>
