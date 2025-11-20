@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
@@ -37,9 +37,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // Ignore auth errors to prevent logout loops caused by rate limiting
+      // Users will stay logged in even if token refresh fails temporarily
+      if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        setSession(session);
+        setUser(session?.user ?? null);
+      } else if (event === 'SIGNED_OUT') {
+        // Only log out on explicit sign out
+        setSession(null);
+        setUser(null);
+      }
+      // Ignore USER_UPDATED and other events to prevent unnecessary updates
       setLoading(false);
     });
 
@@ -67,14 +76,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const value = {
+  // Memoize the context value to prevent unnecessary re-renders
+  // Only update when user, session, or loading actually changes
+  const value = useMemo(() => ({
     user,
     session,
     loading,
     signIn,
     signOut,
     refreshSession,
-  };
+  }), [user, session, loading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
