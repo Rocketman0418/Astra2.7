@@ -17,6 +17,7 @@ import { MarketingPage } from './components/MarketingPage';
 import { MarketingLogo } from './components/MarketingLogo';
 import { UserMetricsDashboard } from './components/UserMetricsDashboard';
 import { ProtectedMetricsRoute } from './components/ProtectedMetricsRoute';
+import { PricingStrategyPage } from './components/PricingStrategyPage';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
 import { useFeedbackPrompt } from './hooks/useFeedbackPrompt';
 import { useActivityTracking } from './hooks/useActivityTracking';
@@ -102,6 +103,16 @@ const AppContent: React.FC = () => {
         element={
           <ProtectedMetricsRoute>
             <UserMetricsDashboard />
+          </ProtectedMetricsRoute>
+        }
+      />
+
+      {/* Pricing Strategy - Super Admin Only */}
+      <Route
+        path="/pricing-strategy"
+        element={
+          <ProtectedMetricsRoute>
+            <PricingStrategyPage />
           </ProtectedMetricsRoute>
         }
       />
