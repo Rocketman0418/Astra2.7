@@ -1,15 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { DollarSign, TrendingUp, Users, Calculator, Zap, Crown, Target, AlertCircle, CheckCircle, MessageSquare, Mail, Bell, ArrowRight, Timer, Rocket, Gift } from 'lucide-react';
+import { DollarSign, TrendingUp, Users, Calculator, Zap, Crown, Target, AlertCircle, CheckCircle, MessageSquare, Mail, Bell, ArrowRight, Timer, Rocket, Gift, Star, X, Sparkles } from 'lucide-react';
 
 type StrategyType = 'trial' | 'freemium';
 
 interface CalculatorInputs {
   strategyType: StrategyType;
   monthlySignups: number;
-  conversionRate: number;
-  proPricing: number;
-  additionalSeatPrice: number;
-  avgSeatsPerTeam: number;
+  conversionRatePro: number;
+  conversionRatePlus: number;
   churnRate: number;
   costPerFreeUser: number;
   costPerProUser: number;
@@ -22,10 +20,8 @@ export const PricingStrategyPage: React.FC = () => {
   const [inputs, setInputs] = useState<CalculatorInputs>({
     strategyType: 'trial',
     monthlySignups: 100,
-    conversionRate: 20,
-    proPricing: 99,
-    additionalSeatPrice: 29,
-    avgSeatsPerTeam: 2.5,
+    conversionRatePro: 15,
+    conversionRatePlus: 5,
     churnRate: 5,
     costPerFreeUser: 2,
     costPerProUser: 15,
@@ -34,98 +30,71 @@ export const PricingStrategyPage: React.FC = () => {
 
   const calculateProjections = useMemo(() => {
     const signupsPerMonth = inputs.monthlySignups;
-    const conversionRate = inputs.conversionRate / 100;
+    const conversionRatePro = inputs.conversionRatePro / 100;
+    const conversionRatePlus = inputs.conversionRatePlus / 100;
     const churnRate = inputs.churnRate / 100;
-    const isTrial = inputs.strategyType === 'trial';
+    const proPricing = 99;
+    const plusPricing = 149;
+    const avgSeatsPerTeam = 2.5;
+    const seatPrice = 29;
 
     // Month 1
     const month1 = {
       signups: signupsPerMonth,
-      freeUsers: isTrial ? signupsPerMonth : signupsPerMonth,
+      freeUsers: signupsPerMonth,
       proUsers: 0,
+      plusUsers: 0,
       revenue: 0,
       costs: signupsPerMonth * inputs.costPerFreeUser,
       profit: -(signupsPerMonth * inputs.costPerFreeUser)
     };
 
-    // Month 3
-    const totalSignups3 = signupsPerMonth * 3;
-    const conversions3 = totalSignups3 * conversionRate;
-    const retainedPro3 = conversions3 * Math.pow(1 - churnRate, 3);
-    const freeUsers3 = isTrial ? 0 : (totalSignups3 - conversions3);
+    // Helper function for any month
+    const calculateMonth = (months: number) => {
+      const totalSignups = signupsPerMonth * months;
+      const proConversions = totalSignups * conversionRatePro;
+      const plusConversions = totalSignups * conversionRatePlus;
+      const retainedPro = proConversions * Math.pow(1 - churnRate, months);
+      const retainedPlus = plusConversions * Math.pow(1 - churnRate, months);
+      const freeUsers = totalSignups - proConversions - plusConversions;
 
-    const revenue3 = retainedPro3 * inputs.proPricing +
-                    (retainedPro3 * (inputs.avgSeatsPerTeam - 1) * inputs.additionalSeatPrice);
-    const costs3 = (freeUsers3 * inputs.costPerFreeUser) + (retainedPro3 * inputs.costPerProUser);
+      const proRevenue = retainedPro * proPricing + (retainedPro * (avgSeatsPerTeam - 1) * seatPrice);
+      const plusRevenue = retainedPlus * plusPricing + (retainedPlus * (avgSeatsPerTeam - 1) * seatPrice);
+      const revenue = proRevenue + plusRevenue;
+      const costs = (freeUsers * inputs.costPerFreeUser) + ((retainedPro + retainedPlus) * inputs.costPerProUser);
 
-    const month3 = {
-      signups: totalSignups3,
-      freeUsers: freeUsers3,
-      proUsers: retainedPro3,
-      revenue: revenue3,
-      costs: costs3,
-      profit: revenue3 - costs3
+      return {
+        signups: totalSignups,
+        freeUsers,
+        proUsers: retainedPro,
+        plusUsers: retainedPlus,
+        revenue,
+        costs,
+        profit: revenue - costs
+      };
     };
 
-    // Month 6
-    const totalSignups6 = signupsPerMonth * 6;
-    const conversions6 = totalSignups6 * conversionRate;
-    const retainedPro6 = conversions6 * Math.pow(1 - churnRate, 6);
-    const freeUsers6 = isTrial ? 0 : (totalSignups6 - conversions6);
+    const month3 = calculateMonth(3);
+    const month6 = calculateMonth(6);
+    const month12 = calculateMonth(12);
 
-    const revenue6 = retainedPro6 * inputs.proPricing +
-                    (retainedPro6 * (inputs.avgSeatsPerTeam - 1) * inputs.additionalSeatPrice);
-    const costs6 = (freeUsers6 * inputs.costPerFreeUser) + (retainedPro6 * inputs.costPerProUser);
-
-    const month6 = {
-      signups: totalSignups6,
-      freeUsers: freeUsers6,
-      proUsers: retainedPro6,
-      revenue: revenue6,
-      costs: costs6,
-      profit: revenue6 - costs6
-    };
-
-    // Month 12
-    const totalSignups12 = signupsPerMonth * 12;
-    const conversions12 = totalSignups12 * conversionRate;
-    const retainedPro12 = conversions12 * Math.pow(1 - churnRate, 12);
-    const freeUsers12 = isTrial ? 0 : (totalSignups12 - conversions12);
-
-    const revenue12 = retainedPro12 * inputs.proPricing +
-                     (retainedPro12 * (inputs.avgSeatsPerTeam - 1) * inputs.additionalSeatPrice);
-    const costs12 = (freeUsers12 * inputs.costPerFreeUser) + (retainedPro12 * inputs.costPerProUser);
-
-    const month12 = {
-      signups: totalSignups12,
-      freeUsers: freeUsers12,
-      proUsers: retainedPro12,
-      revenue: revenue12,
-      costs: costs12,
-      profit: revenue12 - costs12
-    };
+    const profitableAtMonth = (() => {
+      for (let m = 1; m <= 12; m++) {
+        const result = calculateMonth(m);
+        if (result.profit > 0) return m;
+      }
+      return 13;
+    })();
 
     return {
       month1,
       month3,
       month6,
       month12,
-      mrr12: revenue12,
-      arr12: revenue12 * 12,
-      ltv: (inputs.proPricing * 12) / churnRate,
-      paybackPeriod: inputs.costPerFreeUser / (inputs.proPricing * conversionRate),
-      profitableAtMonth: (() => {
-        for (let m = 1; m <= 12; m++) {
-          const totalSig = signupsPerMonth * m;
-          const conv = totalSig * conversionRate;
-          const retained = conv * Math.pow(1 - churnRate, m);
-          const free = isTrial ? 0 : (totalSig - conv);
-          const rev = retained * inputs.proPricing + (retained * (inputs.avgSeatsPerTeam - 1) * inputs.additionalSeatPrice);
-          const cost = (free * inputs.costPerFreeUser) + (retained * inputs.costPerProUser);
-          if (rev - cost > 0) return m;
-        }
-        return 13;
-      })()
+      mrr12: month12.revenue,
+      arr12: month12.revenue * 12,
+      avgLTV: ((proPricing + plusPricing) / 2 * 12) / churnRate,
+      profitableAtMonth
     };
   }, [inputs]);
 
@@ -156,23 +125,23 @@ export const PricingStrategyPage: React.FC = () => {
                 Pricing Strategy Explorer
               </h1>
               <p className="text-gray-400 text-sm mt-1">
-                10-Day Trial vs Freemium Forever - Comprehensive Analysis
+                Free → Pro → Pro Plus: Complete Tiered Strategy
               </p>
             </div>
 
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <div className="text-xs text-gray-500">Strategic Goal</div>
-                <div className="text-sm font-semibold text-green-500">Fast Value + Conversion</div>
+                <div className="text-xs text-gray-500">Cohort 1 Pricing</div>
+                <div className="text-sm font-semibold text-green-500">First 100 Subscribers</div>
               </div>
-              <Target className="w-8 h-8 text-green-500" />
+              <Star className="w-8 h-8 text-green-500" />
             </div>
           </div>
 
           {/* Tabs */}
           <div className="flex gap-2 mt-4 overflow-x-auto">
             {[
-              { id: 'recommended', label: 'Strategy Overview', icon: Crown },
+              { id: 'recommended', label: 'Plan Overview', icon: Crown },
               { id: 'calculator', label: 'Live Calculator', icon: Calculator },
               { id: 'comparison', label: 'Side-by-Side', icon: TrendingUp },
               { id: 'ask-astra', label: 'Ask Astra', icon: MessageSquare }
@@ -197,7 +166,7 @@ export const PricingStrategyPage: React.FC = () => {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         {activeTab === 'recommended' && (
-          <StrategyOverview formatCurrency={formatCurrency} formatNumber={formatNumber} />
+          <PlanOverview formatCurrency={formatCurrency} formatNumber={formatNumber} />
         )}
 
         {activeTab === 'calculator' && (
@@ -222,235 +191,299 @@ export const PricingStrategyPage: React.FC = () => {
   );
 };
 
-// Strategy Overview Tab
-const StrategyOverview: React.FC<{
+// Plan Overview Tab
+const PlanOverview: React.FC<{
   formatCurrency: (n: number) => string;
   formatNumber: (n: number) => string;
 }> = ({ formatCurrency, formatNumber }) => {
   return (
     <div className="space-y-8">
-      {/* Key Requirements Banner */}
-      <div className="bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-bold mb-4">Key Requirements & Constraints</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-start gap-3">
-            <CheckCircle className="w-5 h-5 text-green-500 mt-1" />
-            <div>
-              <div className="font-semibold">No Credit Card Required</div>
-              <div className="text-sm text-gray-400">Lower signup friction, maximize account creation</div>
-            </div>
+      {/* Trial Overview */}
+      <div className="bg-gradient-to-r from-green-500/20 via-blue-500/20 to-purple-500/20 rounded-xl p-6 border-2 border-green-500/50">
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-green-500 rounded-lg">
+            <Sparkles className="w-8 h-8 text-white" />
           </div>
-          <div className="flex items-start gap-3">
-            <Timer className="w-5 h-5 text-blue-500 mt-1" />
-            <div>
-              <div className="font-semibold">10-Day Trial Period</div>
-              <div className="text-sm text-gray-400">Focused timeframe to demonstrate value</div>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <Rocket className="w-5 h-5 text-purple-500 mt-1" />
-            <div>
-              <div className="font-semibold">Accelerated Onboarding</div>
-              <div className="text-sm text-gray-400">Guide users to value quickly with Astra</div>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <Mail className="w-5 h-5 text-orange-500 mt-1" />
-            <div>
-              <div className="font-semibold">Active Engagement</div>
-              <div className="text-sm text-gray-400">Email summaries and daily check-ins</div>
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold mb-2">10-Day Unlimited Access Trial</h2>
+            <p className="text-gray-300 mb-4">
+              No credit card required. Full access to ALL features with NO limits. Experience the complete power of Astra Intelligence.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <div className="bg-gray-900/50 rounded-lg p-3">
+                <div className="text-sm text-gray-400">Duration</div>
+                <div className="text-lg font-bold text-green-500">10 Days</div>
+              </div>
+              <div className="bg-gray-900/50 rounded-lg p-3">
+                <div className="text-sm text-gray-400">Credit Card</div>
+                <div className="text-lg font-bold text-green-500">Not Required</div>
+              </div>
+              <div className="bg-gray-900/50 rounded-lg p-3">
+                <div className="text-sm text-gray-400">Features</div>
+                <div className="text-lg font-bold text-green-500">Unlimited</div>
+              </div>
+              <div className="bg-gray-900/50 rounded-lg p-3">
+                <div className="text-sm text-gray-400">After Trial</div>
+                <div className="text-lg font-bold text-blue-500">Choose Plan</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Trial Success Path */}
+      {/* Pricing Plans */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Free Plan */}
+        <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden flex flex-col">
+          <div className="p-6 bg-gray-900/50">
+            <h3 className="text-xl font-bold mb-2">Free Plan</h3>
+            <div className="text-3xl font-bold mb-1">$0</div>
+            <div className="text-sm text-gray-400">Forever free</div>
+          </div>
+
+          <div className="p-6 flex-1">
+            <div className="space-y-3 text-sm">
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Unlimited document sync</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Unlimited Astra messages</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>5 custom visualizations per week</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>1 scheduled report per week</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Astra email chat access</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                <span className="text-gray-500">No financial analysis</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                <span className="text-gray-500">No team features</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                <span className="text-gray-500">No email control</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                <span className="text-gray-500">No custom agents</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                <span className="text-gray-500">No AI Jobs</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pro Plan */}
+        <div className="bg-gray-800 rounded-xl border-2 border-blue-500 overflow-hidden flex flex-col relative">
+          <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+            POPULAR
+          </div>
+          <div className="p-6 bg-gradient-to-br from-blue-500/20 to-blue-600/10">
+            <h3 className="text-xl font-bold mb-2">Pro Plan</h3>
+            <div className="text-3xl font-bold mb-1">
+              $99<span className="text-lg text-gray-400">/month</span>
+            </div>
+            <div className="text-sm text-blue-400 font-semibold">Cohort 1 Price - First 100</div>
+          </div>
+
+          <div className="p-6 flex-1">
+            <div className="space-y-3 text-sm">
+              <div className="flex items-start gap-2">
+                <Zap className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                <span className="font-semibold">Everything in Free, plus:</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Unlimited visualizations</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Unlimited scheduled reports</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Financial analysis (if enabled)</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>1 team with up to 3 members</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>$29 per additional member</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Email control features</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Create 1 custom agent</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Create up to 3 AI Jobs</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pro Plus Plan */}
+        <div className="bg-gray-800 rounded-xl border-2 border-purple-500 overflow-hidden flex flex-col relative">
+          <div className="absolute top-0 right-0 bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+            ADVANCED
+          </div>
+          <div className="p-6 bg-gradient-to-br from-purple-500/20 to-purple-600/10">
+            <h3 className="text-xl font-bold mb-2">Pro Plus Plan</h3>
+            <div className="text-3xl font-bold mb-1">
+              $149<span className="text-lg text-gray-400">/month</span>
+            </div>
+            <div className="text-sm text-purple-400 font-semibold">Cohort 1 Price - First 100</div>
+          </div>
+
+          <div className="p-6 flex-1">
+            <div className="space-y-3 text-sm">
+              <div className="flex items-start gap-2">
+                <Zap className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                <span className="font-semibold">Everything in Pro, plus:</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Up to 3 teams with 3 members each</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>$29/member up to 10 total</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>$19/member after 10</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Unlimited custom agents</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Unlimited AI Jobs</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Priority support</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Team Member Considerations */}
+      <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="w-6 h-6 text-orange-500 mt-1 flex-shrink-0" />
+          <div>
+            <h3 className="font-semibold text-orange-300 mb-2">Important: Team Member Access After Trial</h3>
+            <p className="text-sm text-gray-300 mb-3">
+              If you invite team members during your trial and don't upgrade to Pro or Pro Plus, those team members will lose access when the trial ends.
+            </p>
+            <p className="text-sm text-gray-300">
+              Invited members will see a message: <span className="italic">"Your team subscription is no longer active. Please contact your administrator for access."</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Cost Structure Highlights */}
+      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <h2 className="text-xl font-bold mb-4">Why Unlimited Documents at All Levels?</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-gray-900 rounded-lg p-4">
+            <DollarSign className="w-8 h-8 text-green-500 mb-3" />
+            <h3 className="font-semibold mb-2">Low Cost</h3>
+            <p className="text-sm text-gray-400">
+              Document sync costs are very low per user, making it economical to offer unlimited sync even on the free tier.
+            </p>
+          </div>
+          <div className="bg-gray-900 rounded-lg p-4">
+            <Users className="w-8 h-8 text-blue-500 mb-3" />
+            <h3 className="font-semibold mb-2">Sticky Factor</h3>
+            <p className="text-sm text-gray-400">
+              Users with all their documents synced are highly engaged and unlikely to leave, creating strong product stickiness.
+            </p>
+          </div>
+          <div className="bg-gray-900 rounded-lg p-4">
+            <TrendingUp className="w-8 h-8 text-purple-500 mb-3" />
+            <h3 className="font-semibold mb-2">Upgrade Driver</h3>
+            <p className="text-sm text-gray-400">
+              With documents synced, users hit visualization and report limits faster, creating natural upgrade pressure.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 10-Day Value Journey */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
           <Rocket className="w-6 h-6 text-green-500" />
-          10-Day Trial: Path to Value
+          10-Day Value Journey
         </h2>
         <p className="text-gray-300 mb-6">
-          Astra-guided journey to show transformative value within 10 days
+          Astra guides users to experience transformative value with unlimited access to everything
         </p>
 
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
             {
-              day: 'Days 1-2',
-              title: 'Document Sync Setup',
-              description: 'Astra guides through Gmail & Google Drive connection. First sync shows instant value with organized data.',
-              actions: ['Connect Gmail', 'Connect Google Drive', 'Select key folders', 'First data sync completes']
+              days: 'Days 1-3',
+              title: 'Complete Setup',
+              items: ['Sync all Gmail & Google Drive data', 'Experience unlimited Astra questions', 'Generate multiple visualizations', 'Set up automated reports']
             },
             {
-              day: 'Days 3-4',
-              title: '2 Powerful Starting Prompts',
-              description: 'Astra suggests personalized prompts based on synced data that deliver immediate insights.',
-              actions: ['Prompt 1: "Summarize my top priorities from last week\'s emails"', 'Prompt 2: "What are the key action items from my recent meetings?"', 'Experience AI-powered synthesis', 'See value of connected data']
+              days: 'Days 4-6',
+              title: 'Explore Power Features',
+              items: ['Try email control features', 'Create custom agents', 'Set up AI Jobs', 'Collaborate with team members']
             },
             {
-              day: 'Days 5-7',
-              title: 'First Transformative Report',
-              description: 'Generate a comprehensive report that showcases the power of automated intelligence.',
-              actions: ['Astra recommends report type', 'Generate weekly summary report', 'Save & schedule for future', 'Experience time savings']
+              days: 'Days 7-9',
+              title: 'See the Value',
+              items: ['Review time saved metrics', 'See insights discovered', 'Experience automation benefits', 'Understand upgrade ROI']
             },
             {
-              day: 'Days 8-10',
-              title: 'Engagement & Decision',
-              description: 'Reinforce value with daily engagement and clear upgrade path.',
-              actions: ['Daily email summaries', 'Check-ins with 3 Questions for Astra', 'In-app reminders of value delivered', 'Seamless upgrade flow']
+              days: 'Day 10',
+              title: 'Choose Your Plan',
+              items: ['Clear comparison of Free vs Pro vs Plus', 'Seamless upgrade flow', 'Keep all your data and setup', 'No disruption to workflow']
             }
           ].map((phase, idx) => (
             <div key={idx} className="bg-gray-900 rounded-lg p-4 border border-gray-700">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center text-sm font-bold">
-                    {phase.day}
-                  </div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="px-3 py-1 bg-gradient-to-r from-green-500 to-blue-500 rounded-full text-sm font-bold">
+                  {phase.days}
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg mb-1">{phase.title}</h3>
-                  <p className="text-sm text-gray-400 mb-3">{phase.description}</p>
-                  <div className="space-y-1">
-                    {phase.actions.map((action, aidx) => (
-                      <div key={aidx} className="flex items-center gap-2 text-sm text-gray-300">
-                        <ArrowRight className="w-3 h-3 text-green-500" />
-                        <span>{action}</span>
-                      </div>
-                    ))}
+                <h3 className="font-semibold">{phase.title}</h3>
+              </div>
+              <div className="space-y-2">
+                {phase.items.map((item, iidx) => (
+                  <div key={iidx} className="flex items-start gap-2 text-sm text-gray-300">
+                    <ArrowRight className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>{item}</span>
                   </div>
-                </div>
+                ))}
               </div>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Engagement Strategies */}
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <Bell className="w-6 h-6 text-blue-500" />
-          Continuous Engagement Strategies
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gray-900 rounded-lg p-4">
-            <Mail className="w-8 h-8 text-purple-500 mb-3" />
-            <h3 className="font-semibold mb-2">Report Summaries via Email</h3>
-            <p className="text-sm text-gray-400 mb-3">
-              Send daily/weekly report highlights with deep-link back to app for full access
-            </p>
-            <div className="text-xs text-gray-500 space-y-1">
-              <div>• Morning delivery (7-8am)</div>
-              <div>• Key insights preview</div>
-              <div>• One-click to view in app</div>
-              <div>• Builds habit loop</div>
-            </div>
-          </div>
-
-          <div className="bg-gray-900 rounded-lg p-4">
-            <MessageSquare className="w-8 h-8 text-green-500 mb-3" />
-            <h3 className="font-semibold mb-2">Daily "3 Questions for Astra"</h3>
-            <p className="text-sm text-gray-400 mb-3">
-              Personalized questions based on user's data that will revolutionize their work today
-            </p>
-            <div className="text-xs text-gray-500 space-y-1">
-              <div>• Context-aware prompts</div>
-              <div>• Easy one-click to ask</div>
-              <div>• Showcases AI power</div>
-              <div>• Drives daily usage</div>
-            </div>
-          </div>
-
-          <div className="bg-gray-900 rounded-lg p-4">
-            <TrendingUp className="w-8 h-8 text-orange-500 mb-3" />
-            <h3 className="font-semibold mb-2">Daily Summary Digest</h3>
-            <p className="text-sm text-gray-400 mb-3">
-              Comprehensive roundup of activity, insights, and value delivered
-            </p>
-            <div className="text-xs text-gray-500 space-y-1">
-              <div>• Stats on queries answered</div>
-              <div>• Time saved calculation</div>
-              <div>• New insights discovered</div>
-              <div>• Usage streak tracking</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Freemium Limitations */}
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <Gift className="w-6 h-6 text-cyan-500" />
-          Post-Trial: Limited Free Account Option
-        </h2>
-
-        <p className="text-gray-300 mb-6">
-          If user doesn't convert after 10-day trial, they can keep a limited free account:
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h3 className="font-semibold mb-3 text-green-500">Free Tier Features</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
-                <span>5 AI questions per week</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
-                <span>1 scheduled report (weekly only)</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
-                <span>50 documents synced</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
-                <span>View-only access to 1 template agent</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
-                <span>Basic visualizations (no saving)</span>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="font-semibold mb-3 text-purple-500">Pro Upgrade Benefits</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-start gap-2">
-                <Zap className="w-4 h-4 text-purple-500 mt-0.5" />
-                <span>Unlimited AI questions</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <Zap className="w-4 h-4 text-purple-500 mt-0.5" />
-                <span>Unlimited scheduled reports (any frequency)</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <Zap className="w-4 h-4 text-purple-500 mt-0.5" />
-                <span>500 documents synced</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <Zap className="w-4 h-4 text-purple-500 mt-0.5" />
-                <span>Build & run 5 custom agents</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <Zap className="w-4 h-4 text-purple-500 mt-0.5" />
-                <span>Save & share visualizations</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <Zap className="w-4 h-4 text-purple-500 mt-0.5" />
-                <span>Team collaboration (3 seats included)</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-          <p className="text-sm text-blue-300">
-            <strong>Strategy:</strong> Free tier provides enough value to stay engaged, but clear limitations create natural upgrade triggers when users hit limits doing real work.
-          </p>
         </div>
       </div>
     </div>
@@ -465,40 +498,11 @@ const LiveCalculator: React.FC<any> = ({ inputs, setInputs, projections, formatC
 
   return (
     <div className="space-y-6">
-      {/* Strategy Toggle */}
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-bold mb-4">Select Strategy Type</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            onClick={() => handleInputChange('strategyType', 'trial')}
-            className={`p-4 rounded-lg border-2 transition-all ${
-              inputs.strategyType === 'trial'
-                ? 'border-green-500 bg-green-500/10'
-                : 'border-gray-700 bg-gray-900 hover:border-gray-600'
-            }`}
-          >
-            <div className="text-lg font-bold mb-1">10-Day Free Trial</div>
-            <div className="text-sm text-gray-400">Then upgrade or limited free account</div>
-          </button>
-          <button
-            onClick={() => handleInputChange('strategyType', 'freemium')}
-            className={`p-4 rounded-lg border-2 transition-all ${
-              inputs.strategyType === 'freemium'
-                ? 'border-green-500 bg-green-500/10'
-                : 'border-gray-700 bg-gray-900 hover:border-gray-600'
-            }`}
-          >
-            <div className="text-lg font-bold mb-1">Freemium Forever</div>
-            <div className="text-sm text-gray-400">Limited free tier always available</div>
-          </button>
-        </div>
-      </div>
-
       {/* Calculator Inputs */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
           <Calculator className="w-5 h-5 text-blue-500" />
-          Adjust Variables
+          Revenue Model Calculator
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -511,39 +515,22 @@ const LiveCalculator: React.FC<any> = ({ inputs, setInputs, projections, formatC
             step={10}
           />
           <InputSlider
-            label="Conversion Rate"
-            value={inputs.conversionRate}
-            onChange={(v) => handleInputChange('conversionRate', v)}
+            label="Pro Conversion Rate"
+            value={inputs.conversionRatePro}
+            onChange={(v) => handleInputChange('conversionRatePro', v)}
             min={5}
-            max={50}
+            max={40}
             step={1}
             suffix="%"
           />
           <InputSlider
-            label="Pro Plan Price"
-            value={inputs.proPricing}
-            onChange={(v) => handleInputChange('proPricing', v)}
-            min={49}
-            max={299}
-            step={10}
-            prefix="$"
-          />
-          <InputSlider
-            label="Seat Price"
-            value={inputs.additionalSeatPrice}
-            onChange={(v) => handleInputChange('additionalSeatPrice', v)}
-            min={9}
-            max={79}
-            step={5}
-            prefix="$"
-          />
-          <InputSlider
-            label="Avg Seats/Team"
-            value={inputs.avgSeatsPerTeam}
-            onChange={(v) => handleInputChange('avgSeatsPerTeam', v)}
+            label="Plus Conversion Rate"
+            value={inputs.conversionRatePlus}
+            onChange={(v) => handleInputChange('conversionRatePlus', v)}
             min={1}
-            max={10}
-            step={0.5}
+            max={20}
+            step={1}
+            suffix="%"
           />
           <InputSlider
             label="Monthly Churn"
@@ -572,17 +559,6 @@ const LiveCalculator: React.FC<any> = ({ inputs, setInputs, projections, formatC
             step={5}
             prefix="$"
           />
-          {inputs.strategyType === 'trial' && (
-            <InputSlider
-              label="Trial Length"
-              value={inputs.trialLength}
-              onChange={(v) => handleInputChange('trialLength', v)}
-              min={7}
-              max={30}
-              step={1}
-              suffix=" days"
-            />
-          )}
         </div>
       </div>
 
@@ -590,7 +566,7 @@ const LiveCalculator: React.FC<any> = ({ inputs, setInputs, projections, formatC
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard
           label="Time to Profitable"
-          value={`Month ${projections.profitableAtMonth}`}
+          value={projections.profitableAtMonth > 12 ? '12+ mo' : `Month ${projections.profitableAtMonth}`}
           color="text-green-500"
           icon={TrendingUp}
         />
@@ -601,14 +577,14 @@ const LiveCalculator: React.FC<any> = ({ inputs, setInputs, projections, formatC
           icon={DollarSign}
         />
         <MetricCard
-          label="Customer LTV"
-          value={formatCurrency(projections.ltv)}
+          label="Avg Customer LTV"
+          value={formatCurrency(projections.avgLTV)}
           color="text-purple-500"
           icon={Users}
         />
         <MetricCard
-          label="Payback Period"
-          value={`${formatNumber(projections.paybackPeriod)} mo`}
+          label="Month 12 MRR"
+          value={formatCurrency(projections.mrr12)}
           color="text-yellow-500"
           icon={Timer}
         />
@@ -690,7 +666,11 @@ const ProjectionCard: React.FC<any> = ({ title, projections, formatCurrency, for
       </div>
       <div className="flex justify-between">
         <span className="text-gray-400">Pro Users</span>
-        <span className="font-semibold text-purple-500">{formatNumber(projections.proUsers)}</span>
+        <span className="font-semibold text-green-500">{formatNumber(projections.proUsers)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-400">Plus Users</span>
+        <span className="font-semibold text-purple-500">{formatNumber(projections.plusUsers)}</span>
       </div>
       <div className="flex justify-between">
         <span className="text-gray-400">Free Users</span>
@@ -720,9 +700,9 @@ const ComprehensiveComparison: React.FC<any> = ({ formatCurrency, formatNumber }
   return (
     <div className="space-y-8">
       <div className="bg-gradient-to-r from-green-500/10 via-blue-500/10 to-purple-500/10 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-2xl font-bold mb-2">Strategy Comparison: 10-Day Trial vs Freemium Forever</h2>
+        <h2 className="text-2xl font-bold mb-2">Complete Plan Comparison</h2>
         <p className="text-gray-400">
-          Comprehensive side-by-side analysis of both pricing strategies with realistic projections
+          Side-by-side comparison of Free, Pro, and Pro Plus plans
         </p>
       </div>
 
@@ -732,189 +712,94 @@ const ComprehensiveComparison: React.FC<any> = ({ formatCurrency, formatNumber }
           <table className="w-full">
             <thead className="bg-gray-900">
               <tr>
-                <th className="p-4 text-left font-semibold border-b border-gray-700">Metric</th>
-                <th className="p-4 text-center font-semibold border-b border-gray-700 bg-green-500/10">
-                  <div className="text-lg">10-Day Free Trial</div>
-                  <div className="text-xs text-gray-400 font-normal">No CC → Upgrade or Limited Free</div>
+                <th className="p-4 text-left font-semibold border-b border-gray-700">Feature</th>
+                <th className="p-4 text-center font-semibold border-b border-gray-700">
+                  <div className="text-lg">Free</div>
+                  <div className="text-xs text-gray-400 font-normal">$0/month</div>
                 </th>
                 <th className="p-4 text-center font-semibold border-b border-gray-700 bg-blue-500/10">
-                  <div className="text-lg">Freemium Forever</div>
-                  <div className="text-xs text-gray-400 font-normal">Free tier always available</div>
+                  <div className="text-lg">Pro</div>
+                  <div className="text-xs text-gray-400 font-normal">$99/month</div>
+                </th>
+                <th className="p-4 text-center font-semibold border-b border-gray-700 bg-purple-500/10">
+                  <div className="text-lg">Pro Plus</div>
+                  <div className="text-xs text-gray-400 font-normal">$149/month</div>
                 </th>
               </tr>
             </thead>
             <tbody>
               <ComparisonRow
-                category="User Acquisition"
-                metric="Monthly Signups"
-                trial="100-150"
-                freemium="150-200"
-                winner="freemium"
+                feature="Document Sync"
+                free="Unlimited"
+                pro="Unlimited"
+                plus="Unlimited"
+                highlight="all"
               />
               <ComparisonRow
-                category="User Acquisition"
-                metric="Signup Friction"
-                trial="Low (no CC required)"
-                freemium="Very Low (free forever)"
-                winner="freemium"
+                feature="Astra Messages"
+                free="Unlimited"
+                pro="Unlimited"
+                plus="Unlimited"
+                highlight="all"
               />
               <ComparisonRow
-                category="Conversion"
-                metric="Trial→Pro Rate"
-                trial="20-25%"
-                freemium="10-15%"
-                winner="trial"
+                feature="Custom Visualizations"
+                free="5 per week"
+                pro="Unlimited"
+                plus="Unlimited"
+                highlight="pro"
               />
               <ComparisonRow
-                category="Conversion"
-                metric="Time to Convert"
-                trial="10 days (forced decision)"
-                freemium="45-90 days (gradual)"
-                winner="trial"
+                feature="Scheduled Reports"
+                free="1 per week"
+                pro="Unlimited"
+                plus="Unlimited"
+                highlight="pro"
               />
               <ComparisonRow
-                category="Revenue (Year 1)"
-                metric="Month 6 MRR"
-                trial="$2,500"
-                freemium="$1,800"
-                winner="trial"
+                feature="Financial Analysis"
+                free="No"
+                pro="Yes"
+                plus="Yes"
+                highlight="pro"
               />
               <ComparisonRow
-                category="Revenue (Year 1)"
-                metric="Month 12 ARR"
-                trial="$48,000"
-                freemium="$36,000"
-                winner="trial"
+                feature="Team Members"
+                free="None"
+                pro="1 team, 3 members"
+                plus="3 teams, 9 members"
+                highlight="plus"
               />
               <ComparisonRow
-                category="Costs"
-                metric="Free User Costs"
-                trial="$200/mo (trial only)"
-                freemium="$2,000/mo (ongoing)"
-                winner="trial"
+                feature="Additional Members"
+                free="-"
+                pro="$29/member"
+                plus="$29 (up to 10), then $19"
+                highlight="plus"
               />
               <ComparisonRow
-                category="Costs"
-                metric="Time to Profitable"
-                trial="Month 3-4"
-                freemium="Month 6-8"
-                winner="trial"
+                feature="Email Control"
+                free="No"
+                pro="Yes"
+                plus="Yes"
+                highlight="pro"
               />
               <ComparisonRow
-                category="Product Complexity"
-                metric="Limit Management"
-                trial="Simple (trial vs pro)"
-                freemium="Complex (track limits)"
-                winner="trial"
+                feature="Custom Agents"
+                free="None"
+                pro="1 agent"
+                plus="Unlimited"
+                highlight="plus"
               />
               <ComparisonRow
-                category="Product Complexity"
-                metric="User Experience"
-                trial="Clear deadline = urgency"
-                freemium="No pressure = exploration"
-                winner="tie"
-              />
-              <ComparisonRow
-                category="Long-term Growth"
-                metric="Viral Coefficient"
-                trial="0.3-0.5 (moderate)"
-                freemium="0.6-0.8 (high)"
-                winner="freemium"
-              />
-              <ComparisonRow
-                category="Long-term Growth"
-                metric="Market Reach"
-                trial="Qualified users only"
-                freemium="Maximum exposure"
-                winner="freemium"
-              />
-              <ComparisonRow
-                category="Customer Quality"
-                metric="User Intent"
-                trial="High (trying for purpose)"
-                freemium="Mixed (casual browsers)"
-                winner="trial"
-              />
-              <ComparisonRow
-                category="Customer Quality"
-                metric="Churn Rate"
-                trial="5-8% (committed users)"
-                freemium="8-12% (less committed)"
-                winner="trial"
+                feature="AI Jobs"
+                free="None"
+                pro="Up to 3"
+                plus="Unlimited"
+                highlight="plus"
               />
             </tbody>
           </table>
-        </div>
-      </div>
-
-      {/* Recommendation */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-gradient-to-br from-green-500/20 to-green-600/10 rounded-xl p-6 border-2 border-green-500/50">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-green-500 rounded-lg">
-              <CheckCircle className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-xl font-bold">Recommended: 10-Day Trial</h3>
-          </div>
-          <p className="text-gray-300 mb-4">
-            Best for your goals: faster profitability, higher quality users, clearer conversion path
-          </p>
-          <div className="space-y-2 text-sm">
-            <div className="flex items-start gap-2">
-              <ArrowRight className="w-4 h-4 text-green-500 mt-0.5" />
-              <span>2x better conversion rate (20-25% vs 10-15%)</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <ArrowRight className="w-4 h-4 text-green-500 mt-0.5" />
-              <span>10x lower ongoing free user costs</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <ArrowRight className="w-4 h-4 text-green-500 mt-0.5" />
-              <span>Profitable 3-4 months sooner</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <ArrowRight className="w-4 h-4 text-green-500 mt-0.5" />
-              <span>Simpler product with less complexity</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <ArrowRight className="w-4 h-4 text-green-500 mt-0.5" />
-              <span>Users kept engaged with limited free option</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 rounded-xl p-6 border-2 border-blue-500/50">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-blue-500 rounded-lg">
-              <Users className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-xl font-bold">Alternative: Freemium</h3>
-          </div>
-          <p className="text-gray-300 mb-4">
-            Consider if you prioritize maximum user base growth and viral expansion
-          </p>
-          <div className="space-y-2 text-sm">
-            <div className="flex items-start gap-2">
-              <ArrowRight className="w-4 h-4 text-blue-500 mt-0.5" />
-              <span>50% more signups (200 vs 130/month)</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <ArrowRight className="w-4 h-4 text-blue-500 mt-0.5" />
-              <span>Higher viral coefficient (more sharing)</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <ArrowRight className="w-4 h-4 text-blue-500 mt-0.5" />
-              <span>Users evaluate thoroughly before paying</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <ArrowRight className="w-4 h-4 text-blue-500 mt-0.5" />
-              <span>Larger addressable market</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-orange-500 mt-0.5" />
-              <span className="text-orange-300">Trade-off: Higher costs, slower profitability</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -922,29 +807,27 @@ const ComprehensiveComparison: React.FC<any> = ({ formatCurrency, formatNumber }
 };
 
 // Comparison Row Component
-const ComparisonRow: React.FC<any> = ({ category, metric, trial, freemium, winner }) => (
+const ComparisonRow: React.FC<any> = ({ feature, free, pro, plus, highlight }) => (
   <tr className="border-b border-gray-700 hover:bg-gray-900/50">
-    <td className="p-4">
-      <div className="text-xs text-gray-500">{category}</div>
-      <div className="font-medium">{metric}</div>
+    <td className="p-4 font-medium">{feature}</td>
+    <td className={`p-4 text-center ${highlight === 'all' ? 'bg-gray-700/30 font-semibold' : ''}`}>
+      {free}
     </td>
-    <td className={`p-4 text-center ${winner === 'trial' ? 'bg-green-500/10 font-semibold' : ''}`}>
-      {trial}
-      {winner === 'trial' && <div className="text-xs text-green-500 mt-1">✓ Better</div>}
+    <td className={`p-4 text-center ${highlight === 'pro' || highlight === 'all' ? 'bg-blue-500/10 font-semibold' : ''}`}>
+      {pro}
     </td>
-    <td className={`p-4 text-center ${winner === 'freemium' ? 'bg-blue-500/10 font-semibold' : ''}`}>
-      {freemium}
-      {winner === 'freemium' && <div className="text-xs text-blue-500 mt-1">✓ Better</div>}
+    <td className={`p-4 text-center ${highlight === 'plus' || highlight === 'all' ? 'bg-purple-500/10 font-semibold' : ''}`}>
+      {plus}
     </td>
   </tr>
 );
 
-// Ask Astra Component (Simplified)
+// Ask Astra Component
 const AskAstraPricing: React.FC = () => {
   const [messages, setMessages] = useState<Array<{ id: string; text: string; isUser: boolean }>>([
     {
       id: '1',
-      text: "Hi! I can help you think through your pricing strategy decisions. Based on your requirements:\n\n• No credit card at signup\n• 10-day trial period\n• Focus on fast value demonstration\n• Need for user engagement strategies\n\nWhat questions do you have?",
+      text: "Hi! I can help you understand the pricing strategy and answer questions about:\n\n• Why unlimited documents for all users?\n• How the 10-day trial creates conversion\n• Free vs Pro vs Pro Plus differences\n• Team member access considerations\n• Cohort 1 pricing strategy\n\nWhat would you like to know?",
       isUser: false
     }
   ]);
@@ -953,11 +836,11 @@ const AskAstraPricing: React.FC = () => {
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
   const suggestedQuestions = [
-    "Why 10 days instead of 14 for the trial?",
-    "How do I maximize conversion in 10 days?",
-    "What limits should the free tier have?",
-    "Should I send daily emails or weekly?",
-    "How aggressive should upgrade prompts be?"
+    "Why is document sync unlimited for free users?",
+    "What happens to team members after trial ends?",
+    "How does the 10-day trial drive conversion?",
+    "Why Pro Plus for only $50 more?",
+    "What's the cohort 1 pricing strategy?"
   ];
 
   const scrollToBottom = () => {
@@ -977,14 +860,18 @@ const AskAstraPricing: React.FC = () => {
     setLoading(true);
 
     setTimeout(() => {
-      let responseText = "Based on your goals and the data, here's my recommendation...";
+      let responseText = "Based on the pricing strategy, here's my insight...";
 
-      if (input.toLowerCase().includes('10 days')) {
-        responseText = "10 days creates healthy urgency without overwhelming users. It's enough time to:\n\n• Complete document sync (2 days)\n• Experience 2 powerful prompts (2 days)\n• Generate first meaningful report (3 days)\n• See value of automation (3 days)\n\nShorter than 14 days keeps momentum and decision fatigue low. You want users to decide while the value is fresh.";
-      } else if (input.toLowerCase().includes('conversion')) {
-        responseText = "To maximize 10-day conversion:\n\n1. Astra-guided onboarding (remove friction)\n2. Suggested prompts based on user data\n3. Daily email engagement with value highlights\n4. In-app progress tracker showing journey\n5. Day 7-9: Gentle reminders of value delivered\n6. Day 10: Simple, clear upgrade path\n\nThe key is showing transformative value, not just features.";
-      } else if (input.toLowerCase().includes('limits') || input.toLowerCase().includes('free tier')) {
-        responseText = "Free tier limits should:\n\n✓ Allow enough use to stay engaged (5 questions/week)\n✓ One report to maintain habit loop\n✓ Limited data (50 docs) creates upgrade pressure\n✓ View-only agent access = taste of power\n\nThe goal: Users hit limits during real work, when motivation to upgrade is highest.";
+      if (input.toLowerCase().includes('unlimited') || input.toLowerCase().includes('document')) {
+        responseText = "Unlimited document sync for all users is strategic:\n\n1. Cost: Document storage is very low cost per user\n2. Stickiness: Users with synced documents are highly engaged and unlikely to leave\n3. Upgrade Trigger: With documents synced, users hit visualization/report limits faster\n4. Competitive Advantage: Most competitors limit documents, we don't\n\nIt's a loss leader that creates massive value and retention.";
+      } else if (input.toLowerCase().includes('team') && input.toLowerCase().includes('trial')) {
+        responseText = "Team member access after trial:\n\n• During trial: Full team collaboration, unlimited access\n• After trial (if no upgrade): Team members lose access\n• Message shown: 'Your team subscription is no longer active. Contact your administrator.'\n\nThis prevents abuse where users create multiple 'team' accounts for themselves. The account owner must upgrade to Pro/Plus to restore team access.";
+      } else if (input.toLowerCase().includes('10-day') || input.toLowerCase().includes('conversion')) {
+        responseText = "The 10-day unlimited trial is designed for fast value demonstration:\n\n• Days 1-3: Complete setup with unlimited features\n• Days 4-6: Explore power features (agents, jobs, teams)\n• Days 7-9: See measurable value and time saved\n• Day 10: Natural decision point while value is fresh\n\nUnlimited access during trial means users experience the FULL product, not a limited version. They know exactly what they'll lose if they downgrade to Free.";
+      } else if (input.toLowerCase().includes('plus') || input.toLowerCase().includes('$50')) {
+        responseText = "Pro Plus at $149 ($50 more than Pro) targets:\n\n• Multi-team organizations\n• Users who need multiple custom agents\n• Companies with complex automation needs\n\nThe $50 premium is strategic:\n1. Not too expensive (< 2x Pro price)\n2. Covers cost of unlimited agents/jobs\n3. Volume pricing on members (scale-friendly)\n4. Creates clear upgrade path from Pro\n\nExpect 20-25% of Pro users to eventually upgrade to Plus.";
+      } else if (input.toLowerCase().includes('cohort') || input.toLowerCase().includes('first 100')) {
+        responseText = "Cohort 1 pricing ($99 Pro, $149 Plus) for first 100 subscribers:\n\n• Creates urgency and exclusivity\n• Rewards early adopters with lifetime rate\n• Builds committed user base\n• Future pricing: $129 Pro, $199 Plus\n\nFirst 100 get to keep their rate forever, creating evangelists who refer others. The $30-50 monthly savings adds up to $360-600/year value.";
       }
 
       const response = {
@@ -1000,9 +887,9 @@ const AskAstraPricing: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-blue-500/10 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-bold mb-2">Ask Astra About Your Strategy</h2>
+        <h2 className="text-xl font-bold mb-2">Ask Astra About Pricing</h2>
         <p className="text-gray-400 text-sm">
-          Get insights on pricing decisions, conversion optimization, and user engagement tactics.
+          Get insights on the pricing strategy, conversion tactics, and plan structure.
         </p>
       </div>
 
@@ -1054,7 +941,7 @@ const AskAstraPricing: React.FC = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Ask about your pricing strategy..."
+              placeholder="Ask about pricing strategy..."
               className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-white"
             />
             <button
