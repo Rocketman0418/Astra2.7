@@ -148,7 +148,7 @@ export async function getMetricsResponse(
       throw new Error('Gemini API key is not configured. Please check your environment variables.');
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
     const metricsContext = buildMetricsContext(metricsData);
 

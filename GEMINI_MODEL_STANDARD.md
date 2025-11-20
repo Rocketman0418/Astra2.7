@@ -21,7 +21,8 @@ This standard applies to ALL Gemini API calls including:
 2. **Ask Astra** - Main chat interactions
 3. **Team Chat Summaries** - Activity summarization
 4. **Help Assistant** - User support interactions
-5. **Any future AI features** - Unless explicitly specified otherwise
+5. **Metrics Assistant** - User metrics analysis and insights
+6. **Any future AI features** - Unless explicitly specified otherwise
 
 ### Important: Reports Architecture
 
@@ -61,6 +62,7 @@ Current files that must maintain this standard:
 - `src/hooks/useVisualization.ts` - Visualization generation (for chats AND reports)
 - `src/components/GroupChat.tsx` - Team chat summaries
 - `src/lib/help-assistant.ts` - Help/support features
+- `src/lib/metrics-assistant.ts` - Metrics analysis and insights
 - Any future components that integrate Gemini
 
 **Note:** n8n workflows handle their own AI logic and are configured separately in the workflow definitions.
@@ -85,6 +87,6 @@ If a different model is required:
 
 ---
 
-**Last Updated:** November 16, 2025
+**Last Updated:** November 20, 2025
 **Current Standard:** `gemini-flash-latest`
 **Status:** ACTIVE - All features must comply
