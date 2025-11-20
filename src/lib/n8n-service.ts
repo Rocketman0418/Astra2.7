@@ -101,7 +101,7 @@ class N8NService {
         nodes: workflow.nodes || [],
         connections: workflow.connections || {},
         settings: workflow.settings || {},
-        active: false,
+        // Note: 'active' field is read-only and set by n8n, don't include it
       }),
     });
     return data.data || data;
