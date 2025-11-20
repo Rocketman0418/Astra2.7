@@ -226,11 +226,40 @@ export function useFeedbackPrompt() {
     }
   };
 
+  const skipFeedback = async () => {
+    if (!user?.id) throw new Error('User not authenticated');
+
+    setSubmitting(true);
+
+    try {
+      const now = new Date();
+      const nextDue = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+      const { error: statusError } = await supabase
+        .from('user_feedback_status')
+        .update({
+          next_feedback_due: nextDue.toISOString(),
+          updated_at: now.toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (statusError) throw statusError;
+
+      setShouldShowFeedback(false);
+      setQuestions([]);
+      setSubmitting(false);
+    } catch (err: any) {
+      setSubmitting(false);
+      throw new Error(err.message || 'Failed to skip feedback');
+    }
+  };
+
   return {
     shouldShowFeedback,
     questions,
     loading,
     submitting,
-    submitFeedback
+    submitFeedback,
+    skipFeedback
   };
 }

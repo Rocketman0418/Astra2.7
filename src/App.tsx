@@ -25,7 +25,7 @@ const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [checkingOnboarding, setCheckingOnboarding] = useState(true);
-  const { shouldShowFeedback, questions, submitFeedback } = useFeedbackPrompt();
+  const { shouldShowFeedback, questions, submitFeedback, skipFeedback } = useFeedbackPrompt();
 
   // Automatically refresh Gmail tokens in the background (only if Gmail is enabled)
   useGmailTokenRefresh(FEATURES.GMAIL_ENABLED);
@@ -126,7 +126,7 @@ const AppContent: React.FC = () => {
               <MainContainer />
               <PWAInstallPrompt />
               {shouldShowFeedback && questions.length > 0 && (
-                <FeedbackModal questions={questions} onSubmit={submitFeedback} />
+                <FeedbackModal questions={questions} onSubmit={submitFeedback} onSkip={skipFeedback} />
               )}
             </>
           )

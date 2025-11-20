@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MessageSquare, Send, Sparkles } from 'lucide-react';
+import { MessageSquare, Send, Sparkles, X } from 'lucide-react';
 
 interface FeedbackQuestion {
   id: string;
@@ -9,7 +9,8 @@ interface FeedbackQuestion {
 
 interface FeedbackModalProps {
   questions: FeedbackQuestion[];
-  onSubmit: (answers: FeedbackAnswer[]) => Promise<void>;
+  onSubmit: (answers: FeedbackAnswer[], generalFeedback?: string) => Promise<void>;
+  onSkip: () => Promise<void>;
 }
 
 interface FeedbackAnswer {
@@ -18,12 +19,13 @@ interface FeedbackAnswer {
   comment: string;
 }
 
-export function FeedbackModal({ questions, onSubmit }: FeedbackModalProps) {
+export function FeedbackModal({ questions, onSubmit, onSkip }: FeedbackModalProps) {
   const [answers, setAnswers] = useState<FeedbackAnswer[]>(
     questions.map(q => ({ question_id: q.id, rating: null, comment: '' }))
   );
   const [generalFeedback, setGeneralFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSkipping, setIsSkipping] = useState(false);
   const [error, setError] = useState('');
 
   const updateRating = (questionId: string, rating: number) => {
@@ -58,6 +60,16 @@ export function FeedbackModal({ questions, onSubmit }: FeedbackModalProps) {
     }
   };
 
+  const handleSkip = async () => {
+    setIsSkipping(true);
+    try {
+      await onSkip();
+    } catch (err: any) {
+      setError(err.message || 'Failed to skip feedback. Please try again.');
+      setIsSkipping(false);
+    }
+  };
+
   const completedCount = answers.filter(a => a.rating !== null).length;
 
   return (
@@ -76,6 +88,14 @@ export function FeedbackModal({ questions, onSubmit }: FeedbackModalProps) {
                 Your feedback shapes the future of AI-powered insights
               </p>
             </div>
+            <button
+              onClick={handleSkip}
+              disabled={isSkipping || isSubmitting}
+              className="flex-shrink-0 p-2 text-gray-400 hover:text-gray-300 hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Skip for today"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           <div className="mb-6">
