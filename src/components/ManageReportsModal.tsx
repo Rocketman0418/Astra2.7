@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, Settings, Play, Pause, Pencil, Trash2, Calendar, Clock, Zap, CheckCircle, Users } from 'lucide-react';
+import { X, Plus, Settings, Play, Pause, Pencil, Trash2, Calendar, Clock, Zap, CheckCircle, Users, Info, Newspaper } from 'lucide-react';
 import { useReportsContext, ReportTemplate, UserReport } from '../contexts/ReportsContext';
 import { HourOnlyTimePicker } from './HourOnlyTimePicker';
 import { useAuth } from '../contexts/AuthContext';
@@ -473,6 +473,34 @@ export const ManageReportsModal: React.FC<ManageReportsModalProps> = ({
                         required
                       />
                     </div>
+
+                    {/* Info Note for Daily News Brief */}
+                    {selectedTemplate?.name === 'Daily News Brief' && (
+                      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                        <div className="flex items-start space-x-3">
+                          <div className="flex-shrink-0 mt-0.5">
+                            <div className="p-2 bg-blue-500/20 rounded-lg">
+                              <Newspaper className="w-5 h-5 text-blue-400" />
+                            </div>
+                          </div>
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <Info className="w-4 h-4 text-blue-400" />
+                              <h4 className="text-sm font-medium text-blue-300">Powered by Team Settings</h4>
+                            </div>
+                            <p className="text-xs text-gray-300 leading-relaxed">
+                              This report uses your <span className="font-medium text-white">News and Industry preferences</span> from Team Settings.
+                              These can be configured by your team admin to customize what news sources and topics are monitored.
+                            </p>
+                            <div className="pt-2 border-t border-blue-500/20">
+                              <p className="text-xs text-gray-400">
+                                <span className="font-medium text-blue-300">Default sources:</span> General business news and AI/technology trends
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Schedule Type */}
                     <div>
