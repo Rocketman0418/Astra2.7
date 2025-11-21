@@ -59,8 +59,9 @@ export const AstraGuidedSetup: React.FC<AstraGuidedSetupProps> = ({ isOpen, onCl
     if (stepNumber < 11) {
       setCurrentStep(stepNumber + 1);
     } else {
-      // Step 11 complete - final step
+      // Step 11 complete - final step, close the guide
       await updateProgress({ is_completed: true, completed_at: new Date().toISOString() });
+      onClose();
     }
   };
 

@@ -22,8 +22,25 @@ export const ScheduledReportStep: React.FC<ScheduledReportStepProps> = ({ onComp
     if (!user) return;
     const teamId = user.user_metadata?.team_id;
     if (teamId) {
-      const { count } = await supabase.from('astra_reports').select('id', { count: 'exact', head: true }).eq('team_id', teamId).eq('schedule_type', 'scheduled').eq('is_active', true);
-      setScheduledReportsCount(count || 0);
+      // Get all users in the same team
+      const { data: teamUsers } = await supabase
+        .from('users')
+        .select('id')
+        .eq('team_id', teamId);
+
+      if (teamUsers && teamUsers.length > 0) {
+        const teamUserIds = teamUsers.map(u => u.id);
+
+        // Count scheduled reports for all team members
+        const { count } = await supabase
+          .from('astra_reports')
+          .select('id', { count: 'exact', head: true })
+          .in('user_id', teamUserIds)
+          .eq('schedule_type', 'scheduled')
+          .eq('is_active', true);
+
+        setScheduledReportsCount(count || 0);
+      }
     }
     setLoading(false);
   };
