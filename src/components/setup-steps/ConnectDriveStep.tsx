@@ -40,13 +40,6 @@ export const ConnectDriveStep: React.FC<ConnectDriveStepProps> = ({ onComplete }
     }
   };
 
-  useEffect(() => {
-    if (isConnected) {
-      // Auto-advance after short delay
-      setTimeout(() => onComplete(), 1000);
-    }
-  }, [isConnected, onComplete]);
-
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -61,29 +54,33 @@ export const ConnectDriveStep: React.FC<ConnectDriveStepProps> = ({ onComplete }
         </p>
       </div>
 
-      <div className="bg-gray-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">
-          What Astra Can Access:
-        </h3>
-        <div className="space-y-3">
-          {[
-            'Read documents from folders you select',
-            'Create new folders for organizing files',
-            'Access file metadata (names, dates, structure)'
-          ].map((item, index) => (
-            <div key={index} className="flex items-start space-x-3">
-              <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-              <span className="text-gray-300">{item}</span>
+      {!isConnected && (
+        <>
+          <div className="bg-gray-800 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">
+              What Astra Can Access:
+            </h3>
+            <div className="space-y-3">
+              {[
+                'Read documents from folders you select',
+                'Create new folders for organizing files',
+                'Access file metadata (names, dates, structure)'
+              ].map((item, index) => (
+                <div key={index} className="flex items-start space-x-3">
+                  <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-300">{item}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      <div className="bg-green-900/20 border border-green-700 rounded-lg p-4">
-        <p className="text-sm text-green-300">
-          <span className="font-medium">🔒 Your data is secure:</span> We only access folders you explicitly select. Your data is never shared with third parties.
-        </p>
-      </div>
+          <div className="bg-green-900/20 border border-green-700 rounded-lg p-4">
+            <p className="text-sm text-green-300">
+              <span className="font-medium">🔒 Your data is secure:</span> We only access folders you explicitly select. Your data is never shared with third parties.
+            </p>
+          </div>
+        </>
+      )}
 
       {error && (
         <div className="bg-red-900/20 border border-red-700 rounded-lg p-4 flex items-start space-x-3">
@@ -93,15 +90,27 @@ export const ConnectDriveStep: React.FC<ConnectDriveStepProps> = ({ onComplete }
       )}
 
       {isConnected ? (
-        <div className="bg-green-900/20 border border-green-700 rounded-lg p-4">
-          <div className="flex items-center space-x-3">
-            <CheckCircle className="w-6 h-6 text-green-400" />
-            <div>
-              <p className="text-green-300 font-medium">Google Drive Connected!</p>
-              <p className="text-sm text-green-400 mt-1">Moving to next step...</p>
+        <>
+          <div className="bg-green-900/20 border border-green-700 rounded-lg p-6">
+            <div className="flex items-start space-x-3 mb-4">
+              <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-green-300 font-medium text-lg">Google Drive Connected Successfully!</p>
+                <p className="text-sm text-green-400 mt-2">
+                  Your Google Drive is now connected to Astra. You can select folders and sync your data.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+          <div className="flex justify-center pt-4">
+            <button
+              onClick={onComplete}
+              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all min-h-[44px]"
+            >
+              Next: Choose Your Folder →
+            </button>
+          </div>
+        </>
       ) : (
         <div className="flex justify-center pt-4">
           <button
