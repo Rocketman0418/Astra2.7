@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { DollarSign, TrendingUp, Users, Calculator, Zap, Crown, Target, AlertCircle, CheckCircle, MessageSquare, Mail, Bell, ArrowRight, Timer, Rocket, Gift, Star, X, Sparkles } from 'lucide-react';
+import { DollarSign, TrendingUp, Users, Calculator, Zap, Crown, Target, AlertCircle, CheckCircle, MessageSquare, Mail, Bell, ArrowRight, Timer, Rocket, Gift, Star, X, Sparkles, FileText, BarChart3, Bot, Briefcase, Shield } from 'lucide-react';
 
 type StrategyType = 'trial' | 'freemium';
 
@@ -244,40 +244,40 @@ const PlanOverview: React.FC<{
           <div className="p-6 flex-1">
             <div className="space-y-3 text-sm">
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Unlimited document sync</span>
+                <FileText className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Unlimited Document Sync</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Unlimited Astra messages</span>
+                <MessageSquare className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Unlimited Astra Messages</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>5 custom visualizations per week</span>
+                <BarChart3 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>5 Custom Visualizations Per Week</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>1 scheduled report per week</span>
+                <FileText className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>1 Scheduled Report Per Week</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Astra email chat access</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                <span className="text-gray-500">No financial analysis</span>
+                <Mail className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Astra Email Chat Access</span>
               </div>
               <div className="flex items-start gap-2">
                 <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                <span className="text-gray-500">No team features</span>
+                <span className="text-gray-500">No Financial Analysis</span>
               </div>
               <div className="flex items-start gap-2">
                 <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                <span className="text-gray-500">No email control</span>
+                <span className="text-gray-500">No Team Features</span>
               </div>
               <div className="flex items-start gap-2">
                 <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                <span className="text-gray-500">No custom agents</span>
+                <span className="text-gray-500">No Email Control</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                <span className="text-gray-500">No Custom Agents</span>
               </div>
               <div className="flex items-start gap-2">
                 <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
@@ -304,39 +304,39 @@ const PlanOverview: React.FC<{
             <div className="space-y-3 text-sm">
               <div className="flex items-start gap-2">
                 <Zap className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                <span className="font-semibold">Everything in Free, plus:</span>
+                <span className="font-semibold">Everything in Free, Plus:</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Unlimited visualizations</span>
+                <BarChart3 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Unlimited Custom Visualizations</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Unlimited scheduled reports</span>
+                <FileText className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Unlimited Scheduled Reports</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Financial analysis (if enabled)</span>
+                <DollarSign className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Financial Analysis (If Enabled)</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>1 team with up to 3 members</span>
+                <Users className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>1 Team (You + 2 Free Members)</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>$29 per additional member</span>
+                <DollarSign className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>$29/Month Per Additional Member</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Email control features</span>
+                <Mail className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Email Control Features</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Create up to 3 custom agents</span>
+                <Bot className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Create Up to 3 Custom Agents</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Create up to 3 AI Jobs</span>
+                <Briefcase className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Create Up to 3 AI Jobs</span>
               </div>
             </div>
           </div>
@@ -359,31 +359,27 @@ const PlanOverview: React.FC<{
             <div className="space-y-3 text-sm">
               <div className="flex items-start gap-2">
                 <Zap className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
-                <span className="font-semibold">Everything in Pro, plus:</span>
+                <span className="font-semibold">Everything in Pro, Plus:</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Up to 3 teams with 3 members each</span>
+                <Users className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Up to 3 Teams (Each with 2 Free Members)</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>$29/member up to 10 total</span>
+                <DollarSign className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>$19/Month Per Additional Member</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>$19/member after 10</span>
+                <Bot className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Unlimited Custom Agents</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Unlimited custom agents</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <Briefcase className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                 <span>Unlimited AI Jobs</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Priority support</span>
+                <Shield className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Priority Support</span>
               </div>
             </div>
           </div>
@@ -766,15 +762,15 @@ const ComprehensiveComparison: React.FC<any> = ({ formatCurrency, formatNumber }
               <ComparisonRow
                 feature="Team Members"
                 free="None"
-                pro="1 team, 3 members"
-                plus="3 teams, 9 members"
+                pro="1 Team (You + 2 Free)"
+                plus="3 Teams (2 Free Each)"
                 highlight="plus"
               />
               <ComparisonRow
                 feature="Additional Members"
                 free="-"
-                pro="$29/member"
-                plus="$29 (up to 10), then $19"
+                pro="$29/Month"
+                plus="$19/Month"
                 highlight="plus"
               />
               <ComparisonRow
