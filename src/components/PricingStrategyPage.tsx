@@ -35,8 +35,10 @@ export const PricingStrategyPage: React.FC = () => {
     const churnRate = inputs.churnRate / 100;
     const proPricing = 99;
     const plusPricing = 149;
+    const previewPassPricing = 79;
     const avgSeatsPerTeam = 2.5;
-    const seatPrice = 29;
+    const seatPricePro = 29;
+    const seatPricePlus = 19;
 
     // Month 1
     const month1 = {
@@ -58,8 +60,8 @@ export const PricingStrategyPage: React.FC = () => {
       const retainedPlus = plusConversions * Math.pow(1 - churnRate, months);
       const freeUsers = totalSignups - proConversions - plusConversions;
 
-      const proRevenue = retainedPro * proPricing + (retainedPro * (avgSeatsPerTeam - 1) * seatPrice);
-      const plusRevenue = retainedPlus * plusPricing + (retainedPlus * (avgSeatsPerTeam - 1) * seatPrice);
+      const proRevenue = retainedPro * proPricing + (retainedPro * (avgSeatsPerTeam - 1) * seatPricePro);
+      const plusRevenue = retainedPlus * plusPricing + (retainedPlus * (avgSeatsPerTeam - 1) * seatPricePlus);
       const revenue = proRevenue + plusRevenue;
       const costs = (freeUsers * inputs.costPerFreeUser) + ((retainedPro + retainedPlus) * inputs.costPerProUser);
 
@@ -131,10 +133,10 @@ export const PricingStrategyPage: React.FC = () => {
 
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <div className="text-xs text-gray-500">Tier 1 Pricing</div>
-                <div className="text-sm font-semibold text-green-500">First 100 Subscribers</div>
+                <div className="text-xs text-gray-500">Intro Pricing</div>
+                <div className="text-sm font-semibold text-orange-500">First 500 Subscribers</div>
               </div>
-              <Star className="w-8 h-8 text-green-500" />
+              <Star className="w-8 h-8 text-orange-500" />
             </div>
           </div>
 
@@ -203,6 +205,39 @@ const PlanOverview: React.FC<{
 }> = ({ formatCurrency, formatNumber }) => {
   return (
     <div className="space-y-8">
+      {/* Preview Pass Program */}
+      <div className="bg-gradient-to-r from-orange-500/20 via-green-500/20 to-blue-500/20 rounded-xl p-6 border-2 border-orange-500/50">
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-orange-500 rounded-lg">
+            <Star className="w-8 h-8 text-white" />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold mb-2 text-orange-400">Preview Pass Program - First 300 Only</h2>
+            <p className="text-gray-300 mb-4">
+              Get Pro Plus features at an exclusive rate. Limited to first 300 subscribers with lifetime price protection.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <div className="bg-gray-900/50 rounded-lg p-3">
+                <div className="text-sm text-gray-400">Price</div>
+                <div className="text-lg font-bold text-orange-500">$79/month</div>
+              </div>
+              <div className="bg-gray-900/50 rounded-lg p-3">
+                <div className="text-sm text-gray-400">Features</div>
+                <div className="text-lg font-bold text-orange-500">Pro Plus</div>
+              </div>
+              <div className="bg-gray-900/50 rounded-lg p-3">
+                <div className="text-sm text-gray-400">Minimum</div>
+                <div className="text-lg font-bold text-orange-500">3 Months</div>
+              </div>
+              <div className="bg-gray-900/50 rounded-lg p-3">
+                <div className="text-sm text-gray-400">Lock-In</div>
+                <div className="text-lg font-bold text-orange-500">Lifetime</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Trial Overview */}
       <div className="bg-gradient-to-r from-green-500/20 via-blue-500/20 to-purple-500/20 rounded-xl p-6 border-2 border-green-500/50">
         <div className="flex items-start gap-4">
@@ -250,7 +285,7 @@ const PlanOverview: React.FC<{
             <div className="space-y-3 text-sm">
               <div className="flex items-start gap-2">
                 <MessageSquare className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>No Chat or Usage Limits</span>
+                <span>Unlimited Chat Usage</span>
               </div>
               <div className="flex items-start gap-2">
                 <FileText className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
@@ -263,10 +298,6 @@ const PlanOverview: React.FC<{
               <div className="flex items-start gap-2">
                 <FileText className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                 <span>1 Automated Report Per Week</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <Mail className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Astra Email Chat Access</span>
               </div>
               <div className="flex items-start gap-2">
                 <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
@@ -302,8 +333,8 @@ const PlanOverview: React.FC<{
             <div className="text-3xl font-bold mb-1">
               $99<span className="text-lg text-gray-400">/month</span>
             </div>
-            <div className="text-sm text-blue-400 font-semibold">Tier 1 Price for First 100 Subscribers</div>
-            <div className="text-xs text-blue-300 mt-1">Lifetime Price Protection</div>
+            <div className="text-sm text-blue-400 font-semibold">Intro Price for First 500 Subscribers</div>
+            <div className="text-xs text-blue-300 mt-1">Then $149/mo</div>
           </div>
 
           <div className="p-6 flex-1">
@@ -358,8 +389,8 @@ const PlanOverview: React.FC<{
             <div className="text-3xl font-bold mb-1">
               $149<span className="text-lg text-gray-400">/month</span>
             </div>
-            <div className="text-sm text-purple-400 font-semibold">Tier 1 Price for First 100 Subscribers</div>
-            <div className="text-xs text-purple-300 mt-1">Lifetime Price Protection</div>
+            <div className="text-sm text-purple-400 font-semibold">Intro Price for First 500 Subscribers</div>
+            <div className="text-xs text-purple-300 mt-1">Then $249/mo</div>
           </div>
 
           <div className="p-6 flex-1">
@@ -385,53 +416,37 @@ const PlanOverview: React.FC<{
                 <span>Unlimited AI Jobs</span>
               </div>
               <div className="flex items-start gap-2">
-                <Shield className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Priority Support</span>
+                <Sparkles className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Create with Astra (Build Custom Software)</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Team Member Considerations */}
-      <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6">
-        <div className="flex items-start gap-3">
-          <AlertCircle className="w-6 h-6 text-orange-500 mt-1 flex-shrink-0" />
-          <div>
-            <h3 className="font-semibold text-orange-300 mb-2">Important: Team Member Access After Trial</h3>
-            <p className="text-sm text-gray-300 mb-3">
-              If you invite team members during your trial and don't upgrade to Pro or Pro Plus, those team members will lose access when the trial ends.
-            </p>
-            <p className="text-sm text-gray-300">
-              Invited members will see a message: <span className="italic">"Your team subscription is no longer active. Please contact your administrator for access."</span>
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Cost Structure Highlights */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-bold mb-4">Why Unlimited Documents at All Levels?</h2>
+        <h2 className="text-xl font-bold mb-4">Why Unlimited Chats and Data at All Levels?</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-gray-900 rounded-lg p-4">
             <DollarSign className="w-8 h-8 text-green-500 mb-3" />
-            <h3 className="font-semibold mb-2">Low Cost</h3>
+            <h3 className="font-semibold mb-2">Low Marginal Cost</h3>
             <p className="text-sm text-gray-400">
-              Document sync costs are very low per user, making it economical to offer unlimited sync even on the free tier.
+              Chat and data sync costs are very low per user. Modern AI APIs and storage make it economical to offer unlimited usage even on the free tier.
             </p>
           </div>
           <div className="bg-gray-900 rounded-lg p-4">
             <Users className="w-8 h-8 text-blue-500 mb-3" />
-            <h3 className="font-semibold mb-2">Sticky Factor</h3>
+            <h3 className="font-semibold mb-2">Maximum Engagement</h3>
             <p className="text-sm text-gray-400">
-              Users with all their documents synced are highly engaged and unlikely to leave, creating strong product stickiness.
+              Users who chat frequently and have all their data synced are highly engaged and unlikely to leave, creating strong product stickiness and habit formation.
             </p>
           </div>
           <div className="bg-gray-900 rounded-lg p-4">
             <TrendingUp className="w-8 h-8 text-purple-500 mb-3" />
-            <h3 className="font-semibold mb-2">Upgrade Driver</h3>
+            <h3 className="font-semibold mb-2">Natural Upgrade Path</h3>
             <p className="text-sm text-gray-400">
-              With documents synced, users hit visualization and report limits faster, creating natural upgrade pressure.
+              With unlimited chat and data access, users discover value faster and hit visualization/report limits sooner, creating natural upgrade pressure to paid plans.
             </p>
           </div>
         </div>
@@ -723,10 +738,12 @@ const ComprehensiveComparison: React.FC<any> = ({ formatCurrency, formatNumber }
                 <th className="p-4 text-center font-semibold border-b border-gray-700 bg-blue-500/10">
                   <div className="text-lg">Pro</div>
                   <div className="text-xs text-gray-400 font-normal">$99/month</div>
+                  <div className="text-xs text-blue-400 font-semibold mt-1">Intro: First 500</div>
                 </th>
                 <th className="p-4 text-center font-semibold border-b border-gray-700 bg-purple-500/10">
                   <div className="text-lg">Pro Plus</div>
                   <div className="text-xs text-gray-400 font-normal">$149/month</div>
+                  <div className="text-xs text-purple-400 font-semibold mt-1">Intro: First 500</div>
                 </th>
               </tr>
             </thead>
@@ -799,6 +816,13 @@ const ComprehensiveComparison: React.FC<any> = ({ formatCurrency, formatNumber }
                 free="None"
                 pro="Up to 3"
                 plus="Unlimited"
+                highlight="plus"
+              />
+              <ComparisonRow
+                feature="Create with Astra"
+                free="No"
+                pro="No"
+                plus="Yes"
                 highlight="plus"
               />
             </tbody>
