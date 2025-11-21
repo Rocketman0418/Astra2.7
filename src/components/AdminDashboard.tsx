@@ -219,12 +219,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
       await processAdminDashboardData(data);
     } catch (error: any) {
       console.error('Error loading metrics:', error);
-      // Show user-friendly error
-      if (error.name === 'AbortError') {
-        alert('Request timed out. The server might be slow or the Edge Function may not be deployed. Please try again.');
-      } else {
-        alert(`Failed to load admin dashboard: ${error.message}`);
-      }
+      // Log detailed error for debugging
+      console.error('Full error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
     } finally {
       setLoading(false);
     }
