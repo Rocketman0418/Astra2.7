@@ -129,6 +129,7 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }
           body: JSON.stringify({
             folderIds: [folder.id],
             folderType: 'strategy',
+            folderName: folder.name,
           }),
         }
       );
@@ -173,6 +174,7 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }
           body: JSON.stringify({
             folderIds: [folder.id],
             folderType: 'strategy',
+            folderName: folder.name,
           }),
         }
       );

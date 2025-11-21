@@ -27,7 +27,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const { folderIds, folderType } = await req.json();
+    const { folderIds, folderType, folderName } = await req.json();
     if (!folderIds || !folderType) {
       return new Response(JSON.stringify({ error: "Folder IDs and type are required" }), {
         status: 400,
@@ -44,11 +44,23 @@ Deno.serve(async (req: Request) => {
     }
 
     // Update the user_drive_connections table with selected folders
+    // Update both the array field (selected_*_folder_ids) and the legacy single folder fields
     const updateField = `selected_${folderType}_folder_ids`;
+    const updateData: any = {
+      [updateField]: folderIds,
+    };
+
+    // Also update the legacy single folder fields for backward compatibility with sync agent
+    if (folderIds.length > 0) {
+      updateData[`${folderType}_folder_id`] = folderIds[0];
+      if (folderName) {
+        updateData[`${folderType}_folder_name`] = folderName;
+      }
+    }
 
     const { error: updateError } = await supabaseClient
       .from("user_drive_connections")
-      .update({ [updateField]: folderIds })
+      .update(updateData)
       .eq("team_id", teamId);
 
     if (updateError) {
