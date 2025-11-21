@@ -190,7 +190,7 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 transition-colors flex items-center gap-3"
                 >
                   <Rocket className="w-4 h-4 text-purple-400" />
-                  <span>Launch Setup Guide</span>
+                  <span>Launch Guided Setup</span>
                 </button>
                 <button
                   onClick={() => {

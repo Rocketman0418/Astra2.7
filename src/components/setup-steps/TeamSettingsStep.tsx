@@ -29,7 +29,7 @@ export const TeamSettingsStep: React.FC<TeamSettingsStepProps> = ({ onComplete, 
 
         <div className="flex justify-center pt-4">
           <button onClick={onComplete} className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all min-h-[44px]">
-            Next: Invite Team Members →
+            Next: Ask Your First Question →
           </button>
         </div>
       </div>
