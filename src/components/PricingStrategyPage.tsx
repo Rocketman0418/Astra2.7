@@ -95,7 +95,7 @@ export const PricingStrategyPage: React.FC = () => {
       month12,
       mrr12: month12.revenue,
       arr12: month12.revenue * 12,
-      avgLTV: ((proPricing + plusPricing) / 2 * 12) / churnRate,
+      avgLTV: ((proPricing + ultraPricing) / 2 * 12) / churnRate,
       profitableAtMonth
     };
   }, [inputs]);
