@@ -89,12 +89,6 @@ export const MainContainer: React.FC = () => {
     const checkGoogleDriveConnection = async () => {
       if (!user) return;
 
-      const onboardingCompleted = user.user_metadata?.onboarding_completed;
-
-      if (!onboardingCompleted) {
-        return;
-      }
-
       try {
         const { data: connection } = await supabase
           .from('user_drive_connections')
