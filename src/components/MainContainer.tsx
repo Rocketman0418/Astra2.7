@@ -11,6 +11,7 @@ import { WelcomeModal } from './WelcomeModal';
 import { InteractiveTour } from './InteractiveTour';
 import { HelpCenter, HelpCenterTab } from './HelpCenter';
 import { AstraGuidedSetup } from './AstraGuidedSetup';
+import { ExpiredTokenBanner } from './ExpiredTokenBanner';
 import { ChatMode } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useSavedVisualizations } from '../hooks/useSavedVisualizations';
@@ -35,6 +36,8 @@ export const MainContainer: React.FC = () => {
   const [helpCenterTab, setHelpCenterTab] = useState<HelpCenterTab>('quick-start');
   const [teamName, setTeamName] = useState<string>('');
   const [showSetupGuide, setShowSetupGuide] = useState(false);
+  const [hasExpiredToken, setHasExpiredToken] = useState(false);
+  const [tokenBannerDismissed, setTokenBannerDismissed] = useState(false);
 
   const isAdmin = user?.user_metadata?.role === 'admin';
   const tourSteps = getTourStepsForRole(isAdmin);
@@ -80,6 +83,36 @@ export const MainContainer: React.FC = () => {
     };
 
     checkOnboardingStatus();
+  }, [user]);
+
+  useEffect(() => {
+    const checkGoogleDriveConnection = async () => {
+      if (!user) return;
+
+      const onboardingCompleted = user.user_metadata?.onboarding_completed;
+
+      if (!onboardingCompleted) {
+        return;
+      }
+
+      try {
+        const { data: connection } = await supabase
+          .from('user_drive_connections')
+          .select('is_active, connection_status')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (connection && (!connection.is_active || connection.connection_status === 'token_expired')) {
+          setHasExpiredToken(true);
+        } else {
+          setHasExpiredToken(false);
+        }
+      } catch (error) {
+        console.error('Error checking Google Drive connection:', error);
+      }
+    };
+
+    checkGoogleDriveConnection();
   }, [user]);
 
   // Close sidebar when switching away from private chat mode
@@ -253,6 +286,11 @@ export const MainContainer: React.FC = () => {
         <div className="pt-16 flex-shrink-0" data-tour="mode-toggle">
           <ChatModeToggle mode={chatMode} onModeChange={setChatMode} />
         </div>
+
+        {/* Expired Token Banner */}
+        {hasExpiredToken && !tokenBannerDismissed && (
+          <ExpiredTokenBanner onDismiss={() => setTokenBannerDismissed(true)} />
+        )}
 
         {/* Chat Content - Scrollable area */}
         <div className="flex-1 overflow-y-auto">
