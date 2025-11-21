@@ -332,7 +332,7 @@ const PlanOverview: React.FC<{
               </div>
               <div className="flex items-start gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Create 1 custom agent</span>
+                <span>Create up to 3 custom agents</span>
               </div>
               <div className="flex items-start gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
@@ -787,7 +787,7 @@ const ComprehensiveComparison: React.FC<any> = ({ formatCurrency, formatNumber }
               <ComparisonRow
                 feature="Custom Agents"
                 free="None"
-                pro="1 agent"
+                pro="Up to 3"
                 plus="Unlimited"
                 highlight="plus"
               />
