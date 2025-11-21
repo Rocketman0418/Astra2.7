@@ -71,10 +71,9 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete }) => {
       }
 
       // Trigger the n8n webhook for the Multi-Team Data Sync Agent
-      // This webhook should be configured in the n8n workflow
-      const webhookUrl = `${import.meta.env.VITE_N8N_WEBHOOK_URL}/webhook/sync-team-data`;
+      const webhookUrl = 'https://healthrocket.app.n8n.cloud/webhook/21473ebb-405d-4be1-ab71-6bf2a2d4063b';
 
-      console.log('Calling n8n webhook to trigger sync:', webhookUrl);
+      console.log('Calling n8n webhook to trigger sync for team:', teamId);
 
       const response = await fetch(webhookUrl, {
         method: 'POST',
