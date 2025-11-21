@@ -40,7 +40,7 @@ const SUGGESTED_PROMPTS: SuggestedPrompt[] = [
     description: "Delivers comprehensive financial intelligence in one query - current state plus forward-looking analysis."
   },
   {
-    title: "Strategic Financial Review",
+    title: "Strategic Financial Alignment",
     prompt: "Review our financial data and evaluate how our spending and resource allocation aligns with our mission, core values, and strategic goals",
     description: "Connects financial decisions to strategic priorities, ensuring money flows toward what matters most."
   }
