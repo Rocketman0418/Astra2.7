@@ -37,7 +37,6 @@ export const GoogleDriveSettings: React.FC = () => {
   const [connectedAdminName, setConnectedAdminName] = useState<string>('');
   const [documentTypeFilter, setDocumentTypeFilter] = useState<'all' | 'strategy' | 'meetings' | 'financial'>('all');
   const [documentSearchTerm, setDocumentSearchTerm] = useState('');
-  const [showNoFoldersNotification, setShowNoFoldersNotification] = useState(false);
   const [showGuidedSetup, setShowGuidedSetup] = useState(false);
 
   // Temporary state for folder selection
@@ -135,21 +134,9 @@ export const GoogleDriveSettings: React.FC = () => {
         if (conn.is_active) {
           loadSyncedDocuments();
         }
-
-        // Check if no folders are configured
-        const hasNoFolders = !conn.meetings_folder_id && !conn.strategy_folder_id && !conn.financial_folder_id;
-        if (conn.is_active && hasNoFolders) {
-          setShowNoFoldersNotification(true);
-        }
       } else if (teamConnection && teamConnection.is_active) {
         // Also load documents if team has a connection but user doesn't
         loadSyncedDocuments();
-
-        // Check if team connection has no folders configured
-        const hasNoFolders = !teamConnection.meetings_folder_id && !teamConnection.strategy_folder_id && !teamConnection.financial_folder_id;
-        if (hasNoFolders) {
-          setShowNoFoldersNotification(true);
-        }
       }
 
       setError('');
@@ -1421,59 +1408,6 @@ export const GoogleDriveSettings: React.FC = () => {
               >
                 Close
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* No Folders Configured Notification */}
-      {showNoFoldersNotification && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-md border border-yellow-500/30">
-            <div className="p-6">
-              <div className="flex items-start space-x-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
-                  <Info className="w-5 h-5 text-yellow-400" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    Folder Setup Required
-                  </h3>
-                  <p className="text-sm text-gray-300 mb-3">
-                    Your Google Drive is connected, but no folders have been selected for syncing yet.
-                  </p>
-                  <p className="text-sm text-gray-300">
-                    To start syncing documents, please select at least one folder in your Profile settings under the Google Drive Sync section.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => setShowNoFoldersNotification(false)}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-                >
-                  Got it
-                </button>
-                {isAdmin && (
-                  <button
-                    onClick={() => {
-                      setShowNoFoldersNotification(false);
-                      // Scroll to folder configuration section
-                      setTimeout(() => {
-                        const element = document.getElementById('folder-configuration');
-                        if (element) {
-                          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                      }, 100);
-                    }}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
-                  >
-                    <FolderOpen className="w-4 h-4" />
-                    <span>Take Me There</span>
-                  </button>
-                )}
-              </div>
             </div>
           </div>
         </div>
