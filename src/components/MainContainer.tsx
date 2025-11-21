@@ -11,6 +11,7 @@ import { WelcomeModal } from './WelcomeModal';
 import { InteractiveTour } from './InteractiveTour';
 import { HelpCenter, HelpCenterTab } from './HelpCenter';
 import { NoFoldersSelectedModal } from './NoFoldersSelectedModal';
+import { AstraGuidedSetup } from './AstraGuidedSetup';
 import { ChatMode } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useSavedVisualizations } from '../hooks/useSavedVisualizations';
@@ -34,6 +35,7 @@ export const MainContainer: React.FC = () => {
   const [showHelpCenter, setShowHelpCenter] = useState(false);
   const [helpCenterTab, setHelpCenterTab] = useState<HelpCenterTab>('quick-start');
   const [teamName, setTeamName] = useState<string>('');
+  const [showSetupGuide, setShowSetupGuide] = useState(false);
 
   const isAdmin = user?.user_metadata?.role === 'admin';
   const tourSteps = getTourStepsForRole(isAdmin);
@@ -237,6 +239,7 @@ export const MainContainer: React.FC = () => {
             setShowHelpCenter(true);
           }}
           onStartTour={handleRestartTour}
+          onOpenSetupGuide={() => setShowSetupGuide(true)}
         />
 
         {/* Chat Mode Toggle - Fixed below header */}
@@ -297,6 +300,12 @@ export const MainContainer: React.FC = () => {
         onStartTour={handleRestartTour}
         isAdmin={isAdmin}
         initialTab={helpCenterTab}
+      />
+
+      {/* Astra Guided Setup */}
+      <AstraGuidedSetup
+        isOpen={showSetupGuide}
+        onClose={() => setShowSetupGuide(false)}
       />
 
       {/* No Folders Selected Modal */}

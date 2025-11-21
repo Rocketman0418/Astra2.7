@@ -1,0 +1,254 @@
+import React, { useState, useEffect } from 'react';
+import { X, CheckCircle, Circle, Loader } from 'lucide-react';
+import { useSetupGuide } from '../hooks/useSetupGuide';
+import { useAuth } from '../contexts/AuthContext';
+
+// Import step components (we'll create these next)
+import { WelcomeStep } from './setup-steps/WelcomeStep';
+import { ConnectDriveStep } from './setup-steps/ConnectDriveStep';
+import { ChooseFolderStep } from './setup-steps/ChooseFolderStep';
+import { PlaceFilesStep } from './setup-steps/PlaceFilesStep';
+import { SyncDataStep } from './setup-steps/SyncDataStep';
+import { TeamSettingsStep } from './setup-steps/TeamSettingsStep';
+import { FirstPromptStep } from './setup-steps/FirstPromptStep';
+import { VisualizationStep } from './setup-steps/VisualizationStep';
+import { ManualReportStep } from './setup-steps/ManualReportStep';
+import { ScheduledReportStep } from './setup-steps/ScheduledReportStep';
+import { InviteMembersStep } from './setup-steps/InviteMembersStep';
+
+interface AstraGuidedSetupProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const STEP_TITLES = [
+  'Welcome to Astra',
+  'Connect Google Drive',
+  'Choose Your Folder',
+  'Place Your Files',
+  'Sync Your Data',
+  'Configure Team Settings',
+  'Send Your First Prompt',
+  'Create a Visualization',
+  'Run a Manual Report',
+  'Schedule a Report',
+  'Invite Team Members (Optional)'
+];
+
+export const AstraGuidedSetup: React.FC<AstraGuidedSetupProps> = ({ isOpen, onClose }) => {
+  const { user } = useAuth();
+  const { progress, loading, dataContext, markStepComplete, updateProgress, refreshProgress } = useSetupGuide();
+  const [currentStep, setCurrentStep] = useState(1);
+
+  // Sync current step with progress
+  useEffect(() => {
+    if (progress) {
+      setCurrentStep(progress.current_step);
+    }
+  }, [progress]);
+
+  const handleStepComplete = async (stepNumber: number, additionalData?: any) => {
+    await markStepComplete(stepNumber, additionalData);
+
+    // Move to next step
+    if (stepNumber < 11) {
+      setCurrentStep(stepNumber + 1);
+    } else {
+      // All steps complete!
+      await updateProgress({ is_completed: true, completed_at: new Date().toISOString() });
+    }
+  };
+
+  const handleSkipStep = async (stepNumber: number) => {
+    // Only step 11 (invite members) can be skipped
+    if (stepNumber === 11) {
+      await markStepComplete(11, { step_11_team_members_invited: true });
+      await updateProgress({ is_completed: true, completed_at: new Date().toISOString() });
+    }
+  };
+
+  const handleClose = () => {
+    if (progress?.is_completed || window.confirm('Are you sure you want to exit the setup guide? Your progress will be saved.')) {
+      onClose();
+    }
+  };
+
+  if (!isOpen) return null;
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="bg-gray-800 rounded-lg p-8">
+          <Loader className="w-8 h-8 text-blue-400 animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 overflow-hidden">
+      <div className="h-full flex flex-col">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-orange-600 via-green-600 to-blue-600 p-6">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-white">Astra Guided Setup</h1>
+              <p className="text-white/80 text-sm mt-1">
+                Step {currentStep} of {STEP_TITLES.length}: {STEP_TITLES[currentStep - 1]}
+              </p>
+            </div>
+            <button
+              onClick={handleClose}
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="bg-gray-900 border-b border-gray-700">
+          <div className="max-w-4xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              {STEP_TITLES.map((title, index) => {
+                const stepNum = index + 1;
+                const isCompleted = progress ? progress[`step_${stepNum}_${getStepKey(stepNum)}` as keyof typeof progress] === true : false;
+                const isCurrent = stepNum === currentStep;
+                const isPast = stepNum < currentStep;
+
+                return (
+                  <div key={stepNum} className="flex items-center">
+                    <div className="flex flex-col items-center">
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                          isCompleted || isPast
+                            ? 'bg-green-600 text-white'
+                            : isCurrent
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-700 text-gray-400'
+                        }`}
+                      >
+                        {isCompleted || isPast ? (
+                          <CheckCircle className="w-5 h-5" />
+                        ) : isCurrent ? (
+                          <Circle className="w-5 h-5 fill-current" />
+                        ) : (
+                          <Circle className="w-5 h-5" />
+                        )}
+                      </div>
+                      <span className={`text-xs mt-2 hidden md:block ${isCurrent ? 'text-white font-medium' : 'text-gray-400'}`}>
+                        {stepNum}
+                      </span>
+                    </div>
+                    {stepNum < STEP_TITLES.length && (
+                      <div
+                        className={`w-8 h-1 mx-1 ${
+                          isPast ? 'bg-green-600' : 'bg-gray-700'
+                        }`}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Step Content */}
+        <div className="flex-1 overflow-y-auto bg-gray-900">
+          <div className="max-w-4xl mx-auto px-6 py-8">
+            {currentStep === 1 && (
+              <WelcomeStep
+                onComplete={() => handleStepComplete(1)}
+                progress={progress}
+              />
+            )}
+            {currentStep === 2 && (
+              <ConnectDriveStep
+                onComplete={() => handleStepComplete(2)}
+                progress={progress}
+              />
+            )}
+            {currentStep === 3 && (
+              <ChooseFolderStep
+                onComplete={(folderData) => handleStepComplete(3, folderData)}
+                progress={progress}
+              />
+            )}
+            {currentStep === 4 && (
+              <PlaceFilesStep
+                onComplete={() => handleStepComplete(4)}
+                progress={progress}
+              />
+            )}
+            {currentStep === 5 && (
+              <SyncDataStep
+                onComplete={() => handleStepComplete(5)}
+                progress={progress}
+              />
+            )}
+            {currentStep === 6 && (
+              <TeamSettingsStep
+                onComplete={() => handleStepComplete(6)}
+                progress={progress}
+              />
+            )}
+            {currentStep === 7 && (
+              <FirstPromptStep
+                onComplete={() => handleStepComplete(7)}
+                progress={progress}
+                dataContext={dataContext}
+              />
+            )}
+            {currentStep === 8 && (
+              <VisualizationStep
+                onComplete={() => handleStepComplete(8)}
+                progress={progress}
+              />
+            )}
+            {currentStep === 9 && (
+              <ManualReportStep
+                onComplete={() => handleStepComplete(9)}
+                progress={progress}
+                dataContext={dataContext}
+              />
+            )}
+            {currentStep === 10 && (
+              <ScheduledReportStep
+                onComplete={() => handleStepComplete(10)}
+                progress={progress}
+                dataContext={dataContext}
+              />
+            )}
+            {currentStep === 11 && (
+              <InviteMembersStep
+                onComplete={() => handleStepComplete(11)}
+                onSkip={() => handleSkipStep(11)}
+                progress={progress}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Helper function to get step key from step number
+const getStepKey = (stepNum: number): string => {
+  const keys = [
+    'onboarding_completed',
+    'google_drive_connected',
+    'folder_selected_or_created',
+    'files_placed_in_folder',
+    'data_synced',
+    'team_settings_configured',
+    'first_prompt_sent',
+    'visualization_created',
+    'manual_report_run',
+    'scheduled_report_created',
+    'team_members_invited'
+  ];
+  return keys[stepNum - 1] || '';
+};

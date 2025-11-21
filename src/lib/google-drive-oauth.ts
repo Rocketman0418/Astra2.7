@@ -12,8 +12,8 @@ const SCOPES = [
   'https://www.googleapis.com/auth/gmail.compose',
   'https://www.googleapis.com/auth/gmail.send',
   'https://www.googleapis.com/auth/gmail.modify',
-  // Google Drive scopes
-  'https://www.googleapis.com/auth/drive.readonly',
+  // Google Drive scopes - FULL ACCESS for folder creation
+  'https://www.googleapis.com/auth/drive',
   'https://www.googleapis.com/auth/drive.metadata.readonly'
 ].join(' ');
 
@@ -302,4 +302,70 @@ export const listGoogleDriveFolders = async (): Promise<FolderInfo[]> => {
 
   const data = await response.json();
   return data.files || [];
+};
+
+/**
+ * Creates a new folder in Google Drive
+ * Used by Astra Guided Setup to create folders for users
+ */
+export const createAstraFolder = async (
+  folderType: 'strategy' | 'meetings' | 'financial'
+): Promise<{ folderId: string; folderName: string }> => {
+  const connection = await getGoogleDriveConnection(true);
+
+  if (!connection || !connection.is_active) {
+    throw new Error('Google Drive is not connected');
+  }
+
+  const folderNames = {
+    strategy: 'Astra Strategy Files',
+    meetings: 'Astra Meeting Files',
+    financial: 'Astra Financial Files'
+  };
+
+  const folderName = folderNames[folderType];
+
+  console.log(`📁 Creating folder: ${folderName}`);
+
+  // Create folder using Google Drive API
+  const response = await fetch(
+    'https://www.googleapis.com/drive/v3/files',
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${connection.access_token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: folderName,
+        mimeType: 'application/vnd.google-apps.folder'
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('📁 Failed to create folder:', errorText);
+    throw new Error('Failed to create folder in Google Drive');
+  }
+
+  const data = await response.json();
+  console.log('📁 Folder created successfully:', data.id);
+
+  // Update user_drive_connections with new folder based on type
+  const folderMapping: Record<string, any> = {
+    strategy: {
+      selected_strategy_folder_ids: [data.id]
+    },
+    meetings: {
+      selected_meetings_folder_ids: [data.id]
+    },
+    financial: {
+      selected_financial_folder_ids: [data.id]
+    }
+  };
+
+  await updateFolderConfiguration(folderMapping[folderType]);
+
+  return { folderId: data.id, folderName };
 };

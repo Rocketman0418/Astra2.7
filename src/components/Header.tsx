@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, User, HelpCircle, BookOpen, MessageCircleQuestion, Sparkles, Workflow, Zap } from 'lucide-react';
+import { Menu, User, HelpCircle, BookOpen, MessageCircleQuestion, Sparkles, Workflow, Zap, Rocket } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { ChatMode } from '../types';
@@ -17,6 +17,7 @@ interface HeaderProps {
   onToggleTeamMenu?: () => void;
   onOpenHelpCenter?: (tab?: HelpCenterTab) => void;
   onStartTour?: () => void;
+  onOpenSetupGuide?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -25,7 +26,8 @@ export const Header: React.FC<HeaderProps> = ({
   chatMode = 'private',
   onToggleTeamMenu,
   onOpenHelpCenter,
-  onStartTour
+  onStartTour,
+  onOpenSetupGuide
 }) => {
   const { user } = useAuth();
   const { profile } = useUserProfile();
@@ -180,6 +182,16 @@ export const Header: React.FC<HeaderProps> = ({
                     <div className="border-t border-gray-700 my-2"></div>
                   </>
                 )}
+                <button
+                  onClick={() => {
+                    setShowHelpMenu(false);
+                    onOpenSetupGuide?.();
+                  }}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 transition-colors flex items-center gap-3"
+                >
+                  <Rocket className="w-4 h-4 text-purple-400" />
+                  <span>Launch Setup Guide</span>
+                </button>
                 <button
                   onClick={() => {
                     setShowHelpMenu(false);
