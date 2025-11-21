@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Users, UserCircle, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { TeamSettingsModal } from './TeamSettingsModal';
 
 interface OnboardingScreenProps {
   onComplete: () => void;
@@ -12,8 +11,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
   const [teamName, setTeamName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showTeamSettings, setShowTeamSettings] = useState(false);
-  const [createdTeamId, setCreatedTeamId] = useState<string | null>(null);
   const [joiningExistingTeam, setJoiningExistingTeam] = useState(false);
   const [existingTeamName, setExistingTeamName] = useState<string | null>(null);
 
@@ -44,13 +41,11 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
   // Debug: Log state changes
   React.useEffect(() => {
     console.log('🔍 [OnboardingScreen] State updated:', {
-      showTeamSettings,
-      createdTeamId,
       loading,
       joiningExistingTeam,
       existingTeamName
     });
-  }, [showTeamSettings, createdTeamId, loading, joiningExistingTeam, existingTeamName]);
+  }, [loading, joiningExistingTeam, existingTeamName]);
 
   const handleBackToLogin = async () => {
     try {
@@ -143,15 +138,18 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
           return;
         }
 
-        // DON'T update auth metadata yet - wait until after TeamSettingsModal is closed
-        // This prevents App.tsx from seeing team_id and unmounting OnboardingScreen prematurely
+        // Update auth metadata to complete onboarding
+        await supabase.auth.updateUser({
+          data: {
+            full_name: fullName.trim(),
+            pending_team_setup: false
+          }
+        });
 
-        // Show team settings modal for new team creators
-        console.log('Showing team settings modal for team:', setupResult.team_id);
+        console.log('Onboarding complete for team:', setupResult.team_id);
         setLoading(false);
-        setCreatedTeamId(setupResult.team_id);
-        setShowTeamSettings(true);
-        return; // Exit early to prevent finally block from running
+        onComplete();
+        return;
       } else {
         // Legacy flow: user didn't go through invite signup
         console.log('Using legacy onboarding flow');
@@ -182,44 +180,24 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
 
         if (usersError) throw usersError;
 
-        // DON'T update auth metadata yet - wait until after TeamSettingsModal is closed
-        // This prevents App.tsx from seeing team_id and unmounting OnboardingScreen prematurely
-
-        // Show team settings modal
-        console.log('Showing team settings modal for team (legacy):', teamData.id);
-        setLoading(false);
-        setCreatedTeamId(teamData.id);
-        setShowTeamSettings(true);
-        return; // Exit early to prevent finally block from running
-      }
-    } catch (err: any) {
-      console.error('Onboarding error:', err);
-      setError(err.message || 'Failed to complete onboarding');
-      setLoading(false);
-    }
-  };
-
-  const handleTeamSettingsClose = async () => {
-    console.log('🎉 [OnboardingScreen] Team settings closed, completing onboarding');
-    setShowTeamSettings(false);
-
-    // Now update auth metadata so App.tsx knows onboarding is complete
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user && createdTeamId) {
+        // Update auth metadata to complete onboarding
         await supabase.auth.updateUser({
           data: {
             full_name: fullName.trim(),
             pending_team_setup: false
           }
         });
-      }
-    } catch (err) {
-      console.error('Error updating auth metadata:', err);
-    }
 
-    // Trigger completion which will cause App.tsx to refresh and see the team_id
-    onComplete();
+        console.log('Onboarding complete for team (legacy):', teamData.id);
+        setLoading(false);
+        onComplete();
+        return;
+      }
+    } catch (err: any) {
+      console.error('Onboarding error:', err);
+      setError(err.message || 'Failed to complete onboarding');
+      setLoading(false);
+    }
   };
 
   return (
@@ -317,15 +295,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
           <p className="text-sm text-gray-500">Part of the RocketHub Ecosystem</p>
         </div>
       </div>
-
-      {createdTeamId && (
-        <TeamSettingsModal
-          isOpen={showTeamSettings}
-          onClose={handleTeamSettingsClose}
-          teamId={createdTeamId}
-          isOnboarding={true}
-        />
-      )}
     </div>
   );
 };
