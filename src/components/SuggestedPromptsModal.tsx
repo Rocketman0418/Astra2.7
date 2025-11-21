@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Sparkles, Send } from 'lucide-react';
+import { X, Sparkles, Send, Star } from 'lucide-react';
 
 interface SuggestedPrompt {
   title: string;
@@ -81,26 +81,45 @@ export const SuggestedPromptsModal: React.FC<SuggestedPromptsModalProps> = ({
 
         <div className="overflow-y-auto max-h-[calc(90vh-120px)] p-6">
           <div className="space-y-3">
-            {SUGGESTED_PROMPTS.map((item, index) => (
-              <button
-                key={index}
-                onClick={() => handleSelectPrompt(item.prompt)}
-                className="w-full text-left p-3 bg-gray-700/50 hover:bg-gray-700 rounded-lg border border-gray-600 hover:border-blue-500 transition-all group"
-              >
-                <div className="flex items-start justify-between mb-1">
-                  <h3 className="text-base font-semibold text-white group-hover:text-blue-400 transition-colors">
-                    {item.title}
-                  </h3>
-                  <Send className="w-4 h-4 text-blue-400 flex-shrink-0 ml-2 mt-0.5" />
-                </div>
-                <p className="text-xs text-gray-300 mb-2 italic line-clamp-2">
-                  "{item.prompt}"
-                </p>
-                <p className="text-xs text-gray-400 line-clamp-2">
-                  <span className="font-medium text-gray-300">Why it's valuable:</span> {item.description}
-                </p>
-              </button>
-            ))}
+            {SUGGESTED_PROMPTS.map((item, index) => {
+              const isFirst = index === 0;
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleSelectPrompt(item.prompt)}
+                  className={`w-full text-left p-3 rounded-lg border transition-all group relative ${
+                    isFirst
+                      ? 'bg-gradient-to-r from-orange-500/20 via-green-500/20 to-blue-500/20 border-orange-500/50 hover:border-orange-400 shadow-lg'
+                      : 'bg-gray-700/50 hover:bg-gray-700 border-gray-600 hover:border-blue-500'
+                  }`}
+                >
+                  {isFirst && (
+                    <div className="absolute -top-2 -right-2 bg-gradient-to-r from-orange-500 to-green-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-lg">
+                      <Star className="w-3 h-3 fill-white" />
+                      START HERE
+                    </div>
+                  )}
+                  <div className="flex items-start justify-between mb-1">
+                    <h3 className={`text-base font-semibold transition-colors ${
+                      isFirst ? 'text-orange-300 group-hover:text-orange-200' : 'text-white group-hover:text-blue-400'
+                    }`}>
+                      {item.title}
+                    </h3>
+                    <Send className={`w-4 h-4 flex-shrink-0 ml-2 mt-0.5 ${
+                      isFirst ? 'text-orange-400' : 'text-blue-400'
+                    }`} />
+                  </div>
+                  <p className={`text-xs mb-2 italic line-clamp-2 ${
+                    isFirst ? 'text-gray-200' : 'text-gray-300'
+                  }`}>
+                    "{item.prompt}"
+                  </p>
+                  <p className="text-xs text-gray-400 line-clamp-2">
+                    <span className="font-medium text-gray-300">Why it's valuable:</span> {item.description}
+                  </p>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
