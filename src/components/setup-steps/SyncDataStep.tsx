@@ -71,20 +71,15 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete }) => {
       }
 
       // Trigger the n8n webhook for the Multi-Team Data Sync Agent
-      const webhookUrl = 'https://healthrocket.app.n8n.cloud/webhook/21473ebb-405d-4be1-ab71-6bf2a2d4063b';
+      const webhookUrl = `https://healthrocket.app.n8n.cloud/webhook/21473ebb-405d-4be1-ab71-6bf2a2d4063b?team_id=${teamId}&trigger_source=guided_setup&immediate=true`;
 
       console.log('Calling n8n webhook to trigger sync for team:', teamId);
 
       const response = await fetch(webhookUrl, {
-        method: 'POST',
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          team_id: teamId,
-          trigger_source: 'guided_setup',
-          immediate: true,
-        }),
       });
 
       if (!response.ok) {
