@@ -168,8 +168,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
       loadAllMetrics();
       loadPreviewRequests();
       loadActiveUsersToday();
+    } else if (isOpen && user && !isSuperAdmin) {
+      // User is not a super admin
+      setLoading(false);
+    } else if (isOpen && !authLoading && !user) {
+      // Not authenticated
+      setLoading(false);
     }
-  }, [isOpen, timeFilter, user, isSuperAdmin]);
+  }, [isOpen, timeFilter, user, isSuperAdmin, authLoading]);
 
   const loadAllMetrics = async () => {
     setLoading(true);
@@ -180,6 +186,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
         throw new Error('No active session');
       }
 
+      // Create an AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-dashboard-data`,
         {
@@ -187,18 +197,34 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
             'Authorization': `Bearer ${session.access_token}`,
             'Content-Type': 'application/json',
           },
+          signal: controller.signal,
         }
       );
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to fetch admin data');
+        const errorText = await response.text();
+        let errorMessage = 'Failed to fetch admin data';
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.error || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
       await processAdminDashboardData(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading metrics:', error);
+      // Show user-friendly error
+      if (error.name === 'AbortError') {
+        alert('Request timed out. The server might be slow or the Edge Function may not be deployed. Please try again.');
+      } else {
+        alert(`Failed to load admin dashboard: ${error.message}`);
+      }
     } finally {
       setLoading(false);
     }
