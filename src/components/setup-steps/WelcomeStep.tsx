@@ -11,7 +11,7 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onComplete }) => {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-orange-600 via-green-600 to-blue-600 mb-6">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 mb-6">
           <Rocket className="w-10 h-10 text-white" />
         </div>
         <h2 className="text-3xl font-bold text-white mb-4">
@@ -57,7 +57,7 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onComplete }) => {
       <div className="flex justify-center pt-4">
         <button
           onClick={onComplete}
-          className="px-8 py-3 bg-gradient-to-r from-orange-600 via-green-600 to-blue-600 hover:from-orange-700 hover:via-green-700 hover:to-blue-700 text-white rounded-lg font-medium text-lg transition-all transform hover:scale-105 min-h-[44px]"
+          className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium text-lg transition-all transform hover:scale-105 min-h-[44px]"
         >
           Let's Get Started →
         </button>

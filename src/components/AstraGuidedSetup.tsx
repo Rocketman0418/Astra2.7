@@ -67,6 +67,15 @@ export const AstraGuidedSetup: React.FC<AstraGuidedSetupProps> = ({ isOpen, onCl
     }
   };
 
+  const handleGoToStep = (stepNumber: number) => {
+    // Allow navigation to current step or any previous completed step
+    if (stepNumber <= currentStep) {
+      setCurrentStep(stepNumber);
+      // Update current_step in database
+      updateProgress({ current_step: stepNumber });
+    }
+  };
+
   const handleClose = () => {
     if (progress?.is_completed || window.confirm('Are you sure you want to exit the setup guide? Your progress will be saved.')) {
       onClose();
@@ -89,7 +98,7 @@ export const AstraGuidedSetup: React.FC<AstraGuidedSetupProps> = ({ isOpen, onCl
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 overflow-hidden">
       <div className="h-full flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-orange-600 via-green-600 to-blue-600 p-6">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white">Astra Guided Setup</h1>
@@ -116,18 +125,23 @@ export const AstraGuidedSetup: React.FC<AstraGuidedSetupProps> = ({ isOpen, onCl
                 const isCompleted = progress ? progress[`step_${stepNum}_${getStepKey(stepNum)}` as keyof typeof progress] === true : false;
                 const isCurrent = stepNum === currentStep;
                 const isPast = stepNum < currentStep;
+                const isClickable = stepNum <= currentStep;
 
                 return (
                   <div key={stepNum} className="flex items-center">
                     <div className="flex flex-col items-center">
-                      <div
+                      <button
+                        onClick={() => isClickable && handleGoToStep(stepNum)}
+                        disabled={!isClickable}
                         className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                           isCompleted || isPast
-                            ? 'bg-green-600 text-white'
+                            ? 'bg-purple-600 text-white hover:bg-purple-700 cursor-pointer'
                             : isCurrent
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-700 text-gray-400'
-                        }`}
+                            ? 'bg-blue-600 text-white cursor-default'
+                            : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                        } ${isClickable && !isCurrent ? 'hover:scale-110' : ''}`}
+                        title={isClickable ? `Go to ${title}` : title}
+                        aria-label={isClickable ? `Go to step ${stepNum}: ${title}` : `Step ${stepNum}: ${title}`}
                       >
                         {isCompleted || isPast ? (
                           <CheckCircle className="w-5 h-5" />
@@ -136,15 +150,15 @@ export const AstraGuidedSetup: React.FC<AstraGuidedSetupProps> = ({ isOpen, onCl
                         ) : (
                           <Circle className="w-5 h-5" />
                         )}
-                      </div>
+                      </button>
                       <span className={`text-xs mt-2 hidden md:block ${isCurrent ? 'text-white font-medium' : 'text-gray-400'}`}>
                         {stepNum}
                       </span>
                     </div>
                     {stepNum < STEP_TITLES.length && (
                       <div
-                        className={`w-8 h-1 mx-1 ${
-                          isPast ? 'bg-green-600' : 'bg-gray-700'
+                        className={`w-8 h-1 mx-1 transition-colors ${
+                          isPast ? 'bg-purple-600' : 'bg-gray-700'
                         }`}
                       />
                     )}
