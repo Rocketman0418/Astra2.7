@@ -15,7 +15,7 @@ interface CalculatorInputs {
 }
 
 export const PricingStrategyPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'recommended' | 'calculator' | 'comparison' | 'ask-astra'>('recommended');
+  const [activeTab, setActiveTab] = useState<'recommended' | 'calculator' | 'comparison' | 'ask-astra' | 'alternatives'>('recommended');
 
   const [inputs, setInputs] = useState<CalculatorInputs>({
     strategyType: 'trial',
@@ -144,6 +144,7 @@ export const PricingStrategyPage: React.FC = () => {
               { id: 'recommended', label: 'Plan Overview', icon: Crown },
               { id: 'calculator', label: 'Live Calculator', icon: Calculator },
               { id: 'comparison', label: 'Side-by-Side', icon: TrendingUp },
+              { id: 'alternatives', label: 'Alternative Options', icon: Target },
               { id: 'ask-astra', label: 'Ask Astra', icon: MessageSquare }
             ].map(tab => (
               <button
@@ -181,6 +182,10 @@ export const PricingStrategyPage: React.FC = () => {
 
         {activeTab === 'comparison' && (
           <ComprehensiveComparison formatCurrency={formatCurrency} formatNumber={formatNumber} />
+        )}
+
+        {activeTab === 'alternatives' && (
+          <AlternativeOptions />
         )}
 
         {activeTab === 'ask-astra' && (
@@ -727,10 +732,10 @@ const ComprehensiveComparison: React.FC<any> = ({ formatCurrency, formatNumber }
             </thead>
             <tbody>
               <ComparisonRow
-                feature="Chat & Usage Limits"
-                free="None"
-                pro="None"
-                plus="None"
+                feature="Chat & Usage"
+                free="Unlimited"
+                pro="Unlimited"
+                plus="Unlimited"
                 highlight="all"
               />
               <ComparisonRow
@@ -819,6 +824,317 @@ const ComparisonRow: React.FC<any> = ({ feature, free, pro, plus, highlight }) =
     </td>
   </tr>
 );
+
+// Alternative Options Component
+const AlternativeOptions: React.FC = () => {
+  return (
+    <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-orange-500/10 via-yellow-500/10 to-orange-500/10 rounded-xl p-6 border border-gray-700">
+        <h2 className="text-2xl font-bold mb-2">Alternative Pricing Strategies</h2>
+        <p className="text-gray-400">
+          Other approaches we considered before landing on the current tiered freemium model
+        </p>
+      </div>
+
+      {/* Option 1: Simple Free + Pro */}
+      <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+        <div className="flex items-start gap-3 mb-4">
+          <Target className="w-6 h-6 text-blue-500 mt-1 flex-shrink-0" />
+          <div>
+            <h3 className="text-xl font-bold mb-2">Option 1: Simple Two-Tier (Free + Pro Only)</h3>
+            <p className="text-gray-400 text-sm">Basic freemium with just Free ($0) and Pro ($99/month)</p>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6 mt-6">
+          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+            <h4 className="font-semibold text-green-400 mb-3 flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              Pros
+            </h4>
+            <ul className="space-y-2 text-sm text-gray-300">
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-1">•</span>
+                <span>Extremely Simple Decision for Users - Only one upgrade path</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-1">•</span>
+                <span>Lower Cognitive Load - No need to compare multiple paid tiers</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-1">•</span>
+                <span>Easier to Market - Clear messaging: "Free or Pro"</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-1">•</span>
+                <span>Simpler Development - Less feature gating complexity</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+            <h4 className="font-semibold text-red-400 mb-3 flex items-center gap-2">
+              <X className="w-5 h-5" />
+              Cons
+            </h4>
+            <ul className="space-y-2 text-sm text-gray-300">
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>Leaves Money on the Table - Power users would pay more</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>No Anchor Effect - No premium tier to make Pro seem reasonable</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>Limited Team Monetization - Single price point for all team sizes</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>Harder to Upsell - No natural progression beyond Pro</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Option 2: Usage-Based Pricing */}
+      <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+        <div className="flex items-start gap-3 mb-4">
+          <Calculator className="w-6 h-6 text-purple-500 mt-1 flex-shrink-0" />
+          <div>
+            <h3 className="text-xl font-bold mb-2">Option 2: Usage-Based Pricing</h3>
+            <p className="text-gray-400 text-sm">Pay per visualization, AI message, or document synced</p>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6 mt-6">
+          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+            <h4 className="font-semibold text-green-400 mb-3 flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              Pros
+            </h4>
+            <ul className="space-y-2 text-sm text-gray-300">
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-1">•</span>
+                <span>Fair Pricing Model - Users pay for what they actually use</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-1">•</span>
+                <span>Lower Entry Barrier - Small users pay very little</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-1">•</span>
+                <span>Revenue Scales with Value - Heavy users automatically pay more</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-1">•</span>
+                <span>Natural Cost Alignment - Pricing matches infrastructure costs</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+            <h4 className="font-semibold text-red-400 mb-3 flex items-center gap-2">
+              <X className="w-5 h-5" />
+              Cons
+            </h4>
+            <ul className="space-y-2 text-sm text-gray-300">
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>Unpredictable Costs - Users can't budget monthly expenses</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>Usage Anxiety - Users hesitate to use features freely</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>Complex to Understand - Harder to explain than fixed tiers</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>Billing Complexity - More customer support for billing questions</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>Reduces Engagement - Users may avoid features to save money</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Option 3: Seat-Based Only */}
+      <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+        <div className="flex items-start gap-3 mb-4">
+          <Users className="w-6 h-6 text-green-500 mt-1 flex-shrink-0" />
+          <div>
+            <h3 className="text-xl font-bold mb-2">Option 3: Pure Seat-Based Pricing</h3>
+            <p className="text-gray-400 text-sm">Fixed price per user/seat with all features included</p>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6 mt-6">
+          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+            <h4 className="font-semibold text-green-400 mb-3 flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              Pros
+            </h4>
+            <ul className="space-y-2 text-sm text-gray-300">
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-1">•</span>
+                <span>Completely Predictable - Easy for companies to budget</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-1">•</span>
+                <span>Scales with Team Growth - Revenue grows with customer expansion</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-1">•</span>
+                <span>Simple Pricing Math - Count seats, multiply by price</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-1">•</span>
+                <span>Industry Standard - Familiar model (Slack, Notion, etc.)</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+            <h4 className="font-semibold text-red-400 mb-3 flex items-center gap-2">
+              <X className="w-5 h-5" />
+              Cons
+            </h4>
+            <ul className="space-y-2 text-sm text-gray-300">
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>High Barrier for Solo Users - $29/month minimum is steep</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>Discourages Growth - Companies hesitate to add team members</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>No Free Tier - Loses viral/network effect opportunities</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>Seat Management Overhead - Tracking who's active/inactive</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>Power User Opportunity Lost - Heavy users pay same as light users</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Option 4: Trial-Only (No Free Tier) */}
+      <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+        <div className="flex items-start gap-3 mb-4">
+          <Timer className="w-6 h-6 text-yellow-500 mt-1 flex-shrink-0" />
+          <div>
+            <h3 className="text-xl font-bold mb-2">Option 4: Trial-Only Model (No Permanent Free Tier)</h3>
+            <p className="text-gray-400 text-sm">10-day free trial, then must convert to Pro or lose access</p>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6 mt-6">
+          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+            <h4 className="font-semibold text-green-400 mb-3 flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              Pros
+            </h4>
+            <ul className="space-y-2 text-sm text-gray-300">
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-1">•</span>
+                <span>Higher Conversion Pressure - Users must decide: pay or leave</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-1">•</span>
+                <span>Faster Revenue - Convert or churn happens quickly</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-1">•</span>
+                <span>Lower Free User Costs - No permanent free tier infrastructure load</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-1">•</span>
+                <span>Qualified Leads Only - Everyone who tries is serious</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+            <h4 className="font-semibold text-red-400 mb-3 flex items-center gap-2">
+              <X className="w-5 h-5" />
+              Cons
+            </h4>
+            <ul className="space-y-2 text-sm text-gray-300">
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>Massive Churn Risk - Most users will leave after trial</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>No Viral Growth - Can't share/collaborate on free tier</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>Loses Future Converts - Users who need more time are lost</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>Negative Perception - Feels less generous/accessible</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span>Data Loss Fear - Users worry about losing work after trial</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Why Current Model Won */}
+      <div className="bg-gradient-to-r from-green-500/10 via-blue-500/10 to-purple-500/10 rounded-xl p-6 border border-green-500/30">
+        <div className="flex items-start gap-3">
+          <Crown className="w-8 h-8 text-green-500 mt-1 flex-shrink-0" />
+          <div>
+            <h3 className="text-xl font-bold mb-3 text-green-400">Why the Current Three-Tier Model Wins</h3>
+            <div className="space-y-3 text-gray-300">
+              <p className="flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                <span><strong>Maximizes Reach & Revenue:</strong> Free tier drives adoption, Pro captures individuals, Pro Plus monetizes power users and teams</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                <span><strong>Psychological Anchoring:</strong> Pro Plus at $149 makes Pro at $99 feel like a great deal</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                <span><strong>Clear Upgrade Path:</strong> Natural progression as users need more (visualizations → teams → multiple teams)</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                <span><strong>Predictable Costs:</strong> Users know exactly what they'll pay each month, unlike usage-based</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                <span><strong>Viral Growth Enabled:</strong> Free forever tier allows network effects and word-of-mouth</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Ask Astra Component
 const AskAstraPricing: React.FC = () => {
