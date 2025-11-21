@@ -1,4 +1,4 @@
-import React, { KeyboardEvent, useState } from 'react';
+import React, { KeyboardEvent, useState, useRef } from 'react';
 import { Send, Bookmark, X, Reply, Sparkles } from 'lucide-react';
 import { FavoritesDropdown } from './FavoritesDropdown';
 import { SuggestedPromptsModal } from './SuggestedPromptsModal';
@@ -25,16 +25,30 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   replyState,
   onCancelReply
 }) => {
+  const isSubmittingRef = useRef(false);
+
   const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      onSend(value);
+      if (!isSubmittingRef.current && value.trim() && !disabled) {
+        isSubmittingRef.current = true;
+        onSend(value);
+        // Reset after a short delay to prevent rapid duplicate submissions
+        setTimeout(() => {
+          isSubmittingRef.current = false;
+        }, 1000);
+      }
     }
   };
 
   const handleSubmit = () => {
-    if (value.trim() && !disabled) {
+    if (value.trim() && !disabled && !isSubmittingRef.current) {
+      isSubmittingRef.current = true;
       onSend(value);
+      // Reset after a short delay to prevent rapid duplicate submissions
+      setTimeout(() => {
+        isSubmittingRef.current = false;
+      }, 1000);
     }
   };
 

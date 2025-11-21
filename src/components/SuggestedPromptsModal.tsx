@@ -15,6 +15,11 @@ interface SuggestedPromptsModalProps {
 
 const SUGGESTED_PROMPTS: SuggestedPrompt[] = [
   {
+    title: "Get Expert Prompts",
+    prompt: "Acting as an expert prompt engineer, please provide a list of 10 useful prompts that I can submit in order to gain the most value from Astra Intelligence",
+    description: "Unlock Astra's full potential by getting expert-crafted prompts that leverage all data sources and capabilities."
+  },
+  {
     title: "Mission Alignment Analysis",
     prompt: "Summarize our mission, core values, and goals, then analyze how well our recent activities align with them",
     description: "Gets foundational company direction and immediately provides an alignment check against current work."
@@ -75,23 +80,23 @@ export const SuggestedPromptsModal: React.FC<SuggestedPromptsModalProps> = ({
         </div>
 
         <div className="overflow-y-auto max-h-[calc(90vh-120px)] p-6">
-          <div className="space-y-4">
+          <div className="space-y-3">
             {SUGGESTED_PROMPTS.map((item, index) => (
               <button
                 key={index}
                 onClick={() => handleSelectPrompt(item.prompt)}
-                className="w-full text-left p-5 bg-gray-700/50 hover:bg-gray-700 rounded-lg border border-gray-600 hover:border-blue-500 transition-all group"
+                className="w-full text-left p-3 bg-gray-700/50 hover:bg-gray-700 rounded-lg border border-gray-600 hover:border-blue-500 transition-all group"
               >
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-lg font-semibold text-white group-hover:text-blue-400 transition-colors">
+                <div className="flex items-start justify-between mb-1">
+                  <h3 className="text-base font-semibold text-white group-hover:text-blue-400 transition-colors">
                     {item.title}
                   </h3>
-                  <Send className="w-5 h-5 text-blue-400 flex-shrink-0 ml-2" />
+                  <Send className="w-4 h-4 text-blue-400 flex-shrink-0 ml-2 mt-0.5" />
                 </div>
-                <p className="text-sm text-gray-300 mb-3 italic">
+                <p className="text-xs text-gray-300 mb-2 italic line-clamp-2">
                   "{item.prompt}"
                 </p>
-                <p className="text-sm text-gray-400">
+                <p className="text-xs text-gray-400 line-clamp-2">
                   <span className="font-medium text-gray-300">Why it's valuable:</span> {item.description}
                 </p>
               </button>
