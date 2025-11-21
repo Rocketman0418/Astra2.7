@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FolderPlus, CheckCircle, Folder, Loader2, FolderOpen, Plus } from 'lucide-react';
+import { FolderPlus, CheckCircle, Folder, Loader2, FolderOpen, Plus, Search } from 'lucide-react';
 import { SetupGuideProgress } from '../../lib/setup-guide-utils';
 import { getGoogleDriveConnection } from '../../lib/google-drive-oauth';
 import { supabase } from '../../lib/supabase';
@@ -25,6 +25,7 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [error, setError] = useState('');
   const [hasExistingFolders, setHasExistingFolders] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     checkExistingSetup();
@@ -332,21 +333,41 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
           </div>
-        ) : folders.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-400 mb-4">No folders found in your Google Drive</p>
-            <button
-              onClick={() => setViewMode('initial')}
-              className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors min-h-[44px]"
-            >
-              Go Back
-            </button>
-          </div>
         ) : (
           <>
-            <div className="bg-gray-800 rounded-lg p-6 max-h-[400px] overflow-y-auto">
-              <div className="space-y-2">
-                {folders.map((folder) => (
+            {/* Search Bar */}
+            <div className="mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search folders..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {folders.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-400 mb-4">
+                  {searchQuery ? `No folders found matching "${searchQuery}"` : 'No folders found in your Google Drive'}
+                </p>
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setViewMode('initial');
+                  }}
+                  className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors min-h-[44px]"
+                >
+                  Go Back
+                </button>
+              </div>
+            ) : (
+              <div className="bg-gray-800 rounded-lg p-6 max-h-[400px] overflow-y-auto">
+                <div className="space-y-2">
+                  {folders.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase())).map((folder) => (
                   <button
                     key={folder.id}
                     onClick={() => handleSelectFolder(folder)}
@@ -366,13 +387,17 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }
                       <Loader2 className="w-5 h-5 text-purple-400 animate-spin flex-shrink-0" />
                     )}
                   </button>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex justify-center space-x-3">
               <button
-                onClick={() => setViewMode('initial')}
+                onClick={() => {
+                  setSearchQuery('');
+                  setViewMode('initial');
+                }}
                 disabled={loading}
                 className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 min-h-[44px]"
               >

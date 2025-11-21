@@ -59,12 +59,45 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete }) => {
   }, [syncing, syncComplete]);
 
   const triggerSync = async () => {
-    // In a real implementation, this would trigger the n8n workflow
-    // For now, we just simulate the sync and check for data
     console.log('Triggering document sync...');
     setSyncing(true);
 
-    // Start checking immediately
+    try {
+      // Get user's team info
+      const teamId = user?.user_metadata?.team_id;
+      if (!teamId) {
+        console.error('No team ID found for user');
+        return;
+      }
+
+      // Trigger the n8n webhook for the Multi-Team Data Sync Agent
+      // This webhook should be configured in the n8n workflow
+      const webhookUrl = `${import.meta.env.VITE_N8N_WEBHOOK_URL}/webhook/sync-team-data`;
+
+      console.log('Calling n8n webhook to trigger sync:', webhookUrl);
+
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          team_id: teamId,
+          trigger_source: 'guided_setup',
+          immediate: true,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error('Failed to trigger sync webhook:', response.status, response.statusText);
+      } else {
+        console.log('Sync webhook triggered successfully');
+      }
+    } catch (error) {
+      console.error('Error triggering sync:', error);
+    }
+
+    // Start checking for data immediately
     checkSyncedData();
   };
 
