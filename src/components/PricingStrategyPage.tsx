@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { DollarSign, TrendingUp, Users, Calculator, Zap, Crown, Target, AlertCircle, CheckCircle, MessageSquare, Mail, Bell, ArrowRight, Timer, Rocket, Gift, Star, X, Sparkles, FileText, BarChart3, Bot, Briefcase, Shield } from 'lucide-react';
+import { DollarSign, TrendingUp, Users, Calculator, Zap, Crown, Target, AlertCircle, CheckCircle, MessageSquare, Mail, Bell, ArrowRight, Timer, Rocket, Gift, Star, X, Sparkles, FileText, BarChart3, Bot, Briefcase, Shield, Beaker } from 'lucide-react';
 
 type StrategyType = 'trial' | 'freemium';
 
@@ -127,7 +127,7 @@ export const PricingStrategyPage: React.FC = () => {
                 Pricing Strategy Explorer
               </h1>
               <p className="text-gray-400 text-sm mt-1">
-                Free → Pro → Pro Plus: Complete Tiered Strategy
+                Free → Pro → Ultra: Complete Tiered Strategy
               </p>
             </div>
 
@@ -214,7 +214,7 @@ const PlanOverview: React.FC<{
           <div className="flex-1">
             <h2 className="text-2xl font-bold mb-2 text-orange-400">Preview Pass Program - First 300 Only</h2>
             <p className="text-gray-300 mb-4">
-              Starts with 10-day unlimited trial. Get Pro Plus features at an exclusive rate. Limited to first 300 subscribers with lifetime price protection.
+              Starts with 10-day unlimited trial. Get Ultra Plan features with lifetime price protection. Limited to first 300 subscribers.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <div className="bg-gray-900/50 rounded-lg p-3">
@@ -223,7 +223,7 @@ const PlanOverview: React.FC<{
               </div>
               <div className="bg-gray-900/50 rounded-lg p-3">
                 <div className="text-sm text-gray-400">Features</div>
-                <div className="text-lg font-bold text-orange-500">Pro Plus</div>
+                <div className="text-lg font-bold text-orange-500">Ultra</div>
               </div>
               <div className="bg-gray-900/50 rounded-lg p-3">
                 <div className="text-sm text-gray-400">Minimum</div>
@@ -381,13 +381,13 @@ const PlanOverview: React.FC<{
           </div>
         </div>
 
-        {/* Pro Plus Plan */}
+        {/* Ultra Plan */}
         <div className="bg-gray-800 rounded-xl border-2 border-purple-500 overflow-hidden flex flex-col relative">
           <div className="absolute top-0 right-0 bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
             ADVANCED
           </div>
           <div className="p-6 bg-gradient-to-br from-purple-500/20 to-purple-600/10">
-            <h3 className="text-xl font-bold mb-2">Pro Plus Plan</h3>
+            <h3 className="text-xl font-bold mb-2">Ultra Plan</h3>
             <div className="text-3xl font-bold mb-1">
               $149<span className="text-lg text-gray-400">/month</span>
             </div>
@@ -421,6 +421,10 @@ const PlanOverview: React.FC<{
               <div className="flex items-start gap-2">
                 <Sparkles className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                 <span>Create with Astra (Build Custom Software)</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <Beaker className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Beta Access to New Features</span>
               </div>
             </div>
           </div>
@@ -723,7 +727,7 @@ const ComprehensiveComparison: React.FC<any> = ({ formatCurrency, formatNumber }
       <div className="bg-gradient-to-r from-green-500/10 via-blue-500/10 to-purple-500/10 rounded-xl p-6 border border-gray-700">
         <h2 className="text-2xl font-bold mb-2">Complete Plan Comparison</h2>
         <p className="text-gray-400">
-          Side-by-side comparison of Free, Pro, and Pro Plus plans
+          Side-by-side comparison of Free, Pro, and Ultra plans
         </p>
       </div>
 
@@ -744,7 +748,7 @@ const ComprehensiveComparison: React.FC<any> = ({ formatCurrency, formatNumber }
                   <div className="text-xs text-blue-400 font-semibold mt-1">Intro: First 500</div>
                 </th>
                 <th className="p-4 text-center font-semibold border-b border-gray-700 bg-purple-500/10">
-                  <div className="text-lg">Pro Plus</div>
+                  <div className="text-lg">Ultra</div>
                   <div className="text-xs text-gray-400 font-normal">$149/month</div>
                   <div className="text-xs text-purple-400 font-semibold mt-1">Intro: First 500</div>
                 </th>
@@ -823,6 +827,13 @@ const ComprehensiveComparison: React.FC<any> = ({ formatCurrency, formatNumber }
               />
               <ComparisonRow
                 feature="Create with Astra"
+                free="No"
+                pro="No"
+                plus="Yes"
+                highlight="plus"
+              />
+              <ComparisonRow
+                feature="Beta Access to New Features"
                 free="No"
                 pro="No"
                 plus="Yes"
@@ -1137,11 +1148,11 @@ const AlternativeOptions: React.FC = () => {
             <div className="space-y-3 text-gray-300">
               <p className="flex items-start gap-2">
                 <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                <span><strong>Maximizes Reach & Revenue:</strong> Free tier drives adoption, Pro captures individuals, Pro Plus monetizes power users and teams</span>
+                <span><strong>Maximizes Reach & Revenue:</strong> Free tier drives adoption, Pro captures individuals, Ultra monetizes power users and teams</span>
               </p>
               <p className="flex items-start gap-2">
                 <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                <span><strong>Psychological Anchoring:</strong> Pro Plus at $149 makes Pro at $99 feel like a great deal</span>
+                <span><strong>Psychological Anchoring:</strong> Ultra at $149 makes Pro at $99 feel like a great deal</span>
               </p>
               <p className="flex items-start gap-2">
                 <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
@@ -1168,7 +1179,7 @@ const AskAstraPricing: React.FC = () => {
   const [messages, setMessages] = useState<Array<{ id: string; text: string; isUser: boolean }>>([
     {
       id: '1',
-      text: "Hi! I can help you understand the pricing strategy and answer questions about:\n\n• Why unlimited chat and data for all users?\n• How the 10-day trial creates conversion\n• Preview Pass Program ($79/mo for first 300)\n• Free vs Pro vs Pro Plus differences\n• Intro pricing for first 500 subscribers\n\nWhat would you like to know?",
+      text: "Hi! I can help you understand the pricing strategy and answer questions about:\n\n• Why unlimited chat and data for all users?\n• How the 10-day trial creates conversion\n• Preview Pass Program ($79/mo for first 300)\n• Free vs Pro vs Ultra differences\n• Intro pricing for first 500 subscribers\n\nWhat would you like to know?",
       isUser: false
     }
   ]);
@@ -1180,7 +1191,7 @@ const AskAstraPricing: React.FC = () => {
     "Why is chat and data unlimited for free users?",
     "Tell me about the Preview Pass Program",
     "How does the 10-day trial drive conversion?",
-    "Why Pro Plus for only $50 more?",
+    "Why Ultra for only $50 more?",
     "What's the intro pricing for first 500 subscribers?"
   ];
 
@@ -1206,13 +1217,13 @@ const AskAstraPricing: React.FC = () => {
       if (input.toLowerCase().includes('unlimited') || input.toLowerCase().includes('chat') || input.toLowerCase().includes('data')) {
         responseText = "Unlimited chat and data sync for all users is strategic:\n\n1. Low Marginal Cost: Modern AI APIs and storage costs are very low per user\n2. Maximum Engagement: Frequent chat creates habit formation and stickiness\n3. Value Discovery: Users discover value faster with unlimited access\n4. Natural Upgrade Path: Users hit visualization/report limits sooner, creating upgrade pressure\n5. Competitive Advantage: Most competitors limit usage, we don't\n\nIt's a loss leader that drives engagement and conversion.";
       } else if (input.toLowerCase().includes('preview') || input.toLowerCase().includes('$79')) {
-        responseText = "Preview Pass Program ($79/month for first 300 subscribers):\n\n• Full Pro Plus features at nearly 50% off\n• Lifetime price protection (stays $79/mo forever)\n• 3-month minimum subscription required\n• Cancel anytime after 3 months\n• Includes: Unlimited visualizations, reports, 3 teams, unlimited agents/jobs, Create with Astra\n\nThis creates 300 power users who become evangelists. They get insane value ($149 features for $79) and will refer others. Future price increases make their deal even better over time.";
+        responseText = "Preview Pass Program ($79/month for first 300 subscribers):\n\n• Full Ultra Plan features at nearly 50% off\n• Lifetime price protection (stays $79/mo forever)\n• 3-month minimum subscription required\n• Cancel anytime after 3 months\n• Includes: Unlimited visualizations, reports, 3 teams, unlimited agents/jobs, Create with Astra, Beta access to new features\n\nThis creates 300 power users who become evangelists. They get insane value ($149 features for $79) and will refer others. Future price increases make their deal even better over time.";
       } else if (input.toLowerCase().includes('10-day') || input.toLowerCase().includes('conversion')) {
         responseText = "The 10-day unlimited trial is designed for fast value demonstration:\n\n• Days 1-3: Complete setup with unlimited features\n• Days 4-6: Explore power features (agents, jobs, teams)\n• Days 7-9: See measurable value and time saved\n• Day 10: Natural decision point while value is fresh\n\nUnlimited access during trial means users experience the FULL product, not a limited version. They know exactly what they'll lose if they downgrade to Free.";
       } else if (input.toLowerCase().includes('plus') || input.toLowerCase().includes('$50')) {
-        responseText = "Pro Plus at $149 ($50 more than Pro) targets:\n\n• Multi-team organizations\n• Users who need multiple custom agents\n• Companies with complex automation needs\n\nThe $50 premium is strategic:\n1. Not too expensive (< 2x Pro price)\n2. Covers cost of unlimited agents/jobs\n3. Volume pricing on members (scale-friendly)\n4. Creates clear upgrade path from Pro\n\nExpect 20-25% of Pro users to eventually upgrade to Plus.";
+        responseText = "Ultra at $149 ($50 more than Pro) targets:\n\n• Multi-team organizations\n• Users who need multiple custom agents\n• Companies with complex automation needs\n• Early adopters who want beta access to new features\n\nThe $50 premium is strategic:\n1. Not too expensive (< 2x Pro price)\n2. Covers cost of unlimited agents/jobs\n3. Volume pricing on members (scale-friendly)\n4. Beta access creates exclusivity\n5. Creates clear upgrade path from Pro\n\nExpect 20-25% of Pro users to eventually upgrade to Ultra.";
       } else if (input.toLowerCase().includes('intro') || input.toLowerCase().includes('first 500') || input.toLowerCase().includes('500')) {
-        responseText = "Intro pricing for first 500 subscribers:\n\n• Pro: $99/mo (then $149/mo)\n• Pro Plus: $149/mo (then $249/mo)\n• Saves $50-100/month for early adopters\n• NOT lifetime - price increases after first 500\n\nThis creates urgency ('only 500 spots') while keeping long-term pricing flexible. Early adopters get 33-40% discount during intro period. After 500 subscribers, prices reflect true value and market positioning.";
+        responseText = "Intro pricing for first 500 subscribers:\n\n• Pro: $99/mo (then $149/mo)\n• Ultra: $149/mo (then $249/mo)\n• Saves $50-100/month for early adopters\n• NOT lifetime - price increases after first 500\n\nThis creates urgency ('only 500 spots') while keeping long-term pricing flexible. Early adopters get 33-40% discount during intro period. After 500 subscribers, prices reflect true value and market positioning.";
       }
 
       const response = {
