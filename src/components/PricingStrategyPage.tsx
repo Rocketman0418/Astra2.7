@@ -131,7 +131,7 @@ export const PricingStrategyPage: React.FC = () => {
 
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <div className="text-xs text-gray-500">Cohort 1 Pricing</div>
+                <div className="text-xs text-gray-500">Tier 1 Pricing</div>
                 <div className="text-sm font-semibold text-green-500">First 100 Subscribers</div>
               </div>
               <Star className="w-8 h-8 text-green-500" />
@@ -244,20 +244,20 @@ const PlanOverview: React.FC<{
           <div className="p-6 flex-1">
             <div className="space-y-3 text-sm">
               <div className="flex items-start gap-2">
-                <FileText className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Unlimited Document Sync</span>
+                <MessageSquare className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>No Chat or Usage Limits</span>
               </div>
               <div className="flex items-start gap-2">
-                <MessageSquare className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Unlimited Astra Messages</span>
+                <FileText className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Unlimited Data Sync</span>
               </div>
               <div className="flex items-start gap-2">
                 <BarChart3 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>5 Custom Visualizations Per Week</span>
+                <span>3 Custom Visualizations Per Week</span>
               </div>
               <div className="flex items-start gap-2">
                 <FileText className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>1 Scheduled Report Per Week</span>
+                <span>1 Automated Report Per Week</span>
               </div>
               <div className="flex items-start gap-2">
                 <Mail className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
@@ -297,7 +297,8 @@ const PlanOverview: React.FC<{
             <div className="text-3xl font-bold mb-1">
               $99<span className="text-lg text-gray-400">/month</span>
             </div>
-            <div className="text-sm text-blue-400 font-semibold">Cohort 1 Price - First 100</div>
+            <div className="text-sm text-blue-400 font-semibold">Tier 1 Price for First 100 Subscribers</div>
+            <div className="text-xs text-blue-300 mt-1">Lifetime Price Protection</div>
           </div>
 
           <div className="p-6 flex-1">
@@ -312,11 +313,11 @@ const PlanOverview: React.FC<{
               </div>
               <div className="flex items-start gap-2">
                 <FileText className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Unlimited Scheduled Reports</span>
+                <span>Unlimited Automated Reports</span>
               </div>
               <div className="flex items-start gap-2">
                 <DollarSign className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Financial Analysis (If Enabled)</span>
+                <span>Financial Analysis</span>
               </div>
               <div className="flex items-start gap-2">
                 <Users className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
@@ -352,7 +353,8 @@ const PlanOverview: React.FC<{
             <div className="text-3xl font-bold mb-1">
               $149<span className="text-lg text-gray-400">/month</span>
             </div>
-            <div className="text-sm text-purple-400 font-semibold">Cohort 1 Price - First 100</div>
+            <div className="text-sm text-purple-400 font-semibold">Tier 1 Price for First 100 Subscribers</div>
+            <div className="text-xs text-purple-300 mt-1">Lifetime Price Protection</div>
           </div>
 
           <div className="p-6 flex-1">
@@ -725,14 +727,14 @@ const ComprehensiveComparison: React.FC<any> = ({ formatCurrency, formatNumber }
             </thead>
             <tbody>
               <ComparisonRow
-                feature="Document Sync"
-                free="Unlimited"
-                pro="Unlimited"
-                plus="Unlimited"
+                feature="Chat & Usage Limits"
+                free="None"
+                pro="None"
+                plus="None"
                 highlight="all"
               />
               <ComparisonRow
-                feature="Astra Messages"
+                feature="Data Sync"
                 free="Unlimited"
                 pro="Unlimited"
                 plus="Unlimited"
@@ -740,14 +742,14 @@ const ComprehensiveComparison: React.FC<any> = ({ formatCurrency, formatNumber }
               />
               <ComparisonRow
                 feature="Custom Visualizations"
-                free="5 per week"
+                free="3 Per Week"
                 pro="Unlimited"
                 plus="Unlimited"
                 highlight="pro"
               />
               <ComparisonRow
-                feature="Scheduled Reports"
-                free="1 per week"
+                feature="Automated Reports"
+                free="1 Per Week"
                 pro="Unlimited"
                 plus="Unlimited"
                 highlight="pro"
