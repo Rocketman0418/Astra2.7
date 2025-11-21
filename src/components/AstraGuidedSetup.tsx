@@ -39,6 +39,7 @@ export const AstraGuidedSetup: React.FC<AstraGuidedSetupProps> = ({ isOpen, onCl
   const { user } = useAuth();
   const { progress, loading, dataContext, markStepComplete, updateProgress, refreshProgress } = useSetupGuide();
   const [currentStep, setCurrentStep] = useState(1);
+  const [folderData, setFolderData] = useState<any>(null);
 
   // Sync current step with progress
   useEffect(() => {
@@ -192,7 +193,10 @@ export const AstraGuidedSetup: React.FC<AstraGuidedSetupProps> = ({ isOpen, onCl
             )}
             {currentStep === 3 && (
               <ChooseFolderStep
-                onComplete={(folderData) => handleStepComplete(3, folderData)}
+                onComplete={(data) => {
+                  setFolderData(data);
+                  handleStepComplete(3, data);
+                }}
                 progress={progress}
               />
             )}
@@ -200,6 +204,7 @@ export const AstraGuidedSetup: React.FC<AstraGuidedSetupProps> = ({ isOpen, onCl
               <PlaceFilesStep
                 onComplete={() => handleStepComplete(4)}
                 progress={progress}
+                folderData={folderData}
               />
             )}
             {currentStep === 5 && (

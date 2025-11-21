@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
+import { RefreshCw, CheckCircle, AlertCircle, Sparkles } from 'lucide-react';
 import { SetupGuideProgress } from '../../lib/setup-guide-utils';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -9,166 +9,301 @@ interface SyncDataStepProps {
   progress: SetupGuideProgress | null;
 }
 
+const ROTATING_QUESTIONS = [
+  "What is our team's mission and how can we better align our daily work with it?",
+  "What are the top 3 strategic priorities we should focus on this quarter?",
+  "How do our core values show up in our recent team decisions and meetings?",
+  "What progress have we made toward our one-year goals?",
+  "Are there any gaps between our stated goals and our actual activities?",
+  "What unique strengths does our team have that we should leverage more?",
+  "How can we better communicate our strategic direction to new team members?",
+  "What metrics should we track to ensure we're moving in the right direction?",
+  "How do our current projects align with our three-year vision?",
+  "What problems are we solving that matter most to our customers?"
+];
+
 export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete }) => {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [hasSyncedData, setHasSyncedData] = useState(false);
+  const [syncing, setSyncing] = useState(true);
+  const [syncComplete, setSyncComplete] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [chunkCounts, setChunkCounts] = useState<{ meetings: number; strategy: number; financial: number }>({ meetings: 0, strategy: 0, financial: 0 });
+  const [checkAttempts, setCheckAttempts] = useState(0);
+  const maxCheckAttempts = 30; // Check for up to 60 seconds (30 * 2s intervals)
 
   useEffect(() => {
+    // Start syncing process
+    triggerSync();
+  }, []);
+
+  useEffect(() => {
+    // Rotate questions every 5 seconds while syncing
+    if (syncing && !syncComplete) {
+      const interval = setInterval(() => {
+        setCurrentQuestionIndex((prev) => (prev + 1) % ROTATING_QUESTIONS.length);
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }
+  }, [syncing, syncComplete]);
+
+  useEffect(() => {
+    // Poll for synced data every 2 seconds
+    if (syncing && !syncComplete) {
+      const interval = setInterval(() => {
+        checkSyncedData();
+      }, 2000);
+
+      return () => clearInterval(interval);
+    }
+  }, [syncing, syncComplete]);
+
+  const triggerSync = async () => {
+    // In a real implementation, this would trigger the n8n workflow
+    // For now, we just simulate the sync and check for data
+    console.log('Triggering document sync...');
+    setSyncing(true);
+
+    // Start checking immediately
     checkSyncedData();
-  }, [user]);
+  };
 
   const checkSyncedData = async () => {
-    if (!user) return;
-    setLoading(true);
+    if (!user || syncComplete) return;
+
     try {
       const teamId = user.user_metadata?.team_id;
-      if (teamId) {
-        const [meetingsData, strategyData, financialData] = await Promise.all([
-          supabase.from('document_chunks_meetings').select('id', { count: 'exact', head: true }).eq('team_id', teamId),
-          supabase.from('document_chunks_strategy').select('id', { count: 'exact', head: true }).eq('team_id', teamId),
-          supabase.from('document_chunks_financial').select('id', { count: 'exact', head: true }).eq('team_id', teamId)
-        ]);
+      if (!teamId) return;
 
-        const counts = {
-          meetings: meetingsData.count || 0,
-          strategy: strategyData.count || 0,
-          financial: financialData.count || 0
-        };
+      const [meetingsData, strategyData, financialData] = await Promise.all([
+        supabase.from('document_chunks_meetings').select('id', { count: 'exact', head: true }).eq('team_id', teamId),
+        supabase.from('document_chunks_strategy').select('id', { count: 'exact', head: true }).eq('team_id', teamId),
+        supabase.from('document_chunks_financial').select('id', { count: 'exact', head: true }).eq('team_id', teamId)
+      ]);
 
-        setChunkCounts(counts);
-        setHasSyncedData(counts.meetings > 0 || counts.strategy > 0 || counts.financial > 0);
+      const counts = {
+        meetings: meetingsData.count || 0,
+        strategy: strategyData.count || 0,
+        financial: financialData.count || 0
+      };
+
+      setChunkCounts(counts);
+
+      // Check if we have any synced data
+      if (counts.meetings > 0 || counts.strategy > 0 || counts.financial > 0) {
+        setSyncing(false);
+        setSyncComplete(true);
+      } else {
+        // Increment check attempts
+        setCheckAttempts(prev => prev + 1);
+
+        // If we've exceeded max attempts, stop syncing
+        if (checkAttempts >= maxCheckAttempts) {
+          setSyncing(false);
+          // syncComplete stays false
+        }
       }
     } catch (error) {
       console.error('Error checking synced data:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  if (loading) {
+  // Syncing in progress view
+  if (syncing && !syncComplete) {
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-600/20 mb-4">
-            <RefreshCw className="w-8 h-8 text-orange-400 animate-spin" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-600/20 to-purple-600/20 mb-6 animate-pulse">
+            <RefreshCw className="w-10 h-10 text-blue-400 animate-spin" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-3">Sync Your Data</h2>
-          <p className="text-gray-300">Checking your synced data...</p>
+          <h2 className="text-3xl font-bold text-white mb-3">Syncing Your Documents...</h2>
+          <p className="text-gray-300 mb-2">
+            Astra is processing your strategy documents and will be ready shortly
+          </p>
+          <p className="text-sm text-gray-400">
+            This may take a minute or two depending on the number of documents
+          </p>
+        </div>
+
+        {/* Animated Progress Bar */}
+        <div className="bg-gray-800 rounded-lg p-6">
+          <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 animate-progress-indeterminate" />
+          </div>
+        </div>
+
+        {/* Rotating Questions */}
+        <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-700/50 rounded-lg p-6 min-h-[200px] flex flex-col items-center justify-center">
+          <div className="flex items-center space-x-2 mb-4">
+            <Sparkles className="w-6 h-6 text-purple-400" />
+            <h3 className="text-lg font-semibold text-white">Questions You'll Be Able to Ask Astra:</h3>
+          </div>
+          <div className="text-center">
+            <p className="text-lg text-purple-200 italic transition-opacity duration-500">
+              "{ROTATING_QUESTIONS[currentQuestionIndex]}"
+            </p>
+          </div>
+          <div className="mt-6 flex items-center space-x-2">
+            {ROTATING_QUESTIONS.map((_, idx) => (
+              <div
+                key={idx}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  idx === currentQuestionIndex
+                    ? 'w-8 bg-purple-400'
+                    : 'w-2 bg-gray-600'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-4">
+          <p className="text-sm text-blue-300">
+            <span className="font-medium">💡 What's happening:</span> Your documents are being read, chunked, and vectorized for intelligent search. Once complete, Astra will have deep insights into your team's strategy, mission, and goals.
+          </p>
         </div>
       </div>
     );
   }
 
-  if (hasSyncedData) {
+  // Sync complete view
+  if (syncComplete) {
     const totalChunks = chunkCounts.meetings + chunkCounts.strategy + chunkCounts.financial;
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-600/20 mb-4">
-            <CheckCircle className="w-8 h-8 text-orange-400" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-600/20 mb-6 animate-bounce">
+            <CheckCircle className="w-10 h-10 text-green-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-3">Data Successfully Synced!</h2>
-          <p className="text-gray-300">Your documents have been processed and are ready for AI analysis.</p>
+          <h2 className="text-3xl font-bold text-white mb-3">Sync Complete!</h2>
+          <p className="text-gray-300">
+            Your documents have been successfully processed and Astra is ready to help
+          </p>
         </div>
 
         <div className="bg-gray-800 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Sync Summary</h3>
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-400" />
+            Sync Summary
+          </h3>
           <div className="space-y-3">
-            {chunkCounts.meetings > 0 && (
-              <div className="flex items-center justify-between bg-gray-900/50 rounded-lg p-3">
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">📊</span>
-                  <div>
-                    <p className="text-white font-medium">Meetings Data</p>
-                    <p className="text-xs text-gray-400">{chunkCounts.meetings.toLocaleString()} chunks processed</p>
-                  </div>
-                </div>
-                <CheckCircle className="w-5 h-5 text-green-400" />
-              </div>
-            )}
             {chunkCounts.strategy > 0 && (
-              <div className="flex items-center justify-between bg-gray-900/50 rounded-lg p-3">
+              <div className="flex items-center justify-between bg-gray-900/50 rounded-lg p-4">
                 <div className="flex items-center space-x-3">
-                  <span className="text-2xl">🎯</span>
+                  <span className="text-3xl">🎯</span>
                   <div>
-                    <p className="text-white font-medium">Strategy Data</p>
+                    <p className="text-white font-medium">Strategy Documents</p>
                     <p className="text-xs text-gray-400">{chunkCounts.strategy.toLocaleString()} chunks processed</p>
                   </div>
                 </div>
-                <CheckCircle className="w-5 h-5 text-green-400" />
+                <CheckCircle className="w-6 h-6 text-green-400" />
+              </div>
+            )}
+            {chunkCounts.meetings > 0 && (
+              <div className="flex items-center justify-between bg-gray-900/50 rounded-lg p-4">
+                <div className="flex items-center space-x-3">
+                  <span className="text-3xl">📊</span>
+                  <div>
+                    <p className="text-white font-medium">Meeting Notes</p>
+                    <p className="text-xs text-gray-400">{chunkCounts.meetings.toLocaleString()} chunks processed</p>
+                  </div>
+                </div>
+                <CheckCircle className="w-6 h-6 text-green-400" />
               </div>
             )}
             {chunkCounts.financial > 0 && (
-              <div className="flex items-center justify-between bg-gray-900/50 rounded-lg p-3">
+              <div className="flex items-center justify-between bg-gray-900/50 rounded-lg p-4">
                 <div className="flex items-center space-x-3">
-                  <span className="text-2xl">💰</span>
+                  <span className="text-3xl">💰</span>
                   <div>
-                    <p className="text-white font-medium">Financial Data</p>
+                    <p className="text-white font-medium">Financial Documents</p>
                     <p className="text-xs text-gray-400">{chunkCounts.financial.toLocaleString()} chunks processed</p>
                   </div>
                 </div>
-                <CheckCircle className="w-5 h-5 text-green-400" />
+                <CheckCircle className="w-6 h-6 text-green-400" />
               </div>
             )}
           </div>
           <div className="mt-4 pt-4 border-t border-gray-700">
-            <p className="text-sm text-gray-400">Total: <span className="text-white font-medium">{totalChunks.toLocaleString()} chunks</span> ready for AI queries</p>
+            <p className="text-sm text-gray-400">
+              Total: <span className="text-white font-medium">{totalChunks.toLocaleString()} chunks</span> ready for AI-powered insights
+            </p>
           </div>
         </div>
 
-        <div className="bg-green-900/20 border border-green-700 rounded-lg p-4">
-          <p className="text-sm text-green-300">
-            <span className="font-medium">✅ Sync Complete!</span> Astra can now answer questions about your documents.
-          </p>
+        <div className="bg-green-900/20 border border-green-700 rounded-lg p-6">
+          <h4 className="text-white font-medium mb-3 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-green-400" />
+            What Astra Can Do Now:
+          </h4>
+          <ul className="space-y-2 text-sm text-green-300">
+            <li className="flex items-start space-x-2">
+              <span className="text-green-400 mt-0.5">✓</span>
+              <span>Answer questions about your team's mission, values, and strategic direction</span>
+            </li>
+            <li className="flex items-start space-x-2">
+              <span className="text-green-400 mt-0.5">✓</span>
+              <span>Provide insights on your goals and help track progress toward objectives</span>
+            </li>
+            <li className="flex items-start space-x-2">
+              <span className="text-green-400 mt-0.5">✓</span>
+              <span>Analyze alignment between strategy documents and team activities</span>
+            </li>
+            <li className="flex items-start space-x-2">
+              <span className="text-green-400 mt-0.5">✓</span>
+              <span>Generate reports and visualizations based on your synced data</span>
+            </li>
+          </ul>
         </div>
 
         <div className="flex justify-center pt-4">
-          <button onClick={onComplete} className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all min-h-[44px]">
-            Next: Team Settings →
+          <button
+            onClick={onComplete}
+            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl min-h-[44px]"
+          >
+            Next: Configure Team Settings →
           </button>
         </div>
       </div>
     );
   }
 
+  // No data found after waiting
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-600/20 mb-4">
-          <RefreshCw className="w-8 h-8 text-orange-400" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-600/20 mb-4">
+          <AlertCircle className="w-8 h-8 text-yellow-400" />
         </div>
-        <h2 className="text-2xl font-bold text-white mb-3">Sync Your Data</h2>
-        <p className="text-gray-300">Process your documents so Astra can analyze them</p>
+        <h2 className="text-2xl font-bold text-white mb-3">Sync Not Complete Yet</h2>
+        <p className="text-gray-300">
+          Documents are still being processed. This can take a few minutes.
+        </p>
       </div>
 
       <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-4">
-        <div className="flex items-start space-x-3">
-          <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm text-yellow-300">
-              <span className="font-medium">No synced data found.</span> Your documents need to be processed by the n8n workflow. This happens automatically once files are added to your folders.
-            </p>
-          </div>
-        </div>
+        <p className="text-sm text-yellow-300">
+          <span className="font-medium">⏳ Please wait:</span> The document sync is handled by our n8n workflow and may take 2-5 minutes depending on the number and size of documents. You can continue with the setup and check back later.
+        </p>
       </div>
 
-      <div className="bg-gray-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">What Happens During Sync:</h3>
-        <div className="space-y-3">
-          {['Documents are read from your Google Drive folders', 'Content is chunked and vectorized for AI search', 'Data is securely stored in your team database', 'Astra can now answer questions about your content'].map((item, idx) => (
-            <div key={idx} className="flex items-start space-x-3">
-              <CheckCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-              <span className="text-gray-300">{item}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex justify-center pt-4">
-        <button onClick={onComplete} className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all min-h-[44px]">
-          Continue →
+      <div className="flex justify-center gap-3 pt-4">
+        <button
+          onClick={() => {
+            setCheckAttempts(0);
+            setSyncing(true);
+            checkSyncedData();
+          }}
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center space-x-2 min-h-[44px]"
+        >
+          <RefreshCw className="w-5 h-5" />
+          <span>Check Again</span>
+        </button>
+        <button
+          onClick={onComplete}
+          className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all min-h-[44px]"
+        >
+          Continue Anyway →
         </button>
       </div>
     </div>

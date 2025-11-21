@@ -49,6 +49,21 @@
     @apply bg-gray-500;
   }
 
+  /* Progress bar animation */
+  @keyframes progress-indeterminate {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(400%);
+    }
+  }
+
+  .animate-progress-indeterminate {
+    width: 25%;
+    animation: progress-indeterminate 1.5s ease-in-out infinite;
+  }
+
   /* Custom scrollbar utility class */
   .custom-scrollbar::-webkit-scrollbar {
     width: 8px;

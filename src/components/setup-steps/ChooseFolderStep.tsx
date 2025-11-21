@@ -1,29 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { FolderPlus, CheckCircle, Folder } from 'lucide-react';
+import { FolderPlus, CheckCircle, Folder, Loader2, FolderOpen, Plus } from 'lucide-react';
 import { SetupGuideProgress } from '../../lib/setup-guide-utils';
 import { getGoogleDriveConnection } from '../../lib/google-drive-oauth';
+import { supabase } from '../../lib/supabase';
 
 interface ChooseFolderStepProps {
   onComplete: (folderData: any) => void;
   progress: SetupGuideProgress | null;
 }
 
-interface ConnectedFolder {
-  type: 'meetings' | 'strategy' | 'financial';
-  ids: string[];
-  count: number;
+interface GoogleDriveFolder {
+  id: string;
+  name: string;
+  createdTime?: string;
 }
 
+type ViewMode = 'initial' | 'select-existing' | 'creating-new';
+
 export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }) => {
+  const [viewMode, setViewMode] = useState<ViewMode>('initial');
   const [loading, setLoading] = useState(true);
-  const [connectedFolders, setConnectedFolders] = useState<ConnectedFolder[]>([]);
-  const [hasAnyFolders, setHasAnyFolders] = useState(false);
+  const [folders, setFolders] = useState<GoogleDriveFolder[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<GoogleDriveFolder | null>(null);
+  const [creatingFolder, setCreatingFolder] = useState(false);
+  const [error, setError] = useState('');
+  const [hasExistingFolders, setHasExistingFolders] = useState(false);
 
   useEffect(() => {
-    checkConnectedFolders();
+    checkExistingSetup();
   }, []);
 
-  const checkConnectedFolders = async () => {
+  const checkExistingSetup = async () => {
     setLoading(true);
     try {
       const connection = await getGoogleDriveConnection();
@@ -33,75 +40,161 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }
         return;
       }
 
-      const folders: ConnectedFolder[] = [];
-
-      // Check meetings folders
-      const meetingIds = connection.selected_meetings_folder_ids || [];
-      if (Array.isArray(meetingIds) && meetingIds.length > 0) {
-        folders.push({
-          type: 'meetings',
-          ids: meetingIds,
-          count: meetingIds.length
-        });
-      }
-
-      // Check strategy folders
+      // Check if strategy folders are already configured
       const strategyIds = connection.selected_strategy_folder_ids || [];
       if (Array.isArray(strategyIds) && strategyIds.length > 0) {
-        folders.push({
-          type: 'strategy',
-          ids: strategyIds,
-          count: strategyIds.length
-        });
+        setHasExistingFolders(true);
       }
-
-      // Check financial folders
-      const financialIds = connection.selected_financial_folder_ids || [];
-      if (Array.isArray(financialIds) && financialIds.length > 0) {
-        folders.push({
-          type: 'financial',
-          ids: financialIds,
-          count: financialIds.length
-        });
-      }
-
-      setConnectedFolders(folders);
-      setHasAnyFolders(folders.length > 0);
     } catch (error) {
-      console.error('Error checking connected folders:', error);
+      console.error('Error checking existing setup:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const getFolderTypeDisplay = (type: string): string => {
-    const displays: Record<string, string> = {
-      meetings: 'Meetings',
-      strategy: 'Strategy',
-      financial: 'Financial'
-    };
-    return displays[type] || type;
+  const loadFolders = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError('Not authenticated');
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/list-google-drive-folders`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to load folders');
+      }
+
+      const { folders: driveFolders } = await response.json();
+      setFolders(driveFolders || []);
+      setViewMode('select-existing');
+    } catch (err: any) {
+      console.error('Error loading folders:', err);
+      setError(err.message || 'Failed to load folders');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getFolderTypeIcon = (type: string): string => {
-    const icons: Record<string, string> = {
-      meetings: '📊',
-      strategy: '🎯',
-      financial: '💰'
-    };
-    return icons[type] || '📁';
+  const handleCreateNewFolder = async () => {
+    setCreatingFolder(true);
+    setError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError('Not authenticated');
+        return;
+      }
+
+      // Create the "Astra Strategy" folder
+      const createResponse = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-google-drive-folder`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ folderName: 'Astra Strategy' }),
+        }
+      );
+
+      if (!createResponse.ok) {
+        throw new Error('Failed to create folder');
+      }
+
+      const { folder } = await createResponse.json();
+
+      // Save folder selection
+      const saveResponse = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/save-folder-selection`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            folderIds: [folder.id],
+            folderType: 'strategy',
+          }),
+        }
+      );
+
+      if (!saveResponse.ok) {
+        throw new Error('Failed to save folder selection');
+      }
+
+      // Proceed to next step with folder info
+      onComplete({
+        selectedFolder: folder,
+        folderType: 'strategy',
+        isNewFolder: true,
+      });
+    } catch (err: any) {
+      console.error('Error creating folder:', err);
+      setError(err.message || 'Failed to create folder');
+    } finally {
+      setCreatingFolder(false);
+    }
   };
 
-  const getFolderTypeDescription = (type: string): string => {
-    const descriptions: Record<string, string> = {
-      meetings: 'Meeting notes, transcripts, and agendas',
-      strategy: 'Strategic plans, goals, and objectives',
-      financial: 'Financial statements and reports'
-    };
-    return descriptions[type] || 'Documents and files';
+  const handleSelectFolder = async (folder: GoogleDriveFolder) => {
+    setLoading(true);
+    setError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError('Not authenticated');
+        return;
+      }
+
+      // Save folder selection
+      const saveResponse = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/save-folder-selection`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            folderIds: [folder.id],
+            folderType: 'strategy',
+          }),
+        }
+      );
+
+      if (!saveResponse.ok) {
+        throw new Error('Failed to save folder selection');
+      }
+
+      // Proceed to next step
+      onComplete({
+        selectedFolder: folder,
+        folderType: 'strategy',
+        isNewFolder: false,
+      });
+    } catch (err: any) {
+      console.error('Error selecting folder:', err);
+      setError(err.message || 'Failed to select folder');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (loading) {
+  if (loading && viewMode === 'initial') {
     return (
       <div className="space-y-6">
         <div className="text-center">
@@ -115,59 +208,29 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }
     );
   }
 
-  if (hasAnyFolders) {
+  // If already has folders configured
+  if (hasExistingFolders) {
     return (
       <div className="space-y-6">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-600/20 mb-4">
             <CheckCircle className="w-8 h-8 text-purple-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-3">Folders Connected Successfully!</h2>
+          <h2 className="text-2xl font-bold text-white mb-3">Strategy Folder Already Connected!</h2>
           <p className="text-gray-300">
-            You have already connected folders to Astra. Here's what's connected:
+            You've already set up a strategy folder. Let's continue with the setup.
           </p>
         </div>
 
-        <div className="bg-gray-800 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Folder className="w-5 h-5 text-purple-400" />
-            Connected Folders
-          </h3>
-          <div className="space-y-4">
-            {connectedFolders.map((folder) => (
-              <div
-                key={folder.type}
-                className="bg-gray-900/50 rounded-lg p-4 border border-gray-700"
-              >
-                <div className="flex items-start space-x-3">
-                  <div className="text-2xl">{getFolderTypeIcon(folder.type)}</div>
-                  <div className="flex-1">
-                    <h4 className="text-white font-medium">
-                      {getFolderTypeDisplay(folder.type)} Folder{folder.count > 1 ? 's' : ''}
-                    </h4>
-                    <p className="text-sm text-gray-400 mt-1">
-                      {getFolderTypeDescription(folder.type)}
-                    </p>
-                    <p className="text-xs text-purple-400 mt-2">
-                      {folder.count} folder{folder.count > 1 ? 's' : ''} connected
-                    </p>
-                  </div>
-                  <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-4">
-          <p className="text-sm text-blue-300">
-            <span className="font-medium">💡 Tip:</span> You can manage your folder connections anytime from the Google Drive settings in your user menu.
+        <div className="bg-green-900/20 border border-green-700 rounded-lg p-4">
+          <p className="text-sm text-green-300">
+            <span className="font-medium">✅ All set!</span> Your strategy folder is connected and ready to use.
           </p>
         </div>
 
         <div className="flex justify-center pt-4">
           <button
-            onClick={() => onComplete({ selected_folder_path: 'existing', folders: connectedFolders })}
+            onClick={() => onComplete({ existingFolder: true })}
             className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all min-h-[44px]"
           >
             Next: Place Your Files →
@@ -177,58 +240,150 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }
     );
   }
 
-  // No folders connected yet - show selection UI
-  return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-600/20 mb-4">
-          <FolderPlus className="w-8 h-8 text-purple-400" />
+  // Initial view - choose between existing or create new
+  if (viewMode === 'initial') {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-600/20 mb-4">
+            <FolderPlus className="w-8 h-8 text-purple-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-3">Choose Your Strategy Folder</h2>
+          <p className="text-gray-300">
+            Select an existing folder or let Astra create one for you
+          </p>
         </div>
-        <h2 className="text-2xl font-bold text-white mb-3">Choose Your Folder</h2>
-        <p className="text-gray-300">
-          Select or create a folder where Astra will read your documents
-        </p>
-      </div>
 
-      <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-4">
-        <p className="text-sm text-yellow-300">
-          <span className="font-medium">⚠️ No folders connected yet:</span> You'll need to connect at least one folder to continue. You can do this from your Google Drive settings.
-        </p>
-      </div>
+        {error && (
+          <div className="bg-red-900/20 border border-red-700 rounded-lg p-4">
+            <p className="text-sm text-red-300">{error}</p>
+          </div>
+        )}
 
-      <div className="bg-gray-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">
-          Available Folder Types:
-        </h3>
-        <div className="space-y-3">
-          {[
-            { icon: '📊', name: 'Meetings', desc: 'For meeting notes and transcripts' },
-            { icon: '🎯', name: 'Strategy', desc: 'For strategic plans and objectives' },
-            { icon: '💰', name: 'Financial', desc: 'For financial statements and reports' }
-          ].map((item, index) => (
-            <div key={index} className="flex items-start space-x-3 p-3 bg-gray-900/50 rounded-lg">
-              <span className="text-2xl">{item.icon}</span>
-              <div>
-                <p className="text-white font-medium">{item.name}</p>
-                <p className="text-sm text-gray-400">{item.desc}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Select Existing Folder Option */}
+          <button
+            onClick={loadFolders}
+            className="bg-gray-800 hover:bg-gray-700 border-2 border-gray-700 hover:border-purple-500 rounded-lg p-6 transition-all text-left group min-h-[200px] flex flex-col items-center justify-center"
+          >
+            <div className="w-16 h-16 rounded-full bg-purple-600/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <FolderOpen className="w-8 h-8 text-purple-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-white mb-2 text-center">
+              Select Existing Folder
+            </h3>
+            <p className="text-sm text-gray-400 text-center">
+              Browse and choose a folder from your Google Drive
+            </p>
+          </button>
+
+          {/* Create New Folder Option */}
+          <button
+            onClick={handleCreateNewFolder}
+            disabled={creatingFolder}
+            className="bg-gray-800 hover:bg-gray-700 border-2 border-gray-700 hover:border-blue-500 rounded-lg p-6 transition-all text-left group min-h-[200px] flex flex-col items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <div className="w-16 h-16 rounded-full bg-blue-600/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              {creatingFolder ? (
+                <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+              ) : (
+                <Plus className="w-8 h-8 text-blue-400" />
+              )}
+            </div>
+            <h3 className="text-lg font-semibold text-white mb-2 text-center">
+              {creatingFolder ? 'Creating Folder...' : 'Create "Astra Strategy" Folder'}
+            </h3>
+            <p className="text-sm text-gray-400 text-center">
+              {creatingFolder ? 'Please wait...' : 'Let Astra create a new folder for your strategy documents'}
+            </p>
+          </button>
+        </div>
+
+        <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-4">
+          <p className="text-sm text-blue-300">
+            <span className="font-medium">💡 About Strategy Folders:</span> This folder will contain documents about your team's mission, goals, strategic plans, and objectives. Astra will read these to better understand your team's direction.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Folder selection view
+  if (viewMode === 'select-existing') {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-600/20 mb-4">
+            <Folder className="w-8 h-8 text-purple-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-3">Select a Folder</h2>
+          <p className="text-gray-300">
+            Choose a folder from your Google Drive for strategy documents
+          </p>
+        </div>
+
+        {error && (
+          <div className="bg-red-900/20 border border-red-700 rounded-lg p-4">
+            <p className="text-sm text-red-300">{error}</p>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+          </div>
+        ) : folders.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-400 mb-4">No folders found in your Google Drive</p>
+            <button
+              onClick={() => setViewMode('initial')}
+              className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors min-h-[44px]"
+            >
+              Go Back
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="bg-gray-800 rounded-lg p-6 max-h-[400px] overflow-y-auto">
+              <div className="space-y-2">
+                {folders.map((folder) => (
+                  <button
+                    key={folder.id}
+                    onClick={() => handleSelectFolder(folder)}
+                    disabled={loading}
+                    className="w-full flex items-center space-x-3 p-4 bg-gray-900/50 hover:bg-gray-700 border border-gray-700 hover:border-purple-500 rounded-lg transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Folder className="w-6 h-6 text-purple-400 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-medium truncate">{folder.name}</p>
+                      {folder.createdTime && (
+                        <p className="text-xs text-gray-400">
+                          Created {new Date(folder.createdTime).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                    {loading && selectedFolder?.id === folder.id && (
+                      <Loader2 className="w-5 h-5 text-purple-400 animate-spin flex-shrink-0" />
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
-      </div>
 
-      <div className="flex justify-center pt-4">
-        <button
-          onClick={() => {
-            // For now, allow continuing to see the full flow
-            // In production, this would open folder selection
-            onComplete({ selected_folder_path: 'created' });
-          }}
-          className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all min-h-[44px]"
-        >
-          Continue (Setup folders from settings) →
-        </button>
+            <div className="flex justify-center space-x-3">
+              <button
+                onClick={() => setViewMode('initial')}
+                disabled={loading}
+                className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 min-h-[44px]"
+              >
+                Back
+              </button>
+            </div>
+          </>
+        )}
       </div>
-    </div>
-  );
+    );
+  }
+
+  return null;
 };
