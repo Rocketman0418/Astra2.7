@@ -51,13 +51,18 @@ export const getRedirectUri = () => {
  * Initiates the Google Drive OAuth flow
  * Opens Google's OAuth consent screen
  */
-export const initiateGoogleDriveOAuth = () => {
+export const initiateGoogleDriveOAuth = (fromGuidedSetup: boolean = false) => {
   if (!GOOGLE_CLIENT_ID) {
     throw new Error('Google Client ID is not configured. Please set VITE_GOOGLE_CLIENT_ID in your .env file');
   }
 
   const state = crypto.randomUUID();
   sessionStorage.setItem('google_drive_oauth_state', state);
+
+  // Store flag if coming from Guided Setup
+  if (fromGuidedSetup) {
+    sessionStorage.setItem('google_drive_from_guided_setup', 'true');
+  }
 
   const redirectUri = getRedirectUri();
   console.log('📁 Starting Google Drive OAuth flow...');

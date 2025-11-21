@@ -49,6 +49,14 @@ export const MainContainer: React.FC = () => {
     const checkOnboardingStatus = async () => {
       if (!user) return;
 
+      // Check if we should open Guided Setup from URL parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('openGuidedSetup') === 'true') {
+        setShowSetupGuide(true);
+        // Clean up the URL parameter
+        window.history.replaceState({}, '', '/');
+      }
+
       // Fetch team name
       const teamId = user.user_metadata?.team_id;
       if (teamId) {

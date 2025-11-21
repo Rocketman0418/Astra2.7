@@ -33,7 +33,7 @@ export const ConnectDriveStep: React.FC<ConnectDriveStepProps> = ({ onComplete }
     setError('');
 
     try {
-      initiateGoogleDriveOAuth();
+      initiateGoogleDriveOAuth(true); // Pass true to indicate this is from Guided Setup
     } catch (err: any) {
       setError(err.message || 'Failed to connect to Google Drive');
       setIsConnecting(false);

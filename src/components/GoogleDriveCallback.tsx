@@ -31,9 +31,22 @@ export const GoogleDriveCallback: React.FC = () => {
         setStatus('success');
         setMessage(`Successfully connected Google Drive account: ${result.email}`);
 
+        // Check if we came from Guided Setup
+        const fromGuidedSetup = sessionStorage.getItem('google_drive_from_guided_setup');
+
+        // Clear the flag
+        if (fromGuidedSetup) {
+          sessionStorage.removeItem('google_drive_from_guided_setup');
+        }
+
         // Redirect back to main app after 2 seconds
         setTimeout(() => {
-          window.location.href = '/';
+          if (fromGuidedSetup) {
+            // Redirect to main app with flag to reopen Guided Setup
+            window.location.href = '/?openGuidedSetup=true';
+          } else {
+            window.location.href = '/';
+          }
         }, 2000);
 
       } catch (err: any) {
