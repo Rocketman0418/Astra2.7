@@ -31,21 +31,21 @@ export const PricingStrategyPage: React.FC = () => {
   const calculateProjections = useMemo(() => {
     const signupsPerMonth = inputs.monthlySignups;
     const conversionRatePro = inputs.conversionRatePro / 100;
-    const conversionRatePlus = inputs.conversionRatePlus / 100;
+    const conversionRateUltra = inputs.conversionRatePlus / 100;
     const churnRate = inputs.churnRate / 100;
     const proPricing = 99;
-    const plusPricing = 149;
+    const ultraPricing = 149;
     const previewPassPricing = 79;
     const avgSeatsPerTeam = 2.5;
     const seatPricePro = 29;
-    const seatPricePlus = 19;
+    const seatPriceUltra = 19;
 
     // Month 1
     const month1 = {
       signups: signupsPerMonth,
       freeUsers: signupsPerMonth,
       proUsers: 0,
-      plusUsers: 0,
+      ultraUsers: 0,
       revenue: 0,
       costs: signupsPerMonth * inputs.costPerFreeUser,
       profit: -(signupsPerMonth * inputs.costPerFreeUser)
@@ -55,21 +55,21 @@ export const PricingStrategyPage: React.FC = () => {
     const calculateMonth = (months: number) => {
       const totalSignups = signupsPerMonth * months;
       const proConversions = totalSignups * conversionRatePro;
-      const plusConversions = totalSignups * conversionRatePlus;
+      const ultraConversions = totalSignups * conversionRateUltra;
       const retainedPro = proConversions * Math.pow(1 - churnRate, months);
-      const retainedPlus = plusConversions * Math.pow(1 - churnRate, months);
-      const freeUsers = totalSignups - proConversions - plusConversions;
+      const retainedUltra = ultraConversions * Math.pow(1 - churnRate, months);
+      const freeUsers = totalSignups - proConversions - ultraConversions;
 
       const proRevenue = retainedPro * proPricing + (retainedPro * (avgSeatsPerTeam - 1) * seatPricePro);
-      const plusRevenue = retainedPlus * plusPricing + (retainedPlus * (avgSeatsPerTeam - 1) * seatPricePlus);
-      const revenue = proRevenue + plusRevenue;
-      const costs = (freeUsers * inputs.costPerFreeUser) + ((retainedPro + retainedPlus) * inputs.costPerProUser);
+      const ultraRevenue = retainedUltra * ultraPricing + (retainedUltra * (avgSeatsPerTeam - 1) * seatPriceUltra);
+      const revenue = proRevenue + ultraRevenue;
+      const costs = (freeUsers * inputs.costPerFreeUser) + ((retainedPro + retainedUltra) * inputs.costPerProUser);
 
       return {
         signups: totalSignups,
         freeUsers,
         proUsers: retainedPro,
-        plusUsers: retainedPlus,
+        ultraUsers: retainedUltra,
         revenue,
         costs,
         profit: revenue - costs
@@ -489,7 +489,7 @@ const PlanOverview: React.FC<{
             {
               days: 'Day 10',
               title: 'Choose Your Plan',
-              items: ['Clear comparison of Free vs Pro vs Plus', 'Seamless upgrade flow', 'Keep all your data and setup', 'No disruption to workflow']
+              items: ['Clear comparison of Free vs Pro vs Ultra', 'Seamless upgrade flow', 'Keep all your data and setup', 'No disruption to workflow']
             }
           ].map((phase, idx) => (
             <div key={idx} className="bg-gray-900 rounded-lg p-4 border border-gray-700">
@@ -549,7 +549,7 @@ const LiveCalculator: React.FC<any> = ({ inputs, setInputs, projections, formatC
             suffix="%"
           />
           <InputSlider
-            label="Plus Conversion Rate"
+            label="Ultra Conversion Rate"
             value={inputs.conversionRatePlus}
             onChange={(v) => handleInputChange('conversionRatePlus', v)}
             min={1}
@@ -694,8 +694,8 @@ const ProjectionCard: React.FC<any> = ({ title, projections, formatCurrency, for
         <span className="font-semibold text-green-500">{formatNumber(projections.proUsers)}</span>
       </div>
       <div className="flex justify-between">
-        <span className="text-gray-400">Plus Users</span>
-        <span className="font-semibold text-purple-500">{formatNumber(projections.plusUsers)}</span>
+        <span className="text-gray-400">Ultra Users</span>
+        <span className="font-semibold text-purple-500">{formatNumber(projections.ultraUsers)}</span>
       </div>
       <div className="flex justify-between">
         <span className="text-gray-400">Free Users</span>
@@ -1220,7 +1220,7 @@ const AskAstraPricing: React.FC = () => {
         responseText = "Preview Pass Program ($79/month for first 300 subscribers):\n\n• Full Ultra Plan features at nearly 50% off\n• Lifetime price protection (stays $79/mo forever)\n• 3-month minimum subscription required\n• Cancel anytime after 3 months\n• Includes: Unlimited visualizations, reports, 3 teams, unlimited agents/jobs, Create with Astra, Beta access to new features\n\nThis creates 300 power users who become evangelists. They get insane value ($149 features for $79) and will refer others. Future price increases make their deal even better over time.";
       } else if (input.toLowerCase().includes('10-day') || input.toLowerCase().includes('conversion')) {
         responseText = "The 10-day unlimited trial is designed for fast value demonstration:\n\n• Days 1-3: Complete setup with unlimited features\n• Days 4-6: Explore power features (agents, jobs, teams)\n• Days 7-9: See measurable value and time saved\n• Day 10: Natural decision point while value is fresh\n\nUnlimited access during trial means users experience the FULL product, not a limited version. They know exactly what they'll lose if they downgrade to Free.";
-      } else if (input.toLowerCase().includes('plus') || input.toLowerCase().includes('$50')) {
+      } else if (input.toLowerCase().includes('ultra') || input.toLowerCase().includes('plus') || input.toLowerCase().includes('$50')) {
         responseText = "Ultra at $149 ($50 more than Pro) targets:\n\n• Multi-team organizations\n• Users who need multiple custom agents\n• Companies with complex automation needs\n• Early adopters who want beta access to new features\n\nThe $50 premium is strategic:\n1. Not too expensive (< 2x Pro price)\n2. Covers cost of unlimited agents/jobs\n3. Volume pricing on members (scale-friendly)\n4. Beta access creates exclusivity\n5. Creates clear upgrade path from Pro\n\nExpect 20-25% of Pro users to eventually upgrade to Ultra.";
       } else if (input.toLowerCase().includes('intro') || input.toLowerCase().includes('first 500') || input.toLowerCase().includes('500')) {
         responseText = "Intro pricing for first 500 subscribers:\n\n• Pro: $99/mo (then $149/mo)\n• Ultra: $149/mo (then $249/mo)\n• Saves $50-100/month for early adopters\n• NOT lifetime - price increases after first 500\n\nThis creates urgency ('only 500 spots') while keeping long-term pricing flexible. Early adopters get 33-40% discount during intro period. After 500 subscribers, prices reflect true value and market positioning.";
