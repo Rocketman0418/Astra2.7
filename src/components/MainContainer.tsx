@@ -10,7 +10,6 @@ import { UserSettingsModal } from './UserSettingsModal';
 import { WelcomeModal } from './WelcomeModal';
 import { InteractiveTour } from './InteractiveTour';
 import { HelpCenter, HelpCenterTab } from './HelpCenter';
-import { NoFoldersSelectedModal } from './NoFoldersSelectedModal';
 import { AstraGuidedSetup } from './AstraGuidedSetup';
 import { ChatMode } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -307,9 +306,6 @@ export const MainContainer: React.FC = () => {
         isOpen={showSetupGuide}
         onClose={() => setShowSetupGuide(false)}
       />
-
-      {/* No Folders Selected Modal */}
-      <NoFoldersSelectedModal onOpenSettings={handleOpenUserSettings} />
     </div>
   );
 };
