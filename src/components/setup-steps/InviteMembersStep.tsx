@@ -13,6 +13,7 @@ export const InviteMembersStep: React.FC<InviteMembersStepProps> = ({ onComplete
   const { user } = useAuth();
   const [teamMemberCount, setTeamMemberCount] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [skipped, setSkipped] = useState(false);
 
   useEffect(() => {
     checkTeamMembers();
@@ -62,8 +63,34 @@ export const InviteMembersStep: React.FC<InviteMembersStepProps> = ({ onComplete
         </div>
 
         <div className="flex justify-center pt-4">
-          <button onClick={onComplete} className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all min-h-[44px]">
-            Next: Schedule Reports →
+          <button onClick={onComplete} className="px-8 py-3 bg-gradient-to-r from-orange-500 via-green-500 to-blue-500 hover:from-orange-600 hover:via-green-600 hover:to-blue-600 text-white rounded-lg font-medium transition-all min-h-[44px]">
+            Complete Setup! 🎉
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (skipped) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-600/20 mb-4">
+            <CheckCircle className="w-8 h-8 text-green-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-3">You're All Set!</h2>
+          <p className="text-gray-300">You can invite team members anytime from settings.</p>
+        </div>
+
+        <div className="bg-green-900/20 border border-green-700 rounded-lg p-4">
+          <p className="text-sm text-green-300">
+            <span className="font-medium">✅ Setup Complete!</span> You can now start using all of Astra's powerful features.
+          </p>
+        </div>
+
+        <div className="flex justify-center pt-4">
+          <button onClick={onComplete} className="px-8 py-3 bg-gradient-to-r from-orange-500 via-green-500 to-blue-500 hover:from-orange-600 hover:via-green-600 hover:to-blue-600 text-white rounded-lg font-medium transition-all min-h-[44px]">
+            Complete Setup! 🎉
           </button>
         </div>
       </div>
@@ -99,8 +126,8 @@ export const InviteMembersStep: React.FC<InviteMembersStepProps> = ({ onComplete
       </div>
 
       <div className="flex justify-center pt-4">
-        <button onClick={onComplete} className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all min-h-[44px]">
-          Skip for Now →
+        <button onClick={() => setSkipped(true)} className="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-all min-h-[44px]">
+          Skip for Now
         </button>
       </div>
     </div>

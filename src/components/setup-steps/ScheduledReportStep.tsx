@@ -22,7 +22,7 @@ export const ScheduledReportStep: React.FC<ScheduledReportStepProps> = ({ onComp
     if (!user) return;
     const teamId = user.user_metadata?.team_id;
     if (teamId) {
-      const { count } = await supabase.from('scheduled_reports').select('id', { count: 'exact', head: true }).eq('team_id', teamId).eq('is_active', true);
+      const { count } = await supabase.from('astra_reports').select('id', { count: 'exact', head: true }).eq('team_id', teamId).eq('schedule_type', 'scheduled').eq('is_active', true);
       setScheduledReportsCount(count || 0);
     }
     setLoading(false);

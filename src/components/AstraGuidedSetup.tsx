@@ -50,11 +50,16 @@ export const AstraGuidedSetup: React.FC<AstraGuidedSetupProps> = ({ isOpen, onCl
   const handleStepComplete = async (stepNumber: number, additionalData?: any) => {
     await markStepComplete(stepNumber, additionalData);
 
+    // Mark setup as complete after Step 10 (Step 11 is optional)
+    if (stepNumber === 10) {
+      await updateProgress({ is_completed: true, completed_at: new Date().toISOString() });
+    }
+
     // Move to next step
     if (stepNumber < 11) {
       setCurrentStep(stepNumber + 1);
     } else {
-      // All steps complete!
+      // Step 11 complete - final step
       await updateProgress({ is_completed: true, completed_at: new Date().toISOString() });
     }
   };
