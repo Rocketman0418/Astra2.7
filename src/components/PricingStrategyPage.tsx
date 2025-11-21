@@ -214,7 +214,7 @@ const PlanOverview: React.FC<{
           <div className="flex-1">
             <h2 className="text-2xl font-bold mb-2 text-orange-400">Preview Pass Program - First 300 Only</h2>
             <p className="text-gray-300 mb-4">
-              Get Pro Plus features at an exclusive rate. Limited to first 300 subscribers with lifetime price protection.
+              Starts with 10-day unlimited trial. Get Pro Plus features at an exclusive rate. Limited to first 300 subscribers with lifetime price protection.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <div className="bg-gray-900/50 rounded-lg p-3">
@@ -245,9 +245,9 @@ const PlanOverview: React.FC<{
             <Sparkles className="w-8 h-8 text-white" />
           </div>
           <div className="flex-1">
-            <h2 className="text-2xl font-bold mb-2">10-Day Unlimited Access Trial</h2>
+            <h2 className="text-2xl font-bold mb-2">10-Day Unlimited Access Trial (All Plans)</h2>
             <p className="text-gray-300 mb-4">
-              No credit card required. Full access to ALL features with NO limits. Experience the complete power of Astra Intelligence.
+              Every plan starts with a 10-day trial. No credit card required. Full access to ALL features with NO limits. Experience the complete power of Astra Intelligence before choosing your plan.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <div className="bg-gray-900/50 rounded-lg p-3">
@@ -279,6 +279,7 @@ const PlanOverview: React.FC<{
             <h3 className="text-xl font-bold mb-2">Free Plan</h3>
             <div className="text-3xl font-bold mb-1">$0</div>
             <div className="text-sm text-gray-400">Forever free</div>
+            <div className="text-xs text-green-500 mt-2 font-semibold">Starts with 10-day trial</div>
           </div>
 
           <div className="p-6 flex-1">
@@ -335,6 +336,7 @@ const PlanOverview: React.FC<{
             </div>
             <div className="text-sm text-blue-400 font-semibold">Intro Price for First 500 Subscribers</div>
             <div className="text-xs text-blue-300 mt-1">Then $149/mo</div>
+            <div className="text-xs text-green-500 mt-2 font-semibold">Starts with 10-day trial</div>
           </div>
 
           <div className="p-6 flex-1">
@@ -391,6 +393,7 @@ const PlanOverview: React.FC<{
             </div>
             <div className="text-sm text-purple-400 font-semibold">Intro Price for First 500 Subscribers</div>
             <div className="text-xs text-purple-300 mt-1">Then $249/mo</div>
+            <div className="text-xs text-green-500 mt-2 font-semibold">Starts with 10-day trial</div>
           </div>
 
           <div className="p-6 flex-1">
@@ -1165,7 +1168,7 @@ const AskAstraPricing: React.FC = () => {
   const [messages, setMessages] = useState<Array<{ id: string; text: string; isUser: boolean }>>([
     {
       id: '1',
-      text: "Hi! I can help you understand the pricing strategy and answer questions about:\n\n• Why unlimited documents for all users?\n• How the 10-day trial creates conversion\n• Free vs Pro vs Pro Plus differences\n• Team member access considerations\n• Cohort 1 pricing strategy\n\nWhat would you like to know?",
+      text: "Hi! I can help you understand the pricing strategy and answer questions about:\n\n• Why unlimited chat and data for all users?\n• How the 10-day trial creates conversion\n• Preview Pass Program ($79/mo for first 300)\n• Free vs Pro vs Pro Plus differences\n• Intro pricing for first 500 subscribers\n\nWhat would you like to know?",
       isUser: false
     }
   ]);
@@ -1174,11 +1177,11 @@ const AskAstraPricing: React.FC = () => {
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
   const suggestedQuestions = [
-    "Why is document sync unlimited for free users?",
-    "What happens to team members after trial ends?",
+    "Why is chat and data unlimited for free users?",
+    "Tell me about the Preview Pass Program",
     "How does the 10-day trial drive conversion?",
     "Why Pro Plus for only $50 more?",
-    "What's the cohort 1 pricing strategy?"
+    "What's the intro pricing for first 500 subscribers?"
   ];
 
   const scrollToBottom = () => {
@@ -1200,16 +1203,16 @@ const AskAstraPricing: React.FC = () => {
     setTimeout(() => {
       let responseText = "Based on the pricing strategy, here's my insight...";
 
-      if (input.toLowerCase().includes('unlimited') || input.toLowerCase().includes('document')) {
-        responseText = "Unlimited document sync for all users is strategic:\n\n1. Cost: Document storage is very low cost per user\n2. Stickiness: Users with synced documents are highly engaged and unlikely to leave\n3. Upgrade Trigger: With documents synced, users hit visualization/report limits faster\n4. Competitive Advantage: Most competitors limit documents, we don't\n\nIt's a loss leader that creates massive value and retention.";
-      } else if (input.toLowerCase().includes('team') && input.toLowerCase().includes('trial')) {
-        responseText = "Team member access after trial:\n\n• During trial: Full team collaboration, unlimited access\n• After trial (if no upgrade): Team members lose access\n• Message shown: 'Your team subscription is no longer active. Contact your administrator.'\n\nThis prevents abuse where users create multiple 'team' accounts for themselves. The account owner must upgrade to Pro/Plus to restore team access.";
+      if (input.toLowerCase().includes('unlimited') || input.toLowerCase().includes('chat') || input.toLowerCase().includes('data')) {
+        responseText = "Unlimited chat and data sync for all users is strategic:\n\n1. Low Marginal Cost: Modern AI APIs and storage costs are very low per user\n2. Maximum Engagement: Frequent chat creates habit formation and stickiness\n3. Value Discovery: Users discover value faster with unlimited access\n4. Natural Upgrade Path: Users hit visualization/report limits sooner, creating upgrade pressure\n5. Competitive Advantage: Most competitors limit usage, we don't\n\nIt's a loss leader that drives engagement and conversion.";
+      } else if (input.toLowerCase().includes('preview') || input.toLowerCase().includes('$79')) {
+        responseText = "Preview Pass Program ($79/month for first 300 subscribers):\n\n• Full Pro Plus features at nearly 50% off\n• Lifetime price protection (stays $79/mo forever)\n• 3-month minimum subscription required\n• Cancel anytime after 3 months\n• Includes: Unlimited visualizations, reports, 3 teams, unlimited agents/jobs, Create with Astra\n\nThis creates 300 power users who become evangelists. They get insane value ($149 features for $79) and will refer others. Future price increases make their deal even better over time.";
       } else if (input.toLowerCase().includes('10-day') || input.toLowerCase().includes('conversion')) {
         responseText = "The 10-day unlimited trial is designed for fast value demonstration:\n\n• Days 1-3: Complete setup with unlimited features\n• Days 4-6: Explore power features (agents, jobs, teams)\n• Days 7-9: See measurable value and time saved\n• Day 10: Natural decision point while value is fresh\n\nUnlimited access during trial means users experience the FULL product, not a limited version. They know exactly what they'll lose if they downgrade to Free.";
       } else if (input.toLowerCase().includes('plus') || input.toLowerCase().includes('$50')) {
         responseText = "Pro Plus at $149 ($50 more than Pro) targets:\n\n• Multi-team organizations\n• Users who need multiple custom agents\n• Companies with complex automation needs\n\nThe $50 premium is strategic:\n1. Not too expensive (< 2x Pro price)\n2. Covers cost of unlimited agents/jobs\n3. Volume pricing on members (scale-friendly)\n4. Creates clear upgrade path from Pro\n\nExpect 20-25% of Pro users to eventually upgrade to Plus.";
-      } else if (input.toLowerCase().includes('cohort') || input.toLowerCase().includes('first 100')) {
-        responseText = "Cohort 1 pricing ($99 Pro, $149 Plus) for first 100 subscribers:\n\n• Creates urgency and exclusivity\n• Rewards early adopters with lifetime rate\n• Builds committed user base\n• Future pricing: $129 Pro, $199 Plus\n\nFirst 100 get to keep their rate forever, creating evangelists who refer others. The $30-50 monthly savings adds up to $360-600/year value.";
+      } else if (input.toLowerCase().includes('intro') || input.toLowerCase().includes('first 500') || input.toLowerCase().includes('500')) {
+        responseText = "Intro pricing for first 500 subscribers:\n\n• Pro: $99/mo (then $149/mo)\n• Pro Plus: $149/mo (then $249/mo)\n• Saves $50-100/month for early adopters\n• NOT lifetime - price increases after first 500\n\nThis creates urgency ('only 500 spots') while keeping long-term pricing flexible. Early adopters get 33-40% discount during intro period. After 500 subscribers, prices reflect true value and market positioning.";
       }
 
       const response = {
@@ -1246,7 +1249,7 @@ const AskAstraPricing: React.FC = () => {
       </div>
 
       <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-        <div className="h-[500px] overflow-y-auto p-6 space-y-4">
+        <div className="h-[300px] overflow-y-auto p-6 space-y-4">
           {messages.map(msg => (
             <div key={msg.id} className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[80%] rounded-lg p-4 ${
