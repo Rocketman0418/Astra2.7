@@ -41,10 +41,22 @@ export const AstraGuidedSetup: React.FC<AstraGuidedSetupProps> = ({ isOpen, onCl
   const [currentStep, setCurrentStep] = useState(1);
   const [folderData, setFolderData] = useState<any>(null);
 
-  // Sync current step with progress
+  // Sync current step with progress and load folder data
   useEffect(() => {
     if (progress) {
       setCurrentStep(progress.current_step);
+
+      // Load folder data from progress if available
+      if (progress.created_folder_id) {
+        setFolderData({
+          selectedFolder: {
+            id: progress.created_folder_id,
+            name: 'Astra Strategy' // Default name
+          },
+          folderType: progress.created_folder_type || 'strategy',
+          isNewFolder: progress.selected_folder_path === 'created'
+        });
+      }
     }
   }, [progress]);
 
@@ -195,7 +207,12 @@ export const AstraGuidedSetup: React.FC<AstraGuidedSetupProps> = ({ isOpen, onCl
               <ChooseFolderStep
                 onComplete={(data) => {
                   setFolderData(data);
-                  handleStepComplete(3, data);
+                  // Save folder data to progress table
+                  handleStepComplete(3, {
+                    created_folder_id: data.selectedFolder?.id,
+                    created_folder_type: data.folderType || 'strategy',
+                    selected_folder_path: data.isNewFolder ? 'created' : 'existing'
+                  });
                 }}
                 progress={progress}
               />
