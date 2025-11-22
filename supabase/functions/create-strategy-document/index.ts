@@ -87,136 +87,112 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Build document content with proper formatting requests
-    const requests: any[] = [];
-    let currentIndex = 1;
-
-    // Helper to add text with formatting
-    const addText = (text: string) => {
-      requests.push({
-        insertText: {
-          location: { index: currentIndex },
-          text: text,
-        },
-      });
-      currentIndex += text.length;
+    // Helper to escape HTML and preserve line breaks
+    const escapeHtml = (text: string) => {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+        .replace(/\n/g, '<br>');
     };
 
-    const addHeading = (text: string, level: number) => {
-      const startIndex = currentIndex;
-      addText(text + '\n');
-      requests.push({
-        updateParagraphStyle: {
-          range: {
-            startIndex: startIndex,
-            endIndex: currentIndex - 1,
-          },
-          paragraphStyle: {
-            namedStyleType: level === 1 ? 'HEADING_1' : 'HEADING_2',
-          },
-          fields: 'namedStyleType',
-        },
-      });
-    };
-
-    // Build the document structure
-    addHeading(`${teamName} Mission and Strategy`, 1);
-    addText(`Created: ${new Date().toLocaleDateString()}\n\n`);
+    // Build HTML content for the document
+    let htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>`;
+    htmlContent += `<h1>${escapeHtml(teamName)} Mission and Strategy</h1>`;
+    htmlContent += `<p><em>Created: ${new Date().toLocaleDateString()}</em></p>`;
+    htmlContent += `<hr>`;
 
     if (strategyData.mission) {
-      addHeading('Mission', 2);
-      addText(`${strategyData.mission}\n\n`);
+      htmlContent += `<h2>Mission</h2>`;
+      htmlContent += `<p>${escapeHtml(strategyData.mission)}</p>`;
     }
 
     if (strategyData.coreValues) {
-      addHeading('Core Values', 2);
-      addText(`${strategyData.coreValues}\n\n`);
+      htmlContent += `<h2>Core Values</h2>`;
+      htmlContent += `<p>${escapeHtml(strategyData.coreValues)}</p>`;
     }
 
     if (strategyData.oneYearGoals) {
-      addHeading('One-Year Goals', 2);
-      addText(`${strategyData.oneYearGoals}\n\n`);
+      htmlContent += `<h2>One-Year Goals</h2>`;
+      htmlContent += `<p>${escapeHtml(strategyData.oneYearGoals)}</p>`;
     }
 
     if (strategyData.threeYearGoals) {
-      addHeading('Three-Year Goals', 2);
-      addText(`${strategyData.threeYearGoals}\n\n`);
+      htmlContent += `<h2>Three-Year Goals</h2>`;
+      htmlContent += `<p>${escapeHtml(strategyData.threeYearGoals)}</p>`;
     }
 
     if (strategyData.problems) {
-      addHeading('Problems We\'re Solving', 2);
-      addText(`${strategyData.problems}\n\n`);
+      htmlContent += `<h2>Problems We're Solving</h2>`;
+      htmlContent += `<p>${escapeHtml(strategyData.problems)}</p>`;
     }
 
     if (strategyData.products) {
-      addHeading('Our Products', 2);
-      addText(`${strategyData.products}\n\n`);
+      htmlContent += `<h2>Our Products</h2>`;
+      htmlContent += `<p>${escapeHtml(strategyData.products)}</p>`;
     }
 
     if (strategyData.uniqueness) {
-      addHeading('What Makes Us Different', 2);
-      addText(`${strategyData.uniqueness}\n\n`);
+      htmlContent += `<h2>What Makes Us Different</h2>`;
+      htmlContent += `<p>${escapeHtml(strategyData.uniqueness)}</p>`;
     }
 
     if (strategyData.marketing) {
-      addHeading('Marketing Strategy', 2);
-      addText(`${strategyData.marketing}\n\n`);
+      htmlContent += `<h2>Marketing Strategy</h2>`;
+      htmlContent += `<p>${escapeHtml(strategyData.marketing)}</p>`;
     }
 
-    // Create Google Doc
+    htmlContent += `</body></html>`;
+
+    // Create multipart request body
+    const boundary = "boundary_" + Math.random().toString(36).substring(2);
+    const metadata = {
+      name: `${teamName} Mission and Strategy`,
+      mimeType: "application/vnd.google-apps.document",
+      parents: [folderId],
+    };
+
+    const multipartBody = [
+      `--${boundary}`,
+      'Content-Type: application/json; charset=UTF-8',
+      '',
+      JSON.stringify(metadata),
+      `--${boundary}`,
+      'Content-Type: text/html',
+      '',
+      htmlContent,
+      `--${boundary}--`,
+    ].join('\r\n');
+
+    // Create Google Doc with content using multipart upload
     const createResponse = await fetch(
-      "https://www.googleapis.com/drive/v3/files",
+      "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
       {
         method: "POST",
         headers: {
           Authorization: `Bearer ${connection.access_token}`,
-          "Content-Type": "application/json",
+          "Content-Type": `multipart/related; boundary=${boundary}`,
         },
-        body: JSON.stringify({
-          name: `${teamName} Mission and Strategy`,
-          mimeType: "application/vnd.google-apps.document",
-          parents: [folderId],
-        }),
+        body: multipartBody,
       }
     );
 
     if (!createResponse.ok) {
       const errorText = await createResponse.text();
       console.error("Google Drive API error:", errorText);
-      return new Response(JSON.stringify({ error: "Failed to create document" }), {
+      console.error("Status:", createResponse.status);
+      return new Response(JSON.stringify({
+        error: "Failed to create document with content",
+        details: errorText
+      }), {
         status: createResponse.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const doc = await createResponse.json();
-
-    // Add content to the document using Google Docs API with proper formatting
-    const updateResponse = await fetch(
-      `https://docs.googleapis.com/v1/documents/${doc.id}:batchUpdate`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${connection.access_token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ requests }),
-      }
-    );
-
-    if (!updateResponse.ok) {
-      const errorText = await updateResponse.text();
-      console.error("Google Docs API error:", errorText);
-      console.error("Status:", updateResponse.status);
-      return new Response(JSON.stringify({
-        error: "Document created but failed to add content. Please check your Google Drive permissions.",
-        document: doc,
-        details: errorText
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     return new Response(JSON.stringify({ document: doc }), {
       status: 200,
