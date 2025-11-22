@@ -43,6 +43,15 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // Get team name
+    const { data: team, error: teamError } = await supabaseClient
+      .from("teams")
+      .select("name")
+      .eq("id", teamId)
+      .maybeSingle();
+
+    const teamName = team?.name || "Team";
+
     // Get Google Drive access token
     const { data: connection, error: connError } = await supabaseClient
       .from("user_drive_connections")
@@ -59,7 +68,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Build document content
-    let content = "# Team Strategy Document\n\n";
+    let content = `# ${teamName} Mission and Strategy\n\n`;
     content += `*Created: ${new Date().toLocaleDateString()}*\n\n`;
     content += "---\n\n";
 
@@ -113,7 +122,7 @@ Deno.serve(async (req: Request) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: "Team Strategy Document",
+          name: `${teamName} Mission and Strategy`,
           mimeType: "application/vnd.google-apps.document",
           parents: [folderId],
         }),
