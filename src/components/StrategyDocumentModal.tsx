@@ -53,6 +53,11 @@ export const StrategyDocumentModal: React.FC<StrategyDocumentModalProps> = ({
       return;
     }
 
+    if (!folderId) {
+      setError('Folder ID is missing. Please go back and select a folder.');
+      return;
+    }
+
     setCreating(true);
     setError('');
 

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, ExternalLink, Upload, Sparkles } from 'lucide-react';
 import { SetupGuideProgress } from '../../lib/setup-guide-utils';
 import { StrategyDocumentModal } from '../StrategyDocumentModal';
+import { supabase } from '../../lib/supabase';
 
 interface PlaceFilesStepProps {
   onComplete: () => void;
@@ -11,10 +12,52 @@ interface PlaceFilesStepProps {
 
 type ViewMode = 'choose-option' | 'waiting-for-files' | 'document-created';
 
-export const PlaceFilesStep: React.FC<PlaceFilesStepProps> = ({ onComplete, folderData }) => {
+export const PlaceFilesStep: React.FC<PlaceFilesStepProps> = ({ onComplete, folderData, progress }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('choose-option');
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [createdDocumentId, setCreatedDocumentId] = useState('');
+  const [actualFolderId, setActualFolderId] = useState<string>('');
+
+  // Fetch folder ID from multiple sources as fallback
+  useEffect(() => {
+    const fetchFolderId = async () => {
+      // Try folderData first (from props)
+      if (folderData?.selectedFolder?.id) {
+        setActualFolderId(folderData.selectedFolder.id);
+        return;
+      }
+
+      // Try progress data (from database)
+      if (progress?.created_folder_id) {
+        setActualFolderId(progress.created_folder_id);
+        return;
+      }
+
+      // Fallback: fetch from user_drive_connections
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const teamId = user.user_metadata?.team_id;
+        if (!teamId) return;
+
+        const { data: connection } = await supabase
+          .from('user_drive_connections')
+          .select('strategy_folder_id')
+          .eq('team_id', teamId)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (connection?.strategy_folder_id) {
+          setActualFolderId(connection.strategy_folder_id);
+        }
+      } catch (error) {
+        console.error('Error fetching folder ID:', error);
+      }
+    };
+
+    fetchFolderId();
+  }, [folderData, progress]);
 
   const handleHasFiles = () => {
     setViewMode('waiting-for-files');
@@ -35,8 +78,8 @@ export const PlaceFilesStep: React.FC<PlaceFilesStepProps> = ({ onComplete, fold
   };
 
   const openGoogleDrive = () => {
-    if (folderData?.selectedFolder?.id) {
-      window.open(`https://drive.google.com/drive/folders/${folderData.selectedFolder.id}`, '_blank');
+    if (actualFolderId) {
+      window.open(`https://drive.google.com/drive/folders/${actualFolderId}`, '_blank');
     } else {
       window.open('https://drive.google.com', '_blank');
     }
@@ -88,24 +131,42 @@ export const PlaceFilesStep: React.FC<PlaceFilesStepProps> = ({ onComplete, fold
           </button>
         </div>
 
-        <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-3">
-          <h4 className="text-white text-xs font-medium mb-2">💡 What are Strategy Documents?</h4>
-          <p className="text-xs text-blue-300 mb-2">
-            Documents that help Astra understand your team's direction:
-          </p>
-          <ul className="text-xs text-blue-300 space-y-1 list-disc list-inside">
-            <li>Mission and vision statements</li>
-            <li>Core values and principles</li>
-            <li>Goals and objectives (1-year, 3-year)</li>
-            <li>Strategic plans and roadmaps</li>
-          </ul>
+        <div className="space-y-3">
+          <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-3">
+            <h4 className="text-white text-xs font-medium mb-2">💡 What are Strategy Documents?</h4>
+            <p className="text-xs text-blue-300 mb-2">
+              Documents that help Astra understand your team's direction:
+            </p>
+            <ul className="text-xs text-blue-300 space-y-1 list-disc list-inside">
+              <li>Mission and vision statements</li>
+              <li>Core values and principles</li>
+              <li>Goals and objectives (1-year, 3-year)</li>
+              <li>Strategic plans and roadmaps</li>
+            </ul>
+          </div>
+
+          {actualFolderId && (
+            <div className="bg-green-900/20 border border-green-700 rounded-lg p-3">
+              <h4 className="text-white text-xs font-medium mb-2">📁 Your Folder Location</h4>
+              <p className="text-xs text-green-300 mb-2">
+                Your "Astra Strategy" folder is in the root of your Google Drive (My Drive).
+              </p>
+              <button
+                onClick={openGoogleDrive}
+                className="text-xs text-green-400 hover:text-green-300 underline flex items-center gap-1"
+              >
+                <ExternalLink className="w-3 h-3" />
+                Open folder in Google Drive
+              </button>
+            </div>
+          )}
         </div>
 
         {showDocumentModal && (
           <StrategyDocumentModal
             isOpen={showDocumentModal}
             onClose={() => setShowDocumentModal(false)}
-            folderId={folderData?.selectedFolder?.id || ''}
+            folderId={actualFolderId}
             onSuccess={handleDocumentCreated}
           />
         )}
