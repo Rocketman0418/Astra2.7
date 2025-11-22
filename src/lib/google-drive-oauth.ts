@@ -14,7 +14,9 @@ const SCOPES = [
   'https://www.googleapis.com/auth/gmail.modify',
   // Google Drive scopes - FULL ACCESS for folder creation
   'https://www.googleapis.com/auth/drive',
-  'https://www.googleapis.com/auth/drive.metadata.readonly'
+  'https://www.googleapis.com/auth/drive.metadata.readonly',
+  // Google Docs scope - for editing document content
+  'https://www.googleapis.com/auth/documents'
 ].join(' ');
 
 export interface GoogleDriveConnection {

@@ -87,49 +87,80 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Build document content
-    let content = `# ${teamName} Mission and Strategy\n\n`;
-    content += `*Created: ${new Date().toLocaleDateString()}*\n\n`;
-    content += "---\n\n";
+    // Build document content with proper formatting requests
+    const requests: any[] = [];
+    let currentIndex = 1;
+
+    // Helper to add text with formatting
+    const addText = (text: string) => {
+      requests.push({
+        insertText: {
+          location: { index: currentIndex },
+          text: text,
+        },
+      });
+      currentIndex += text.length;
+    };
+
+    const addHeading = (text: string, level: number) => {
+      const startIndex = currentIndex;
+      addText(text + '\n');
+      requests.push({
+        updateParagraphStyle: {
+          range: {
+            startIndex: startIndex,
+            endIndex: currentIndex - 1,
+          },
+          paragraphStyle: {
+            namedStyleType: level === 1 ? 'HEADING_1' : 'HEADING_2',
+          },
+          fields: 'namedStyleType',
+        },
+      });
+    };
+
+    // Build the document structure
+    addHeading(`${teamName} Mission and Strategy`, 1);
+    addText(`Created: ${new Date().toLocaleDateString()}\n\n`);
 
     if (strategyData.mission) {
-      content += "## Mission\n\n";
-      content += `${strategyData.mission}\n\n`;
+      addHeading('Mission', 2);
+      addText(`${strategyData.mission}\n\n`);
     }
 
     if (strategyData.coreValues) {
-      content += "## Core Values\n\n";
-      content += `${strategyData.coreValues}\n\n`;
+      addHeading('Core Values', 2);
+      addText(`${strategyData.coreValues}\n\n`);
     }
 
     if (strategyData.oneYearGoals) {
-      content += "## One-Year Goals\n\n";
-      content += `${strategyData.oneYearGoals}\n\n`;
+      addHeading('One-Year Goals', 2);
+      addText(`${strategyData.oneYearGoals}\n\n`);
     }
 
     if (strategyData.threeYearGoals) {
-      content += "## Three-Year Goals\n\n";
-      content += `${strategyData.threeYearGoals}\n\n`;
+      addHeading('Three-Year Goals', 2);
+      addText(`${strategyData.threeYearGoals}\n\n`);
     }
 
     if (strategyData.problems) {
-      content += "## Problems We're Solving\n\n";
-      content += `${strategyData.problems}\n\n`;
+      addHeading('Problems We\'re Solving', 2);
+      addText(`${strategyData.problems}\n\n`);
     }
 
     if (strategyData.products) {
-      content += "## Our Products\n\n";
-      content += `${strategyData.products}\n\n`;
+      addHeading('Our Products', 2);
+      addText(`${strategyData.products}\n\n`);
     }
 
     if (strategyData.uniqueness) {
-      content += "## What Makes Us Different\n\n";
-      content += `${strategyData.uniqueness}\n\n`;
+      addHeading('What Makes Us Different', 2);
+      addText(`${strategyData.uniqueness}\n\n`);
     }
 
     if (strategyData.marketing) {
-      content += "## Marketing Strategy\n\n";
-      content += `${strategyData.marketing}\n\n`;
+      addHeading('Marketing Strategy', 2);
+      addText(`${strategyData.marketing}\n\n`);
     }
 
     // Create Google Doc
@@ -160,7 +191,7 @@ Deno.serve(async (req: Request) => {
 
     const doc = await createResponse.json();
 
-    // Add content to the document using Google Docs API
+    // Add content to the document using Google Docs API with proper formatting
     const updateResponse = await fetch(
       `https://docs.googleapis.com/v1/documents/${doc.id}:batchUpdate`,
       {
@@ -169,23 +200,22 @@ Deno.serve(async (req: Request) => {
           Authorization: `Bearer ${connection.access_token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          requests: [
-            {
-              insertText: {
-                location: { index: 1 },
-                text: content,
-              },
-            },
-          ],
-        }),
+        body: JSON.stringify({ requests }),
       }
     );
 
     if (!updateResponse.ok) {
       const errorText = await updateResponse.text();
       console.error("Google Docs API error:", errorText);
-      // Document was created but content failed - still return success
+      console.error("Status:", updateResponse.status);
+      return new Response(JSON.stringify({
+        error: "Document created but failed to add content. Please check your Google Drive permissions.",
+        document: doc,
+        details: errorText
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(JSON.stringify({ document: doc }), {
