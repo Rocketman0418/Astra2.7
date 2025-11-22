@@ -28,8 +28,28 @@ Deno.serve(async (req: Request) => {
     }
 
     const { folderId, strategyData } = await req.json();
-    if (!folderId || !strategyData) {
-      return new Response(JSON.stringify({ error: "Folder ID and strategy data are required" }), {
+
+    if (!folderId) {
+      return new Response(JSON.stringify({ error: "Folder ID is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!strategyData || typeof strategyData !== 'object') {
+      return new Response(JSON.stringify({ error: "Strategy data is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Check if at least one field is filled
+    const hasContent = Object.values(strategyData).some(value =>
+      typeof value === 'string' && value.trim() !== ''
+    );
+
+    if (!hasContent) {
+      return new Response(JSON.stringify({ error: "Please provide at least one piece of information" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

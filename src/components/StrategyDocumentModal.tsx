@@ -45,11 +45,11 @@ export const StrategyDocumentModal: React.FC<StrategyDocumentModalProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const hasAtLeastOneField = Object.values(formData).some(value => value.trim() !== '');
+  const hasMission = formData.mission.trim() !== '';
 
   const handleCreate = async () => {
-    if (!hasAtLeastOneField) {
-      setError('Please fill out at least one field');
+    if (!hasMission) {
+      setError('Mission field is required');
       return;
     }
 
@@ -120,7 +120,7 @@ export const StrategyDocumentModal: React.FC<StrategyDocumentModalProps> = ({
         <div className="p-6 space-y-6">
           <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-4">
             <p className="text-sm text-blue-300">
-              <span className="font-medium">💡 Tip:</span> Fill out at least one field. The more information you provide, the better Astra can help your team.
+              <span className="font-medium">💡 Tip:</span> Mission field is required. Fill out additional fields for better results - the more information you provide, the better Astra can help your team.
             </p>
           </div>
 
@@ -134,7 +134,7 @@ export const StrategyDocumentModal: React.FC<StrategyDocumentModalProps> = ({
             {/* Mission */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                What is the team's mission?
+                What is the team's mission? <span className="text-red-400">*</span>
               </label>
               <textarea
                 value={formData.mission}
@@ -264,7 +264,7 @@ export const StrategyDocumentModal: React.FC<StrategyDocumentModalProps> = ({
           </button>
           <button
             onClick={handleCreate}
-            disabled={creating || !hasAtLeastOneField}
+            disabled={creating || !hasMission}
             className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 min-h-[44px]"
           >
             {creating ? (
