@@ -75,13 +75,61 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      const teamId = user.user_metadata?.team_id;
+      if (!teamId) {
+        setTemplates([]);
+        return;
+      }
+
+      // Get all templates
+      const { data: allTemplates, error: templatesError } = await supabase
         .from('astra_report_templates')
         .select('*')
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
-      setTemplates(data || []);
+      if (templatesError) throw templatesError;
+
+      // Check what data types the team has
+      const { data: strategyDocs } = await supabase
+        .from('documents')
+        .select('id')
+        .eq('team_id', teamId)
+        .eq('folder_type', 'strategy')
+        .limit(1);
+
+      const { data: meetingDocs } = await supabase
+        .from('documents')
+        .select('id')
+        .eq('team_id', teamId)
+        .eq('folder_type', 'meetings')
+        .limit(1);
+
+      const { data: financialDocs } = await supabase
+        .from('documents')
+        .select('id')
+        .eq('team_id', teamId)
+        .eq('folder_type', 'financial')
+        .limit(1);
+
+      const availableDataTypes = new Set<string>();
+      if ((strategyDocs?.length ?? 0) > 0) availableDataTypes.add('strategy');
+      if ((meetingDocs?.length ?? 0) > 0) availableDataTypes.add('meetings');
+      if ((financialDocs?.length ?? 0) > 0) availableDataTypes.add('financial');
+
+      // Filter templates based on available data types
+      const filteredTemplates = (allTemplates || []).filter(template => {
+        // If template has no data requirements, always show it
+        if (!template.required_data_types || template.required_data_types.length === 0) {
+          return true;
+        }
+
+        // Check if ALL required data types are available
+        return template.required_data_types.every((requiredType: string) =>
+          availableDataTypes.has(requiredType)
+        );
+      });
+
+      setTemplates(filteredTemplates);
     } catch (err) {
       console.error('Error fetching templates:', err);
     }

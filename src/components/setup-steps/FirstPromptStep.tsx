@@ -1,25 +1,120 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MessageSquare, CheckCircle, Send, Loader } from 'lucide-react';
 import { SetupGuideProgress } from '../../lib/setup-guide-utils';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 interface FirstPromptStepProps {
   onComplete: () => void;
   progress: SetupGuideProgress | null;
 }
 
-const EXAMPLE_QUESTIONS = [
-  'What were the key decisions from our last strategy meeting?',
-  'Summarize our financial performance this quarter',
-  'What are the main action items from recent meetings?'
-];
+interface AvailableDataTypes {
+  hasStrategy: boolean;
+  hasMeetings: boolean;
+  hasFinancial: boolean;
+}
+
+const getContextualQuestions = (dataTypes: AvailableDataTypes): string[] => {
+  const { hasStrategy, hasMeetings, hasFinancial } = dataTypes;
+  const questions: string[] = [];
+
+  // Strategy questions
+  if (hasStrategy) {
+    questions.push('What is our team\'s mission and core values?');
+    questions.push('What are our current strategic goals?');
+    questions.push('How does our strategy address market challenges?');
+  }
+
+  // Meetings questions
+  if (hasMeetings) {
+    questions.push('What were the key decisions from our last strategy meeting?');
+    questions.push('What are the main action items from recent meetings?');
+    questions.push('Summarize the discussion topics from this week\'s meetings');
+  }
+
+  // Financial questions
+  if (hasFinancial) {
+    questions.push('Summarize our financial performance this quarter');
+    questions.push('What are our main revenue streams?');
+    questions.push('What are our biggest expenses?');
+  }
+
+  // If no data types, provide generic questions
+  if (questions.length === 0) {
+    questions.push('Tell me about the documents you have access to');
+    questions.push('What information can you help me with?');
+  }
+
+  // Return max 3 questions
+  return questions.slice(0, 3);
+};
 
 export const FirstPromptStep: React.FC<FirstPromptStepProps> = ({ onComplete, progress }) => {
   const { user } = useAuth();
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [response, setResponse] = useState<string>('');
+  const [dataTypes, setDataTypes] = useState<AvailableDataTypes>({
+    hasStrategy: false,
+    hasMeetings: false,
+    hasFinancial: false,
+  });
+  const [exampleQuestions, setExampleQuestions] = useState<string[]>([]);
   const hasAskedQuestion = progress?.step_7_first_prompt_sent || false || response;
+
+  // Check what document types exist for the team
+  useEffect(() => {
+    const checkAvailableData = async () => {
+      if (!user) return;
+
+      const teamId = user.user_metadata?.team_id;
+      if (!teamId) return;
+
+      try {
+        // Check for documents in each category
+        const { data: strategyDocs } = await supabase
+          .from('documents')
+          .select('id')
+          .eq('team_id', teamId)
+          .eq('folder_type', 'strategy')
+          .limit(1);
+
+        const { data: meetingDocs } = await supabase
+          .from('documents')
+          .select('id')
+          .eq('team_id', teamId)
+          .eq('folder_type', 'meetings')
+          .limit(1);
+
+        const { data: financialDocs } = await supabase
+          .from('documents')
+          .select('id')
+          .eq('team_id', teamId)
+          .eq('folder_type', 'financial')
+          .limit(1);
+
+        const types: AvailableDataTypes = {
+          hasStrategy: (strategyDocs?.length ?? 0) > 0,
+          hasMeetings: (meetingDocs?.length ?? 0) > 0,
+          hasFinancial: (financialDocs?.length ?? 0) > 0,
+        };
+
+        setDataTypes(types);
+        setExampleQuestions(getContextualQuestions(types));
+      } catch (error) {
+        console.error('Error checking available data:', error);
+        // Fallback to generic questions
+        setExampleQuestions(getContextualQuestions({
+          hasStrategy: false,
+          hasMeetings: false,
+          hasFinancial: false,
+        }));
+      }
+    };
+
+    checkAvailableData();
+  }, [user]);
 
   const handleSendMessage = async () => {
     if (!message.trim() || isSending || !user) return;
@@ -110,7 +205,7 @@ export const FirstPromptStep: React.FC<FirstPromptStepProps> = ({ onComplete, pr
       <div className="bg-gray-800 rounded-lg p-4">
         <h3 className="text-sm font-semibold text-white mb-3">Example Questions:</h3>
         <div className="space-y-2">
-          {EXAMPLE_QUESTIONS.map((q, idx) => (
+          {exampleQuestions.map((q, idx) => (
             <button
               key={idx}
               onClick={() => handleExampleClick(q)}

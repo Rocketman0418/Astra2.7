@@ -62,9 +62,13 @@ export const PlaceFilesStep: React.FC<PlaceFilesStepProps> = ({ onComplete, fold
   // Check if step 4 is already completed and set view accordingly
   useEffect(() => {
     if (progress?.step_4_files_placed_in_folder) {
+      console.log('Step 4 already completed, showing document-created view');
       setViewMode('document-created');
+    } else {
+      console.log('Step 4 not completed, showing choose-option view');
+      setViewMode('choose-option');
     }
-  }, [progress]);
+  }, [progress?.step_4_files_placed_in_folder]);
 
   const handleHasFiles = () => {
     setViewMode('waiting-for-files');
@@ -77,23 +81,31 @@ export const PlaceFilesStep: React.FC<PlaceFilesStepProps> = ({ onComplete, fold
   const handleDocumentCreated = async (documentId: string) => {
     setCreatedDocumentId(documentId);
     setShowDocumentModal(false);
-    setViewMode('document-created');
 
-    // Mark step 4 as complete in the database
+    // Mark step 4 as complete in the database BEFORE changing view
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase
+        const { error: updateError } = await supabase
           .from('setup_guide_progress')
           .update({
             step_4_files_placed_in_folder: true,
             updated_at: new Date().toISOString()
           })
           .eq('user_id', user.id);
+
+        if (updateError) {
+          console.error('Error updating progress:', updateError);
+        } else {
+          console.log('Step 4 marked as complete in database');
+        }
       }
     } catch (error) {
       console.error('Error marking step 4 as complete:', error);
     }
+
+    // Change view AFTER database update
+    setViewMode('document-created');
   };
 
   const handleProceedToSync = () => {
