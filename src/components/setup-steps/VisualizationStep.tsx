@@ -1,6 +1,10 @@
-import React from 'react';
-import { BarChart3, CheckCircle } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { BarChart3, CheckCircle, X, Download, Save, Loader } from 'lucide-react';
 import { SetupGuideProgress } from '../../lib/setup-guide-utils';
+import { useVisualization } from '../../hooks/useVisualization';
+import { useSavedVisualizations } from '../../hooks/useSavedVisualizations';
+import { exportVisualizationToPDF } from '../../utils/exportVisualizationToPDF';
+import { extractVisualizationTitle } from '../../utils/extractVisualizationTitle';
 
 interface VisualizationStepProps {
   onComplete: () => void;
@@ -8,7 +12,180 @@ interface VisualizationStepProps {
 }
 
 export const VisualizationStep: React.FC<VisualizationStepProps> = ({ onComplete, progress }) => {
-  const hasCreatedVisualization = progress?.step_8_visualization_created || false;
+  const { generateVisualization, visualizations } = useVisualization();
+  const { saveVisualization } = useSavedVisualizations();
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [showVisualization, setShowVisualization] = useState(false);
+  const [visualizationContent, setVisualizationContent] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const hasCreatedVisualization = progress?.step_8_visualization_created || showVisualization;
+
+  const handleGenerateVisualization = useCallback(async () => {
+    setIsGenerating(true);
+
+    const demoMessage = `Based on your strategy documents, here are your team's key priorities:
+
+### Strategic Goals
+1. **Customer Growth**: Expand customer base by 50% this quarter
+2. **Product Innovation**: Launch 3 new features by Q2
+3. **Team Development**: Build high-performing culture
+
+### Core Values
+- **Innovation**: Push boundaries and think creatively
+- **Collaboration**: Work together to achieve goals
+- **Excellence**: Deliver quality in everything we do`;
+
+    const mockMessageId = `viz-demo-${Date.now()}`;
+
+    try {
+      await generateVisualization(mockMessageId, demoMessage);
+
+      const checkVisualization = setInterval(() => {
+        const viz = visualizations[mockMessageId];
+        if (viz && !viz.isGenerating && viz.content) {
+          clearInterval(checkVisualization);
+          setVisualizationContent(viz.content);
+          setShowVisualization(true);
+          setIsGenerating(false);
+        }
+      }, 500);
+
+      setTimeout(() => {
+        clearInterval(checkVisualization);
+        if (isGenerating) {
+          setIsGenerating(false);
+          alert('Visualization generation timed out. Please try again.');
+        }
+      }, 60000);
+
+    } catch (error) {
+      console.error('Error generating visualization:', error);
+      setIsGenerating(false);
+      alert('Failed to generate visualization. Please try again.');
+    }
+  }, [generateVisualization, visualizations, isGenerating]);
+
+  const handleSaveVisualization = useCallback(async () => {
+    if (!visualizationContent) return;
+
+    setIsSaving(true);
+    try {
+      const title = extractVisualizationTitle(visualizationContent) || 'My First Visualization';
+      await saveVisualization(title, visualizationContent, 'Guided Setup Demo');
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error('Error saving visualization:', error);
+      alert('Failed to save visualization');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [visualizationContent, saveVisualization]);
+
+  const handleExportPDF = useCallback(async () => {
+    if (!visualizationContent) return;
+
+    setIsExporting(true);
+    try {
+      const title = extractVisualizationTitle(visualizationContent) || 'Visualization';
+      await exportVisualizationToPDF(visualizationContent, title);
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
+      alert('Failed to export to PDF');
+    } finally {
+      setIsExporting(false);
+    }
+  }, [visualizationContent]);
+
+  const handleCloseVisualization = () => {
+    setShowVisualization(false);
+    setVisualizationContent(null);
+  };
+
+  if (showVisualization && visualizationContent) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-white">Your Visualization</h2>
+          <button
+            onClick={handleCloseVisualization}
+            className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
+        </div>
+
+        <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+          <div className="p-4 border-b border-gray-700 flex items-center justify-between bg-gray-900">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-purple-400" />
+              <span className="text-sm font-medium text-white">Interactive Visualization</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSaveVisualization}
+                disabled={isSaving || saveSuccess}
+                className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded text-sm transition-all min-h-[36px]"
+              >
+                {saveSuccess ? (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Saved!</span>
+                  </>
+                ) : isSaving ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>Save</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleExportPDF}
+                disabled={isExporting}
+                className="flex items-center gap-2 px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded text-sm transition-all min-h-[36px]"
+              >
+                {isExporting ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    <span>Exporting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    <span>Export PDF</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+          <div
+            className="p-6 overflow-auto max-h-[400px] bg-gray-900"
+            dangerouslySetInnerHTML={{ __html: visualizationContent }}
+          />
+        </div>
+
+        <div className="bg-green-900/20 border border-green-700 rounded-lg p-3">
+          <p className="text-xs text-green-300">
+            <span className="font-medium">✅ Great!</span> You can save or export this visualization, then continue to the next step.
+          </p>
+        </div>
+
+        <div className="flex justify-center pt-2">
+          <button onClick={onComplete} className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all min-h-[44px]">
+            Next: Run a Manual Report →
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (hasCreatedVisualization) {
     return (
@@ -42,29 +219,55 @@ export const VisualizationStep: React.FC<VisualizationStepProps> = ({ onComplete
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-purple-600/20 mb-3">
           <BarChart3 className="w-7 h-7 text-purple-400" />
         </div>
-        <h2 className="text-xl font-bold text-white mb-2">Try Visualizations</h2>
-        <p className="text-sm text-gray-300">Generate visual insights from your data</p>
+        <h2 className="text-xl font-bold text-white mb-2">Create a Visualization</h2>
+        <p className="text-sm text-gray-300">Turn data into visual insights</p>
       </div>
 
-      <div className="bg-gray-800 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-white mb-3">How to Create a Visualization:</h3>
-        <ol className="space-y-2 text-xs text-gray-300 list-decimal list-inside">
-          <li>Ask Astra a question about your data</li>
-          <li>Click the "Generate Visualization" button</li>
-          <li>Astra will create an interactive chart or graph</li>
-          <li>Save or export your visualization</li>
-        </ol>
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 border border-gray-700">
+        <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+          <span className="text-lg">📊</span>
+          Visualizations Can Show:
+        </h3>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-blue-950/50 rounded-lg p-2 text-center">
+            <div className="text-xl mb-1">📈</div>
+            <div className="text-xs text-blue-200">Trends</div>
+          </div>
+          <div className="bg-purple-950/50 rounded-lg p-2 text-center">
+            <div className="text-xl mb-1">🎯</div>
+            <div className="text-xs text-purple-200">Goals</div>
+          </div>
+          <div className="bg-green-950/50 rounded-lg p-2 text-center">
+            <div className="text-xl mb-1">📅</div>
+            <div className="text-xs text-green-200">Timelines</div>
+          </div>
+        </div>
       </div>
 
-      <div className="bg-purple-900/20 border border-purple-700 rounded-lg p-3">
-        <p className="text-xs text-purple-300">
-          <span className="font-medium">💡 Examples:</span> "Show me meeting frequency over time" or "Visualize our strategic priorities"
+      <div className="bg-purple-900/20 border border-purple-700 rounded-lg p-3 flex items-center gap-2">
+        <span className="text-lg">💡</span>
+        <p className="text-xs text-purple-300 flex-1">
+          Click below to generate a sample visualization from your data
         </p>
       </div>
 
       <div className="flex justify-center pt-2">
-        <button onClick={onComplete} className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all min-h-[44px]">
-          Continue →
+        <button
+          onClick={handleGenerateVisualization}
+          disabled={isGenerating}
+          className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-700 disabled:to-gray-700 text-white rounded-lg font-medium transition-all min-h-[44px] flex items-center gap-2"
+        >
+          {isGenerating ? (
+            <>
+              <Loader className="w-5 h-5 animate-spin" />
+              <span>Generating Visualization...</span>
+            </>
+          ) : (
+            <>
+              <BarChart3 className="w-5 h-5" />
+              <span>Generate Visualization</span>
+            </>
+          )}
         </button>
       </div>
     </div>
