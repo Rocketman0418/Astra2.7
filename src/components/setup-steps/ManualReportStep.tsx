@@ -307,17 +307,14 @@ export const ManualReportStep: React.FC<ManualReportStepProps> = ({ onComplete, 
         {visualizationContent && (
           <div className="bg-gray-800 rounded-lg p-4">
             <h3 className="text-sm font-semibold text-white mb-3">Your Report Visualization:</h3>
-            <div
-              className="bg-gray-900 rounded border border-gray-700 overflow-hidden cursor-pointer hover:border-orange-500 transition-colors"
-              onClick={() => {}}
-            >
+            <div className="bg-gray-900 rounded border border-gray-700 overflow-y-auto max-h-96">
               <div
-                className="w-full h-48 overflow-hidden"
+                className="w-full p-4"
                 dangerouslySetInnerHTML={{ __html: visualizationContent }}
               />
             </div>
             <p className="text-xs text-gray-400 mt-2 text-center">
-              Click to view full report in Reports section
+              Scroll to view the full report • Access anytime from the Reports section
             </p>
           </div>
         )}
