@@ -102,25 +102,70 @@ export const VisualizationStep: React.FC<VisualizationStepProps> = ({ onComplete
 
       if (fetchError) {
         console.error('❌ Error fetching recent messages:', fetchError);
-        throw new Error('Failed to fetch recent messages');
+        throw new Error(`Database error: ${fetchError.message}`);
       }
 
+      let messageId: string;
+      let messageText: string;
+
+      // If no AI message exists, create a demo message
       if (!recentMessages || recentMessages.length === 0) {
-        throw new Error('No AI messages found. Please complete Step 7 first.');
-      }
+        console.log('⚠️ No AI messages found, creating demo message...');
 
-      const messageData = recentMessages[0];
-      const messageId = messageData.id;
-      const messageText = messageData.message;
+        const demoMessage = `Based on your team's data, here are some insights:
+
+### Key Areas
+1. **Strategic Planning**: Your team is focused on growth and innovation
+2. **Team Collaboration**: Regular meetings and communication are priorities
+3. **Goal Setting**: Clear objectives drive your team's success
+
+### Next Steps
+- Continue building your data foundation
+- Regular check-ins with Astra for insights
+- Use visualizations to track progress`;
+
+        // Create a new message in the database
+        const { data: newMessage, error: insertError } = await supabase
+          .from('astra_chats')
+          .insert({
+            user_id: user.id,
+            message: demoMessage,
+            sender: 'ai',
+            mode: 'private',
+            visualization: false
+          })
+          .select()
+          .single();
+
+        if (insertError || !newMessage) {
+          console.error('❌ Error creating demo message:', insertError);
+          throw new Error(`Failed to create message: ${insertError?.message || 'Unknown error'}`);
+        }
+
+        messageId = newMessage.id;
+        messageText = demoMessage;
+        console.log('✅ Created demo message with ID:', messageId);
+      } else {
+        const messageData = recentMessages[0];
+        messageId = messageData.id;
+        messageText = messageData.message;
+        console.log('✅ Using existing message with ID:', messageId);
+      }
 
       setCurrentMessageId(messageId);
-      console.log('✅ Using existing message with ID:', messageId);
       console.log('📄 Message preview:', messageText.substring(0, 100) + '...');
 
       // Now generate the visualization
       console.log('📝 Calling generateVisualization with messageId:', messageId);
-      await generateVisualization(messageId, messageText);
-      console.log('✅ generateVisualization call completed');
+      console.log('📝 Message text length:', messageText.length);
+
+      try {
+        await generateVisualization(messageId, messageText);
+        console.log('✅ generateVisualization call completed');
+      } catch (vizError: any) {
+        console.error('❌ Error in generateVisualization:', vizError);
+        throw new Error(`Visualization generation failed: ${vizError?.message || 'Unknown error'}`);
+      }
 
       // Start polling the database for the visualization
       let pollCount = 0;
@@ -149,14 +194,15 @@ export const VisualizationStep: React.FC<VisualizationStepProps> = ({ onComplete
         }
       }, 500);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error generating visualization:', error);
       setIsGenerating(false);
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
         pollIntervalRef.current = null;
       }
-      alert('Failed to generate visualization. Please try again.');
+      const errorMessage = error?.message || 'Unknown error occurred';
+      alert(`Failed to generate visualization: ${errorMessage}\n\nPlease try again or check the console for details.`);
     }
   }, [generateVisualization, pollForVisualization]);
 
