@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Key, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { PasswordResetModal } from './PasswordResetModal';
 
 type AuthStep = 'email' | 'signup' | 'login' | 'preview-confirmation';
 
@@ -16,6 +17,7 @@ export const CustomAuth: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -506,17 +508,24 @@ export const CustomAuth: React.FC = () => {
 
   // Step 2: Sign Up or Login
   return (
-    <div className="w-full">
-      <div className="text-center mb-6">
-        <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-blue-400 shadow-lg">
-          <span className="text-4xl">🚀</span>
+    <>
+      <PasswordResetModal
+        isOpen={showPasswordReset}
+        onClose={() => setShowPasswordReset(false)}
+        defaultEmail={email}
+      />
+
+      <div className="w-full">
+        <div className="text-center mb-6">
+          <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-blue-400 shadow-lg">
+            <span className="text-4xl">🚀</span>
+          </div>
+          <h1 className="text-2xl md:text-3xl font-bold flex items-center justify-center gap-3 flex-wrap">
+            <span className="text-blue-400">AI Rocket</span>
+            <span className="text-white font-normal">+</span>
+            <span className="text-emerald-400">Astra Intelligence</span>
+          </h1>
         </div>
-        <h1 className="text-2xl md:text-3xl font-bold flex items-center justify-center gap-3 flex-wrap">
-          <span className="text-blue-400">AI Rocket</span>
-          <span className="text-white font-normal">+</span>
-          <span className="text-emerald-400">Astra Intelligence</span>
-        </h1>
-      </div>
 
       <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-2xl p-6">
         <div className="mb-6">
@@ -586,6 +595,17 @@ export const CustomAuth: React.FC = () => {
                 required
               />
             </div>
+            {step === 'login' && (
+              <div className="mt-2 text-right">
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordReset(true)}
+                  className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+            )}
           </div>
 
           {step === 'signup' && (
@@ -679,5 +699,6 @@ export const CustomAuth: React.FC = () => {
         )}
       </div>
     </div>
+    </>
   );
 };

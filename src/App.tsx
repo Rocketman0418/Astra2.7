@@ -19,6 +19,7 @@ import { UserMetricsDashboard } from './components/UserMetricsDashboard';
 import { ProtectedMetricsRoute } from './components/ProtectedMetricsRoute';
 import { PricingStrategyPage } from './components/PricingStrategyPage';
 import { MCPStrategyPage } from './components/MCPStrategyPage';
+import { PasswordResetPage } from './components/PasswordResetPage';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
 import { useFeedbackPrompt } from './hooks/useFeedbackPrompt';
 import { useActivityTracking } from './hooks/useActivityTracking';
@@ -145,6 +146,9 @@ const AppContent: React.FC = () => {
 
       {/* Marketing Logo Page - Public Route */}
       <Route path="/marketing-logo" element={<MarketingLogo />} />
+
+      {/* Password Reset Page - Public Route */}
+      <Route path="/reset-password" element={<PasswordResetPage />} />
 
       {/* Main App Routes */}
       <Route
