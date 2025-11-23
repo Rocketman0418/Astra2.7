@@ -96,9 +96,6 @@ Deno.serve(async (req: Request) => {
     const { data: resetData, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
       email: email.toLowerCase(),
-      options: {
-        redirectTo: resetRedirectUrl
-      }
     });
 
     if (resetError || !resetData) {
@@ -106,7 +103,9 @@ Deno.serve(async (req: Request) => {
       throw new Error("Failed to generate reset link");
     }
 
-    const resetUrl = resetData.properties.action_link;
+    // Use hashed_token to construct the proper reset URL with token in hash
+    const token = resetData.properties.hashed_token;
+    const resetUrl = `${resetRedirectUrl}#access_token=${token}&type=recovery`;
 
     const emailHtml = `
 <!DOCTYPE html>
