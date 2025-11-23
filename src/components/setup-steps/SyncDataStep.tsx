@@ -160,18 +160,18 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete }) => {
         </div>
 
         {/* Rotating Questions */}
-        <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-700/50 rounded-lg p-4 min-h-[140px] flex flex-col items-center justify-center">
-          <div className="flex items-center space-x-2 mb-3">
-            <Sparkles className="w-5 h-5 text-purple-400" />
-            <h3 className="text-sm font-semibold text-white">Questions You'll Be Able to Ask Astra:</h3>
+        <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-700/50 rounded-lg p-4">
+          <div className="flex items-center justify-center space-x-2 mb-2">
+            <Sparkles className="w-4 h-4 text-purple-400" />
+            <h3 className="text-xs font-semibold text-white">Soon You'll Ask:</h3>
           </div>
-          <div className="text-center">
-            <p className="text-sm text-purple-200 italic transition-opacity duration-500">
+          <div className="text-center mb-3">
+            <p className="text-sm text-purple-200 italic transition-opacity duration-500 line-clamp-2">
               "{ROTATING_QUESTIONS[currentQuestionIndex]}"
             </p>
           </div>
-          <div className="mt-4 flex items-center space-x-1">
-            {ROTATING_QUESTIONS.map((_, idx) => (
+          <div className="flex items-center justify-center space-x-1">
+            {ROTATING_QUESTIONS.slice(0, 5).map((_, idx) => (
               <div
                 key={idx}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
@@ -182,12 +182,6 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete }) => {
               />
             ))}
           </div>
-        </div>
-
-        <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-3">
-          <p className="text-xs text-blue-300">
-            <span className="font-medium">💡 What's happening:</span> Your documents are being read, chunked, and vectorized for intelligent search.
-          </p>
         </div>
       </div>
     );
@@ -258,29 +252,29 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete }) => {
           </div>
         </div>
 
-        <div className="bg-green-900/20 border border-green-700 rounded-lg p-4">
-          <h4 className="text-white text-sm font-medium mb-2 flex items-center gap-2">
+        <div className="bg-green-900/20 border border-green-700 rounded-lg p-3">
+          <div className="flex items-center justify-center gap-2 mb-2">
             <Sparkles className="w-4 h-4 text-green-400" />
-            What Astra Can Do Now:
-          </h4>
-          <ul className="space-y-1 text-xs text-green-300">
-            <li className="flex items-start space-x-2">
+            <h4 className="text-white text-sm font-medium">Astra Can Now:</h4>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex items-center gap-1 text-xs text-green-300">
               <span className="text-green-400">✓</span>
-              <span>Answer questions about your team's mission, values, and strategic direction</span>
-            </li>
-            <li className="flex items-start space-x-2">
+              <span>Answer questions</span>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-green-300">
               <span className="text-green-400">✓</span>
-              <span>Provide insights on your goals and help track progress toward objectives</span>
-            </li>
-            <li className="flex items-start space-x-2">
+              <span>Track progress</span>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-green-300">
               <span className="text-green-400">✓</span>
-              <span>Analyze alignment between strategy documents and team activities</span>
-            </li>
-            <li className="flex items-start space-x-2">
+              <span>Analyze alignment</span>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-green-300">
               <span className="text-green-400">✓</span>
-              <span>Generate reports and visualizations based on your synced data</span>
-            </li>
-          </ul>
+              <span>Create visuals</span>
+            </div>
+          </div>
         </div>
 
         <div className="flex justify-center pt-2">
