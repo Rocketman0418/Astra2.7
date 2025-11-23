@@ -95,7 +95,7 @@ export const VisualizationStep: React.FC<VisualizationStepProps> = ({ onComplete
         .from('astra_chats')
         .select('id, message')
         .eq('user_id', user.id)
-        .eq('sender', 'ai')
+        .eq('message_type', 'astra')
         .eq('mode', 'private')
         .order('created_at', { ascending: false })
         .limit(1);
@@ -129,8 +129,10 @@ export const VisualizationStep: React.FC<VisualizationStepProps> = ({ onComplete
           .from('astra_chats')
           .insert({
             user_id: user.id,
+            user_email: user.email || '',
+            user_name: 'Astra',
             message: demoMessage,
-            sender: 'ai',
+            message_type: 'astra',
             mode: 'private',
             visualization: false
           })

@@ -135,8 +135,10 @@ export const FirstPromptStep: React.FC<FirstPromptStepProps> = ({ onComplete, pr
         .from('astra_chats')
         .insert({
           user_id: user.id,
+          user_email: user.email || '',
+          user_name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
           message: userMessageContent,
-          sender: 'user',
+          message_type: 'user',
           mode: 'private',
           visualization: false
         })
@@ -232,8 +234,10 @@ export const FirstPromptStep: React.FC<FirstPromptStepProps> = ({ onComplete, pr
           .from('astra_chats')
           .insert({
             user_id: user.id,
+            user_email: user.email || '',
+            user_name: 'Astra',
             message: messageText,
-            sender: 'ai',
+            message_type: 'astra',
             mode: 'private',
             visualization: false
           })
