@@ -1,10 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { BarChart3, CheckCircle, X, Download, Save, Loader } from 'lucide-react';
 import { SetupGuideProgress } from '../../lib/setup-guide-utils';
 import { useVisualization } from '../../hooks/useVisualization';
 import { useSavedVisualizations } from '../../hooks/useSavedVisualizations';
 import { exportVisualizationToPDF } from '../../utils/exportVisualizationToPDF';
 import { extractVisualizationTitle } from '../../utils/extractVisualizationTitle';
+import { supabase } from '../../lib/supabase';
 
 interface VisualizationStepProps {
   onComplete: () => void;
@@ -12,7 +13,7 @@ interface VisualizationStepProps {
 }
 
 export const VisualizationStep: React.FC<VisualizationStepProps> = ({ onComplete, progress }) => {
-  const { generateVisualization, visualizations } = useVisualization();
+  const { generateVisualization } = useVisualization();
   const { saveVisualization } = useSavedVisualizations();
   const [isGenerating, setIsGenerating] = useState(false);
   const [showVisualization, setShowVisualization] = useState(false);
@@ -20,10 +21,64 @@ export const VisualizationStep: React.FC<VisualizationStepProps> = ({ onComplete
   const [isSaving, setIsSaving] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [currentMessageId, setCurrentMessageId] = useState<string | null>(null);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const hasCreatedVisualization = progress?.step_8_visualization_created || showVisualization;
 
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
+  }, []);
+
+  const pollForVisualization = useCallback(async (messageId: string) => {
+    console.log('🔍 Polling for visualization:', messageId);
+
+    try {
+      const { data, error } = await supabase
+        .from('astra_chats')
+        .select('visualization_data, metadata')
+        .eq('id', messageId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('❌ Error polling for visualization:', error);
+        return false;
+      }
+
+      console.log('📊 Poll result:', {
+        hasData: !!data,
+        hasVizData: !!data?.visualization_data,
+        metadata: data?.metadata
+      });
+
+      if (data?.visualization_data) {
+        console.log('✅ Visualization found! Length:', data.visualization_data.length);
+        setVisualizationContent(data.visualization_data);
+        setShowVisualization(true);
+        setIsGenerating(false);
+
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+        }
+
+        return true;
+      }
+
+      return false;
+    } catch (err) {
+      console.error('❌ Error in pollForVisualization:', err);
+      return false;
+    }
+  }, []);
+
   const handleGenerateVisualization = useCallback(async () => {
+    console.log('🚀 Starting visualization generation...');
     setIsGenerating(true);
 
     const demoMessage = `Based on your strategy documents, here are your team's key priorities:
@@ -39,34 +94,50 @@ export const VisualizationStep: React.FC<VisualizationStepProps> = ({ onComplete
 - **Excellence**: Deliver quality in everything we do`;
 
     const mockMessageId = `viz-demo-${Date.now()}`;
+    setCurrentMessageId(mockMessageId);
 
     try {
+      console.log('📝 Calling generateVisualization with messageId:', mockMessageId);
       await generateVisualization(mockMessageId, demoMessage);
+      console.log('✅ generateVisualization call completed');
 
-      const checkVisualization = setInterval(() => {
-        const viz = visualizations[mockMessageId];
-        if (viz && !viz.isGenerating && viz.content) {
-          clearInterval(checkVisualization);
-          setVisualizationContent(viz.content);
-          setShowVisualization(true);
-          setIsGenerating(false);
-        }
-      }, 500);
+      // Start polling the database for the visualization
+      let pollCount = 0;
+      const maxPolls = 120; // 60 seconds at 500ms intervals
 
-      setTimeout(() => {
-        clearInterval(checkVisualization);
-        if (isGenerating) {
+      pollIntervalRef.current = setInterval(async () => {
+        pollCount++;
+        console.log(`🔄 Poll attempt ${pollCount}/${maxPolls}`);
+
+        const found = await pollForVisualization(mockMessageId);
+
+        if (found) {
+          console.log('✅ Visualization found and displayed!');
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
+        } else if (pollCount >= maxPolls) {
+          console.error('❌ Polling timeout reached');
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
           setIsGenerating(false);
           alert('Visualization generation timed out. Please try again.');
         }
-      }, 60000);
+      }, 500);
 
     } catch (error) {
-      console.error('Error generating visualization:', error);
+      console.error('❌ Error generating visualization:', error);
       setIsGenerating(false);
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
       alert('Failed to generate visualization. Please try again.');
     }
-  }, [generateVisualization, visualizations, isGenerating]);
+  }, [generateVisualization, pollForVisualization]);
 
   const handleSaveVisualization = useCallback(async () => {
     if (!visualizationContent) return;
