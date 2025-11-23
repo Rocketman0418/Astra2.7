@@ -23,23 +23,26 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onComplete }) => {
       </div>
 
       <div className="bg-gray-800 rounded-lg p-4">
-        <h3 className="text-base font-semibold text-white mb-3">
+        <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+          <span className="text-xl">🎯</span>
           What You'll Accomplish:
         </h3>
 
-        <div className="space-y-2">
+        <div className="grid gap-3">
           {[
-            'Connect your Google Drive to unlock AI insights',
-            'Set up your first data folder with files',
-            'Configure your team settings',
-            'Experience Astra\'s intelligent responses',
-            'Create your first AI-powered visualization',
-            'Set up automated reports',
-            'Invite your team members (optional)'
+            { icon: '🔗', text: 'Connect your Google Drive to unlock AI insights' },
+            { icon: '📁', text: 'Set up your first data folder with files' },
+            { icon: '⚙️', text: 'Configure your team settings' },
+            { icon: '💬', text: 'Experience Astra\'s intelligent responses' },
+            { icon: '📊', text: 'Create your first AI-powered visualization' },
+            { icon: '📅', text: 'Set up automated reports' },
+            { icon: '👥', text: 'Invite your team members (optional)' }
           ].map((item, index) => (
-            <div key={index} className="flex items-start space-x-2">
-              <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
-              <span className="text-sm text-gray-300">{item}</span>
+            <div key={index} className="flex items-center space-x-3 bg-gray-900/50 rounded-lg p-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600/20 to-purple-600/20 flex items-center justify-center flex-shrink-0">
+                <span className="text-base">{item.icon}</span>
+              </div>
+              <span className="text-sm text-gray-300">{item.text}</span>
             </div>
           ))}
         </div>
