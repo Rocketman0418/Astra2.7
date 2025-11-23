@@ -117,23 +117,23 @@ export const ScheduledReportStep: React.FC<ScheduledReportStepProps> = ({ onComp
           <div className="bg-blue-600/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2">
             <Clock className="w-6 h-6 text-blue-400" />
           </div>
-          <div className="text-sm font-medium text-white mb-1">Daily / Weekly</div>
-          <div className="text-xs text-gray-400">Choose your schedule</div>
+          <div className="text-sm font-medium text-white mb-1">Flexible Schedule</div>
+          <div className="text-xs text-gray-400">Daily, Weekly, or Monthly</div>
         </div>
 
         <div className="bg-gradient-to-br from-green-900/30 to-green-800/20 border border-green-700/50 rounded-lg p-4 text-center">
           <div className="bg-green-600/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2">
-            <Mail className="w-6 h-6 text-green-400" />
+            <Calendar className="w-6 h-6 text-green-400" />
           </div>
-          <div className="text-sm font-medium text-white mb-1">Email Delivery</div>
-          <div className="text-xs text-gray-400">Direct to your inbox</div>
+          <div className="text-sm font-medium text-white mb-1">Pick Your Day</div>
+          <div className="text-xs text-gray-400">Choose day & time</div>
         </div>
 
         <div className="bg-gradient-to-br from-orange-900/30 to-orange-800/20 border border-orange-700/50 rounded-lg p-4 text-center">
           <div className="bg-orange-600/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2">
             <Zap className="w-6 h-6 text-orange-400" />
           </div>
-          <div className="text-sm font-medium text-white mb-1">Zero Effort</div>
+          <div className="text-sm font-medium text-white mb-1">Auto-Generated</div>
           <div className="text-xs text-gray-400">Set it and forget it</div>
         </div>
 
@@ -141,8 +141,8 @@ export const ScheduledReportStep: React.FC<ScheduledReportStepProps> = ({ onComp
           <div className="bg-purple-600/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2">
             <TrendingUp className="w-6 h-6 text-purple-400" />
           </div>
-          <div className="text-sm font-medium text-white mb-1">Track Trends</div>
-          <div className="text-xs text-gray-400">See changes over time</div>
+          <div className="text-sm font-medium text-white mb-1">Track Progress</div>
+          <div className="text-xs text-gray-400">Consistent insights</div>
         </div>
       </div>
 
