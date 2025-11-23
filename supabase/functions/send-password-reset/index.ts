@@ -51,7 +51,7 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const resendApiKey = Deno.env.get("RESEND_API_KEY")!;
-    const appUrl = supabaseUrl.replace(".supabase.co", ".netlify.app");
+    const resetRedirectUrl = Deno.env.get("PASSWORD_RESET_REDIRECT_URL") || `${supabaseUrl.replace(".supabase.co", ".netlify.app")}/reset-password`;
 
     const { createClient } = await import("npm:@supabase/supabase-js@2.57.4");
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
@@ -97,7 +97,7 @@ Deno.serve(async (req: Request) => {
       type: 'recovery',
       email: email.toLowerCase(),
       options: {
-        redirectTo: `${appUrl}/reset-password`
+        redirectTo: resetRedirectUrl
       }
     });
 
@@ -170,24 +170,25 @@ Deno.serve(async (req: Request) => {
 </html>
     `;
 
-    const emailText = `
-Reset Your Password
+    const emailText = `Reset Your Password - RocketHub
 
 Hi there,
 
-We received a request to reset your password for your RocketHub account.
+You requested to reset your password for your RocketHub account.
 
 Click the link below to create a new password:
 ${resetUrl}
 
-This link will expire in 1 hour for your security.
+SECURITY NOTICE:
+- This link expires in 1 hour
+- This is a one-time use link
+- If you didn't request this, ignore this email
 
-If you didn't request this password reset, you can safely ignore this email. Your password will remain unchanged.
+Need help? Reply to this email or contact support@rockethub.ai
 
 Best regards,
 The RocketHub Team
-AI Rocket + Astra Intelligence
-    `;
+AI Rocket + Astra Intelligence`;
 
     const resendResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -201,6 +202,18 @@ AI Rocket + Astra Intelligence
         subject: "Reset Your RocketHub Password",
         html: emailHtml,
         text: emailText,
+        reply_to: "support@rockethub.ai",
+        tags: [
+          {
+            name: "category",
+            value: "password_reset"
+          }
+        ],
+        headers: {
+          "X-Priority": "1",
+          "X-MSMail-Priority": "High",
+          "Importance": "high"
+        }
       }),
     });
 
