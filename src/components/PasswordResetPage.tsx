@@ -21,8 +21,20 @@ export const PasswordResetPage: React.FC = () => {
       const type = hashParams.get('type');
 
       if (type === 'recovery' && accessToken) {
-        setTokenValid(true);
+        // Verify the session is actually valid with Supabase
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError || !session) {
+          // Session is invalid, sign out any existing session
+          await supabase.auth.signOut();
+          setTokenValid(false);
+          setError('Invalid or expired password reset link');
+        } else {
+          setTokenValid(true);
+        }
       } else {
+        // No recovery token, sign out any existing session
+        await supabase.auth.signOut();
         setTokenValid(false);
         setError('Invalid or expired password reset link');
       }
@@ -73,7 +85,9 @@ export const PasswordResetPage: React.FC = () => {
 
       setSuccess(true);
 
-      setTimeout(() => {
+      // Sign out after successful password update to ensure user logs in with new password
+      setTimeout(async () => {
+        await supabase.auth.signOut();
         navigate('/');
       }, 3000);
     } catch (err: any) {
@@ -111,7 +125,10 @@ export const PasswordResetPage: React.FC = () => {
               This password reset link is invalid or has expired. Reset links expire after 1 hour.
             </p>
             <button
-              onClick={() => navigate('/')}
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate('/');
+              }}
               className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
             >
               Back to Login
@@ -143,7 +160,10 @@ export const PasswordResetPage: React.FC = () => {
               Redirecting you to the login page in 3 seconds...
             </p>
             <button
-              onClick={() => navigate('/')}
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate('/');
+              }}
               className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
             >
               Go to Login Now
