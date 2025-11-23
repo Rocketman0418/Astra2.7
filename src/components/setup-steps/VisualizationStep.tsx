@@ -81,18 +81,6 @@ export const VisualizationStep: React.FC<VisualizationStepProps> = ({ onComplete
     console.log('🚀 Starting visualization generation...');
     setIsGenerating(true);
 
-    const demoMessage = `Based on your strategy documents, here are your team's key priorities:
-
-### Strategic Goals
-1. **Customer Growth**: Expand customer base by 50% this quarter
-2. **Product Innovation**: Launch 3 new features by Q2
-3. **Team Development**: Build high-performing culture
-
-### Core Values
-- **Innovation**: Push boundaries and think creatively
-- **Collaboration**: Work together to achieve goals
-- **Excellence**: Deliver quality in everything we do`;
-
     try {
       // First, get the current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -102,31 +90,36 @@ export const VisualizationStep: React.FC<VisualizationStepProps> = ({ onComplete
 
       console.log('👤 Current user:', user.id);
 
-      // Create a message in the database first
-      const { data: messageData, error: insertError } = await supabase
+      // Find the most recent AI message from the first prompt step
+      const { data: recentMessages, error: fetchError } = await supabase
         .from('astra_chats')
-        .insert({
-          user_id: user.id,
-          message: demoMessage,
-          sender: 'user',
-          mode: 'private',
-          visualization: false
-        })
-        .select()
-        .single();
+        .select('id, message')
+        .eq('user_id', user.id)
+        .eq('sender', 'ai')
+        .eq('mode', 'private')
+        .order('created_at', { ascending: false })
+        .limit(1);
 
-      if (insertError || !messageData) {
-        console.error('❌ Error creating message:', insertError);
-        throw new Error('Failed to create message');
+      if (fetchError) {
+        console.error('❌ Error fetching recent messages:', fetchError);
+        throw new Error('Failed to fetch recent messages');
       }
 
+      if (!recentMessages || recentMessages.length === 0) {
+        throw new Error('No AI messages found. Please complete Step 7 first.');
+      }
+
+      const messageData = recentMessages[0];
       const messageId = messageData.id;
+      const messageText = messageData.message;
+
       setCurrentMessageId(messageId);
-      console.log('✅ Created message with ID:', messageId);
+      console.log('✅ Using existing message with ID:', messageId);
+      console.log('📄 Message preview:', messageText.substring(0, 100) + '...');
 
       // Now generate the visualization
       console.log('📝 Calling generateVisualization with messageId:', messageId);
-      await generateVisualization(messageId, demoMessage);
+      await generateVisualization(messageId, messageText);
       console.log('✅ generateVisualization call completed');
 
       // Start polling the database for the visualization

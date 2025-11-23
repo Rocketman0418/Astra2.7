@@ -126,10 +126,37 @@ export const FirstPromptStep: React.FC<FirstPromptStepProps> = ({ onComplete, pr
   const handleSendMessage = async () => {
     if (!message.trim() || isSending || !user) return;
 
+    const userMessageContent = message.trim();
+    let userMessageId: string | null = null;
+
+    // Save user message to database first
+    try {
+      const { data: savedMessage, error: saveError } = await supabase
+        .from('astra_chats')
+        .insert({
+          user_id: user.id,
+          message: userMessageContent,
+          sender: 'user',
+          mode: 'private',
+          visualization: false
+        })
+        .select()
+        .single();
+
+      if (saveError) {
+        console.error('❌ Error saving user message:', saveError);
+      } else {
+        userMessageId = savedMessage.id;
+        console.log('✅ Saved user message with ID:', userMessageId);
+      }
+    } catch (err) {
+      console.error('❌ Error in message save:', err);
+    }
+
     const userMessage: Message = {
-      id: `user-${Date.now()}`,
+      id: userMessageId || `user-${Date.now()}`,
       role: 'user',
-      content: message.trim(),
+      content: userMessageContent,
       timestamp: new Date(),
     };
 
@@ -198,10 +225,35 @@ export const FirstPromptStep: React.FC<FirstPromptStepProps> = ({ onComplete, pr
 
       let messageText = data.output || data.response || 'I received your message! Let me help you with that.';
 
+      // Save AI response to database
+      let aiMessageId: string | null = null;
+      try {
+        const { data: savedAiMessage, error: aiSaveError } = await supabase
+          .from('astra_chats')
+          .insert({
+            user_id: user.id,
+            message: messageText,
+            sender: 'ai',
+            mode: 'private',
+            visualization: false
+          })
+          .select()
+          .single();
+
+        if (aiSaveError) {
+          console.error('❌ Error saving AI message:', aiSaveError);
+        } else {
+          aiMessageId = savedAiMessage.id;
+          console.log('✅ Saved AI message with ID:', aiMessageId);
+        }
+      } catch (err) {
+        console.error('❌ Error in AI message save:', err);
+      }
+
       setMessages(prev => {
         const filtered = prev.filter(m => m.id !== thinkingMessage.id);
         const assistantMessage: Message = {
-          id: `assistant-${Date.now()}`,
+          id: aiMessageId || `assistant-${Date.now()}`,
           role: 'assistant',
           content: messageText,
           timestamp: new Date(),
