@@ -93,12 +93,40 @@ export const VisualizationStep: React.FC<VisualizationStepProps> = ({ onComplete
 - **Collaboration**: Work together to achieve goals
 - **Excellence**: Deliver quality in everything we do`;
 
-    const mockMessageId = `viz-demo-${Date.now()}`;
-    setCurrentMessageId(mockMessageId);
-
     try {
-      console.log('📝 Calling generateVisualization with messageId:', mockMessageId);
-      await generateVisualization(mockMessageId, demoMessage);
+      // First, get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('No authenticated user');
+      }
+
+      console.log('👤 Current user:', user.id);
+
+      // Create a message in the database first
+      const { data: messageData, error: insertError } = await supabase
+        .from('astra_chats')
+        .insert({
+          user_id: user.id,
+          message: demoMessage,
+          sender: 'user',
+          mode: 'private',
+          visualization: false
+        })
+        .select()
+        .single();
+
+      if (insertError || !messageData) {
+        console.error('❌ Error creating message:', insertError);
+        throw new Error('Failed to create message');
+      }
+
+      const messageId = messageData.id;
+      setCurrentMessageId(messageId);
+      console.log('✅ Created message with ID:', messageId);
+
+      // Now generate the visualization
+      console.log('📝 Calling generateVisualization with messageId:', messageId);
+      await generateVisualization(messageId, demoMessage);
       console.log('✅ generateVisualization call completed');
 
       // Start polling the database for the visualization
@@ -109,7 +137,7 @@ export const VisualizationStep: React.FC<VisualizationStepProps> = ({ onComplete
         pollCount++;
         console.log(`🔄 Poll attempt ${pollCount}/${maxPolls}`);
 
-        const found = await pollForVisualization(mockMessageId);
+        const found = await pollForVisualization(messageId);
 
         if (found) {
           console.log('✅ Visualization found and displayed!');
