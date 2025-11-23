@@ -64,6 +64,8 @@ const AppContent: React.FC = () => {
     const { data: { user: refreshedUser } } = await supabase.auth.getUser();
     if (refreshedUser) {
       setNeedsOnboarding(false);
+      // Redirect to main app with guided setup parameter
+      window.location.href = '/?openGuidedSetup=true';
     }
   };
 

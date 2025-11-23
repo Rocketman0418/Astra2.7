@@ -4,6 +4,7 @@ import { SetupGuideProgress } from '../../lib/setup-guide-utils';
 import { supabase } from '../../lib/supabase';
 import { useVisualization } from '../../hooks/useVisualization';
 import { VisualizationView } from '../VisualizationView';
+import { LoadingCarousel } from './LoadingCarousel';
 
 interface ManualReportStepProps {
   onComplete: () => void;
@@ -358,46 +359,64 @@ export const ManualReportStep: React.FC<ManualReportStepProps> = ({ onComplete, 
         <p className="text-sm text-gray-300">Generate insights from your data</p>
       </div>
 
-      <div className="bg-gray-800 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-white mb-3">Suggested Reports:</h3>
-        <div className="space-y-2">
-          {suggestions.map((suggestion) => (
-            <button
-              key={suggestion.id}
-              onClick={() => handleRunReport(suggestion)}
-              disabled={isGenerating}
-              className={`w-full text-left p-3 rounded-lg border transition-all min-h-[44px] ${
-                isGenerating && selectedSuggestion === suggestion.id
-                  ? 'bg-orange-600/20 border-orange-500'
-                  : 'bg-gray-900 border-gray-700 hover:border-orange-500'
-              } ${isGenerating ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-            >
-              <div className="flex items-start space-x-3">
-                <div className={`mt-0.5 ${isGenerating && selectedSuggestion === suggestion.id ? 'text-orange-400 animate-pulse' : 'text-orange-400'}`}>
-                  {isGenerating && selectedSuggestion === suggestion.id ? (
-                    <Loader className="w-5 h-5 animate-spin" />
-                  ) : (
-                    suggestion.icon
-                  )}
+      {!isGenerating && (
+        <div className="bg-gray-800 rounded-lg p-4">
+          <h3 className="text-sm font-semibold text-white mb-3">Suggested Reports:</h3>
+          <div className="space-y-2">
+            {suggestions.map((suggestion) => (
+              <button
+                key={suggestion.id}
+                onClick={() => handleRunReport(suggestion)}
+                disabled={isGenerating}
+                className="w-full text-left p-3 rounded-lg border transition-all min-h-[44px] bg-gray-900 border-gray-700 hover:border-orange-500 cursor-pointer"
+              >
+                <div className="flex items-start space-x-3">
+                  <div className="mt-0.5 text-orange-400">
+                    {suggestion.icon}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-white">{suggestion.title}</div>
+                    <div className="text-xs text-gray-400 mt-0.5">{suggestion.description}</div>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-white">{suggestion.title}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">{suggestion.description}</div>
-                  {isGenerating && selectedSuggestion === suggestion.id && (
-                    <div className="text-xs text-orange-400 mt-1">Generating report...</div>
-                  )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {isGenerating && (
+        <>
+          <div className="bg-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-center space-x-3 py-4">
+              <Loader className="w-6 h-6 text-orange-400 animate-spin" />
+              <div>
+                <div className="text-sm font-medium text-white">Generating Report...</div>
+                <div className="text-xs text-gray-400 mt-0.5">
+                  {suggestions.find(s => s.id === selectedSuggestion)?.title}
                 </div>
               </div>
-            </button>
-          ))}
-        </div>
-      </div>
+            </div>
+          </div>
+          <LoadingCarousel type="report" />
+        </>
+      )}
 
-      <div className="bg-orange-900/20 border border-orange-700 rounded-lg p-3">
-        <p className="text-xs text-orange-300">
-          <span className="font-medium">💡 Tip:</span> Reports analyze your data to provide actionable insights. Select one above to see it in action!
-        </p>
-      </div>
+      {!isGenerating && (
+        <div className="bg-orange-900/20 border border-orange-700 rounded-lg p-3">
+          <p className="text-xs text-orange-300">
+            <span className="font-medium">💡 Tip:</span> Reports analyze your data to provide actionable insights. Select one above to see it in action!
+          </p>
+        </div>
+      )}
+
+      {isGenerating && (
+        <div className="bg-orange-900/20 border border-orange-700 rounded-lg p-3">
+          <p className="text-xs text-orange-300 text-center">
+            <span className="font-medium">⏳ Hang tight!</span> Report generation usually takes 20-40 seconds
+          </p>
+        </div>
+      )}
 
       <div className="flex justify-center pt-2">
         <button

@@ -6,6 +6,7 @@ import { useSavedVisualizations } from '../../hooks/useSavedVisualizations';
 import { exportVisualizationToPDF } from '../../utils/exportVisualizationToPDF';
 import { extractVisualizationTitle } from '../../utils/extractVisualizationTitle';
 import { supabase } from '../../lib/supabase';
+import { LoadingCarousel } from './LoadingCarousel';
 
 interface VisualizationStepProps {
   onComplete: () => void;
@@ -384,12 +385,26 @@ export const VisualizationStep: React.FC<VisualizationStepProps> = ({ onComplete
         </div>
       </div>
 
-      <div className="bg-purple-900/20 border border-purple-700 rounded-lg p-3 flex items-center gap-2">
-        <span className="text-lg">💡</span>
-        <p className="text-xs text-purple-300 flex-1">
-          Click below to generate a sample visualization from your data
-        </p>
-      </div>
+      {isGenerating && (
+        <LoadingCarousel type="visualization" />
+      )}
+
+      {!isGenerating && (
+        <div className="bg-purple-900/20 border border-purple-700 rounded-lg p-3 flex items-center gap-2">
+          <span className="text-lg">💡</span>
+          <p className="text-xs text-purple-300 flex-1">
+            Click below to generate a sample visualization from your data
+          </p>
+        </div>
+      )}
+
+      {isGenerating && (
+        <div className="bg-purple-900/20 border border-purple-700 rounded-lg p-3">
+          <p className="text-xs text-purple-300 text-center">
+            <span className="font-medium">⏳ Hang tight!</span> This usually takes 10-30 seconds
+          </p>
+        </div>
+      )}
 
       <div className="flex justify-center pt-2">
         <button

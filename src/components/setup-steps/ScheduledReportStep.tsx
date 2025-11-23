@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, CheckCircle, Clock } from 'lucide-react';
+import { Calendar, CheckCircle, Clock, Mail, TrendingUp, Zap } from 'lucide-react';
 import { SetupGuideProgress } from '../../lib/setup-guide-utils';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -67,28 +67,29 @@ export const ScheduledReportStep: React.FC<ScheduledReportStepProps> = ({ onComp
             <CheckCircle className="w-7 h-7 text-purple-400" />
           </div>
           <h2 className="text-xl font-bold text-white mb-2">Scheduled Reports Active!</h2>
-          <p className="text-sm text-gray-300">You have {scheduledReportsCount} active scheduled report{scheduledReportsCount !== 1 ? 's' : ''}.</p>
+          <p className="text-sm text-gray-300">{scheduledReportsCount} active scheduled report{scheduledReportsCount !== 1 ? 's' : ''}</p>
         </div>
 
         <div className="bg-gray-800 rounded-lg p-4">
-          <div className="flex items-center space-x-2 mb-3">
-            <Clock className="w-4 h-4 text-purple-400" />
-            <h3 className="text-sm font-semibold text-white">Active Reports</h3>
-          </div>
-          <div className="bg-gray-900/50 rounded-lg p-3">
+          <div className="bg-gray-900/50 rounded-lg p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white text-sm font-medium">{scheduledReportsCount} Scheduled Report{scheduledReportsCount !== 1 ? 's' : ''}</p>
-                <p className="text-xs text-gray-400 mt-1">Reports will be generated and delivered automatically</p>
+              <div className="flex items-center space-x-3">
+                <div className="bg-purple-600/20 rounded-lg p-3">
+                  <Calendar className="w-6 h-6 text-purple-400" />
+                </div>
+                <div>
+                  <p className="text-white text-sm font-medium">{scheduledReportsCount} Report{scheduledReportsCount !== 1 ? 's' : ''} Active</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Auto-generated on schedule</p>
+                </div>
               </div>
-              <CheckCircle className="w-5 h-5 text-green-400" />
+              <CheckCircle className="w-6 h-6 text-green-400" />
             </div>
           </div>
         </div>
 
         <div className="bg-green-900/20 border border-green-700 rounded-lg p-3">
-          <p className="text-xs text-green-300">
-            <span className="font-medium">✅ Excellent!</span> Your reports will be generated automatically on schedule.
+          <p className="text-xs text-green-300 text-center">
+            <span className="font-medium">✅ Excellent!</span> Your reports will be generated automatically
           </p>
         </div>
 
@@ -111,21 +112,43 @@ export const ScheduledReportStep: React.FC<ScheduledReportStepProps> = ({ onComp
         <p className="text-sm text-gray-300">Get regular insights delivered automatically</p>
       </div>
 
-      <div className="bg-gray-800 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-white mb-3">Scheduled Report Benefits:</h3>
-        <div className="space-y-2">
-          {['Daily, weekly, or monthly reports', 'Automatic email delivery', 'Consistent insights without manual effort', 'Track trends over time'].map((item, idx) => (
-            <div key={idx} className="flex items-start space-x-2">
-              <CheckCircle className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-              <span className="text-xs text-gray-300">{item}</span>
-            </div>
-          ))}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border border-blue-700/50 rounded-lg p-4 text-center">
+          <div className="bg-blue-600/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2">
+            <Clock className="w-6 h-6 text-blue-400" />
+          </div>
+          <div className="text-sm font-medium text-white mb-1">Daily / Weekly</div>
+          <div className="text-xs text-gray-400">Choose your schedule</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-green-900/30 to-green-800/20 border border-green-700/50 rounded-lg p-4 text-center">
+          <div className="bg-green-600/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2">
+            <Mail className="w-6 h-6 text-green-400" />
+          </div>
+          <div className="text-sm font-medium text-white mb-1">Email Delivery</div>
+          <div className="text-xs text-gray-400">Direct to your inbox</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-orange-900/30 to-orange-800/20 border border-orange-700/50 rounded-lg p-4 text-center">
+          <div className="bg-orange-600/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2">
+            <Zap className="w-6 h-6 text-orange-400" />
+          </div>
+          <div className="text-sm font-medium text-white mb-1">Zero Effort</div>
+          <div className="text-xs text-gray-400">Set it and forget it</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/20 border border-purple-700/50 rounded-lg p-4 text-center">
+          <div className="bg-purple-600/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2">
+            <TrendingUp className="w-6 h-6 text-purple-400" />
+          </div>
+          <div className="text-sm font-medium text-white mb-1">Track Trends</div>
+          <div className="text-xs text-gray-400">See changes over time</div>
         </div>
       </div>
 
       <div className="bg-purple-900/20 border border-purple-700 rounded-lg p-3">
-        <p className="text-xs text-purple-300">
-          <span className="font-medium">💡 Tip:</span> Set up scheduled reports from the Reports view to stay updated automatically.
+        <p className="text-xs text-purple-300 text-center">
+          <span className="font-medium">💡 Tip:</span> Set up from Reports view → Manage Reports → Schedule
         </p>
       </div>
 
