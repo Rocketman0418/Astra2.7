@@ -57,7 +57,7 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onComplete }) => {
         {/* Quick Stats */}
         <div className="flex items-center justify-around pt-3 border-t border-gray-700">
           <div className="text-center">
-            <div className="text-xl font-bold text-white">15-20</div>
+            <div className="text-xl font-bold text-white">3-7</div>
             <div className="text-xs text-gray-400">minutes</div>
           </div>
           <div className="w-px h-8 bg-gray-700"></div>

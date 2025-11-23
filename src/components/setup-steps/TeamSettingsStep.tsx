@@ -15,7 +15,6 @@ export const TeamSettingsStep: React.FC<TeamSettingsStepProps> = ({ onComplete, 
   const hasConfiguredSettings = progress?.step_6_team_settings_configured || false;
   const teamId = user?.user_metadata?.team_id;
 
-  // Auto-open modal when step loads if not yet configured
   useEffect(() => {
     if (!hasConfiguredSettings && teamId) {
       setShowModal(true);
@@ -29,24 +28,25 @@ export const TeamSettingsStep: React.FC<TeamSettingsStepProps> = ({ onComplete, 
 
   if (hasConfiguredSettings) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-600/20 mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-600/20 mb-3">
             <CheckCircle className="w-8 h-8 text-green-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-3">Team Settings Configured!</h2>
-          <p className="text-gray-300">Your team settings are set up and ready to go.</p>
+          <h2 className="text-2xl font-bold text-white mb-2">Settings Configured!</h2>
+          <p className="text-sm text-gray-400">Your team settings are ready</p>
         </div>
 
-        <div className="bg-green-900/20 border border-green-700 rounded-lg p-4">
-          <p className="text-sm text-green-300">
-            <span className="font-medium">✅ All set!</span> You can update team settings anytime from the menu.
+        <div className="bg-green-900/20 border border-green-700 rounded-lg p-3 flex items-center gap-2">
+          <span className="text-xl">✅</span>
+          <p className="text-xs text-green-300">
+            Update anytime from User Settings
           </p>
         </div>
 
-        <div className="flex justify-center pt-4">
+        <div className="flex justify-center pt-2">
           <button onClick={onComplete} className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all min-h-[44px]">
-            Next: Ask Your First Question →
+            Next: Ask Astra →
           </button>
         </div>
       </div>
@@ -55,34 +55,48 @@ export const TeamSettingsStep: React.FC<TeamSettingsStepProps> = ({ onComplete, 
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-600/20 mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-600/20 mb-3">
             <Settings className="w-8 h-8 text-green-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-3">Configure Team Settings</h2>
-          <p className="text-gray-300">Set up your team's meeting types and preferences</p>
+          <h2 className="text-2xl font-bold text-white mb-2">Configure Team Settings</h2>
+          <p className="text-sm text-gray-400">Set up meeting types and preferences</p>
         </div>
 
-        <div className="bg-gray-800 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Team Settings Include:</h3>
-          <div className="space-y-3">
-            {['Meeting types and categories', 'News monitoring preferences', 'Industry interests', 'Custom topics'].map((item, idx) => (
-              <div key={idx} className="flex items-start space-x-3">
-                <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                <span className="text-gray-300">{item}</span>
-              </div>
-            ))}
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 border border-gray-700">
+          <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+            <span className="text-lg">⚙️</span>
+            Settings Include:
+          </h3>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-blue-950/50 rounded-lg p-2 flex items-center gap-2">
+              <span className="text-lg">📅</span>
+              <span className="text-xs text-blue-200">Meeting Types</span>
+            </div>
+            <div className="bg-purple-950/50 rounded-lg p-2 flex items-center gap-2">
+              <span className="text-lg">📰</span>
+              <span className="text-xs text-purple-200">News Topics</span>
+            </div>
+            <div className="bg-green-950/50 rounded-lg p-2 flex items-center gap-2">
+              <span className="text-lg">🏢</span>
+              <span className="text-xs text-green-200">Industry</span>
+            </div>
+            <div className="bg-orange-950/50 rounded-lg p-2 flex items-center gap-2">
+              <span className="text-lg">🎯</span>
+              <span className="text-xs text-orange-200">Interests</span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-4">
-          <p className="text-sm text-blue-300">
-            <span className="font-medium">💡 Tip:</span> You can use defaults and customize these settings later from User Settings.
+        <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-3 flex items-center gap-2">
+          <span className="text-lg">💡</span>
+          <p className="text-xs text-blue-300 flex-1">
+            Use defaults now, customize anytime later
           </p>
         </div>
 
-        <div className="flex justify-center pt-4">
+        <div className="flex justify-center pt-2">
           <button
             onClick={() => setShowModal(true)}
             className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all min-h-[44px]"
