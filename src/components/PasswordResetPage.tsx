@@ -21,16 +21,27 @@ export const PasswordResetPage: React.FC = () => {
       const type = hashParams.get('type');
 
       if (type === 'recovery' && accessToken) {
-        // Verify the session is actually valid with Supabase
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        try {
+          // Exchange the recovery token for a session
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: accessToken,
+            type: 'recovery'
+          });
 
-        if (sessionError || !session) {
-          // Session is invalid, sign out any existing session
+          if (error || !data.session) {
+            console.error('Token verification error:', error);
+            await supabase.auth.signOut();
+            setTokenValid(false);
+            setError('Invalid or expired password reset link');
+          } else {
+            // Token is valid and session is established
+            setTokenValid(true);
+          }
+        } catch (err) {
+          console.error('Error verifying token:', err);
           await supabase.auth.signOut();
           setTokenValid(false);
           setError('Invalid or expired password reset link');
-        } else {
-          setTokenValid(true);
         }
       } else {
         // No recovery token, sign out any existing session
