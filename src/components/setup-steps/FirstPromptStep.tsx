@@ -3,6 +3,7 @@ import { MessageSquare, Send, Loader, Sparkles, BarChart3 } from 'lucide-react';
 import { SetupGuideProgress } from '../../lib/setup-guide-utils';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { formatAstraMessage } from '../../utils/formatAstraMessage';
 
 interface FirstPromptStepProps {
   onComplete: () => void;
@@ -255,7 +256,9 @@ export const FirstPromptStep: React.FC<FirstPromptStepProps> = ({ onComplete, pr
                     : 'bg-gray-700/50 text-gray-400'
                 }`}
               >
-                {msg.content || (
+                {msg.content ? (
+                  msg.role === 'assistant' ? formatAstraMessage(msg.content) : msg.content
+                ) : (
                   <div className="flex items-center gap-2">
                     <Loader className="w-4 h-4 animate-spin" />
                     <span className="text-sm italic">Astra is thinking...</span>
@@ -334,7 +337,9 @@ export const FirstPromptStep: React.FC<FirstPromptStepProps> = ({ onComplete, pr
                     : 'bg-gray-700/50 text-gray-400'
                 }`}
               >
-                {msg.content || (
+                {msg.content ? (
+                  msg.role === 'assistant' ? formatAstraMessage(msg.content) : msg.content
+                ) : (
                   <div className="flex items-center gap-2">
                     <Loader className="w-4 h-4 animate-spin" />
                     <span className="text-sm italic">Astra is thinking...</span>

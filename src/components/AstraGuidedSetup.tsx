@@ -120,14 +120,21 @@ export const AstraGuidedSetup: React.FC<AstraGuidedSetupProps> = ({ isOpen, onCl
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">Astra Guided Setup</h1>
-              <p className="text-white/80 text-sm mt-1">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🚀</span>
+                <h1 className="text-2xl font-bold">
+                  <span className="text-blue-200">AI Rocket</span>
+                  <span className="text-white font-normal mx-1">+</span>
+                  <span className="text-emerald-300">Astra Intelligence</span>
+                </h1>
+              </div>
+              <p className="text-white/80 text-sm mt-1 ml-10">
                 Step {currentStep} of {STEP_TITLES.length}: {STEP_TITLES[currentStep - 1]}
               </p>
             </div>
             <button
               onClick={handleClose}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors min-h-[44px] min-w-[44px]"
               aria-label="Close"
             >
               <X className="w-6 h-6 text-white" />
