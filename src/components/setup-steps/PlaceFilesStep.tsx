@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, ExternalLink, Upload, Sparkles, CheckCircle2, X } from 'lucide-react';
+import { FileText, ExternalLink, Upload, Sparkles, CheckCircle2, X, Info } from 'lucide-react';
 import { SetupGuideProgress } from '../../lib/setup-guide-utils';
 import { StrategyDocumentModal } from '../StrategyDocumentModal';
 import { supabase } from '../../lib/supabase';
@@ -17,6 +17,7 @@ export const PlaceFilesStep: React.FC<PlaceFilesStepProps> = ({ onComplete, fold
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [createdDocumentId, setCreatedDocumentId] = useState('');
   const [actualFolderId, setActualFolderId] = useState<string>('');
+  const [showConversionModal, setShowConversionModal] = useState(false);
 
   // Fetch folder ID from multiple sources as fallback
   useEffect(() => {
@@ -239,6 +240,14 @@ export const PlaceFilesStep: React.FC<PlaceFilesStepProps> = ({ onComplete, fold
             </p>
           </div>
 
+          <button
+            onClick={() => setShowConversionModal(true)}
+            className="w-full bg-gray-900/50 hover:bg-gray-800/70 border border-gray-600 hover:border-blue-500 rounded-lg p-2 mt-2 transition-colors flex items-center justify-center gap-2"
+          >
+            <Info className="w-4 h-4 text-blue-400" />
+            <span className="text-xs text-gray-300 font-medium">How to Convert Files to Google Docs/Sheets</span>
+          </button>
+
           <div className="bg-gray-900/50 border border-gray-600 rounded-lg p-2 mt-2">
             <p className="text-xs text-gray-400 text-center">
               ℹ️ More file types may be supported in future updates
@@ -253,6 +262,93 @@ export const PlaceFilesStep: React.FC<PlaceFilesStepProps> = ({ onComplete, fold
             folderId={actualFolderId}
             onSuccess={handleDocumentCreated}
           />
+        )}
+
+        {showConversionModal && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-lg border border-gray-700 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-gray-900 border-b border-gray-700 p-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Info className="w-5 h-5 text-blue-400" />
+                  <h3 className="text-lg font-semibold text-white">Convert Files to Google Docs/Sheets</h3>
+                </div>
+                <button
+                  onClick={() => setShowConversionModal(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-4 space-y-4">
+                <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-3">
+                  <p className="text-sm text-blue-200">
+                    Converting file types to Google Docs for: PDF, Word, Excel, Text, etc.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="text-white font-semibold text-sm">How to Convert:</h4>
+
+                  <div className="space-y-3">
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600/20 flex items-center justify-center">
+                        <span className="text-xs text-blue-400 font-medium">1</span>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-300">
+                          <span className="font-medium text-white">Locate the file</span> in your Google Drive.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600/20 flex items-center justify-center">
+                        <span className="text-xs text-blue-400 font-medium">2</span>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-300">
+                          <span className="font-medium text-white">Right-click</span> on the file.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600/20 flex items-center justify-center">
+                        <span className="text-xs text-blue-400 font-medium">3</span>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-300">
+                          <span className="font-medium text-white">Hover over "Open with"</span> and select the suggested Google app (e.g., <span className="font-medium text-blue-400">Google Docs</span>, <span className="font-medium text-green-400">Google Sheets</span>, or <span className="font-medium text-orange-400">Google Slides</span>).
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 mt-3">
+                      <p className="text-xs text-gray-300">
+                        Google will automatically convert the file into the corresponding Google format. It may take a moment to process, but once it opens, you will have the content available to edit.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-green-900/20 border border-green-700 rounded-lg p-3">
+                  <p className="text-xs text-green-300">
+                    <span className="font-medium">✓ Tip:</span> The converted file will be a new Google Doc/Sheet, and your original file remains unchanged.
+                  </p>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    onClick={() => setShowConversionModal(false)}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors min-h-[44px]"
+                  >
+                    Got it
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     );
@@ -366,6 +462,14 @@ export const PlaceFilesStep: React.FC<PlaceFilesStepProps> = ({ onComplete, fold
             </p>
           </div>
 
+          <button
+            onClick={() => setShowConversionModal(true)}
+            className="w-full bg-gray-900/50 hover:bg-gray-800/70 border border-gray-600 hover:border-blue-500 rounded-lg p-2 mt-2 transition-colors flex items-center justify-center gap-2"
+          >
+            <Info className="w-4 h-4 text-blue-400" />
+            <span className="text-xs text-gray-300 font-medium">How to Convert Files to Google Docs/Sheets</span>
+          </button>
+
           <div className="bg-gray-900/50 border border-gray-600 rounded-lg p-2 mt-2">
             <p className="text-xs text-gray-400 text-center">
               ℹ️ More file types may be supported in future updates
@@ -388,6 +492,93 @@ export const PlaceFilesStep: React.FC<PlaceFilesStepProps> = ({ onComplete, fold
             <span>Proceed to Sync →</span>
           </button>
         </div>
+
+        {showConversionModal && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-lg border border-gray-700 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-gray-900 border-b border-gray-700 p-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Info className="w-5 h-5 text-blue-400" />
+                  <h3 className="text-lg font-semibold text-white">Convert Files to Google Docs/Sheets</h3>
+                </div>
+                <button
+                  onClick={() => setShowConversionModal(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-4 space-y-4">
+                <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-3">
+                  <p className="text-sm text-blue-200">
+                    Converting file types to Google Docs for: PDF, Word, Excel, Text, etc.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="text-white font-semibold text-sm">How to Convert:</h4>
+
+                  <div className="space-y-3">
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600/20 flex items-center justify-center">
+                        <span className="text-xs text-blue-400 font-medium">1</span>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-300">
+                          <span className="font-medium text-white">Locate the file</span> in your Google Drive.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600/20 flex items-center justify-center">
+                        <span className="text-xs text-blue-400 font-medium">2</span>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-300">
+                          <span className="font-medium text-white">Right-click</span> on the file.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600/20 flex items-center justify-center">
+                        <span className="text-xs text-blue-400 font-medium">3</span>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-300">
+                          <span className="font-medium text-white">Hover over "Open with"</span> and select the suggested Google app (e.g., <span className="font-medium text-blue-400">Google Docs</span>, <span className="font-medium text-green-400">Google Sheets</span>, or <span className="font-medium text-orange-400">Google Slides</span>).
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 mt-3">
+                      <p className="text-xs text-gray-300">
+                        Google will automatically convert the file into the corresponding Google format. It may take a moment to process, but once it opens, you will have the content available to edit.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-green-900/20 border border-green-700 rounded-lg p-3">
+                  <p className="text-xs text-green-300">
+                    <span className="font-medium">✓ Tip:</span> The converted file will be a new Google Doc/Sheet, and your original file remains unchanged.
+                  </p>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    onClick={() => setShowConversionModal(false)}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors min-h-[44px]"
+                  >
+                    Got it
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
