@@ -3,12 +3,13 @@ import {
   Users, Building2, FileText, MessageSquare, BarChart3, Download,
   TrendingUp, TrendingDown, Minus, Mail, HardDrive, AlertCircle,
   CheckCircle, XCircle, Search, ArrowUpDown, MessageCircleQuestion, Shield, X, ChevronRight, MessageCircle,
-  Copy, UserPlus
+  Copy, UserPlus, Send
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
 import SupportResponseModal from './SupportResponseModal';
+import { MarketingEmailsPanel } from './MarketingEmailsPanel';
 
 interface UserMetric {
   id: string;
@@ -100,7 +101,7 @@ interface FeedbackStats {
 type TimeFilter = '7days' | '30days' | '90days' | 'all';
 type SortField = 'email' | 'created_at' | 'team_name' | 'documents' | 'messages';
 type SortDirection = 'asc' | 'desc';
-type DetailView = 'users' | 'teams' | 'documents' | 'chats' | 'preview_requests' | 'support' | 'feedback' | 'active_users' | null;
+type DetailView = 'users' | 'teams' | 'documents' | 'chats' | 'preview_requests' | 'support' | 'feedback' | 'active_users' | 'marketing_emails' | null;
 type SupportFilter = 'all' | 'bug_report' | 'support_message' | 'feature_request';
 
 interface AdminDashboardProps {
@@ -1326,6 +1327,27 @@ Sign up here: https://airocket.app`;
                 </div>
               </button>
 
+              <button
+                onClick={() => setDetailView('marketing_emails')}
+                className={`bg-gray-800 border rounded-xl p-6 transition-all text-left w-full ${
+                  detailView === 'marketing_emails'
+                    ? 'border-purple-500 shadow-lg shadow-purple-500/20'
+                    : 'border-gray-700 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <Send className="w-8 h-8 text-purple-400" />
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+                <div className="text-3xl font-bold text-white mb-1">
+                  <Mail className="w-8 h-8 inline" />
+                </div>
+                <div className="text-sm text-gray-400">Marketing Emails</div>
+                <div className="mt-2 text-xs text-gray-500">
+                  Create and manage campaigns
+                </div>
+              </button>
+
             </div>
           )}
 
@@ -2168,6 +2190,10 @@ Sign up here: https://airocket.app`;
                   )}
                 </div>
               </div>
+            )}
+
+            {detailView === 'marketing_emails' && (
+              <MarketingEmailsPanel />
             )}
           </div>
         </div>
