@@ -149,27 +149,36 @@ Deno.serve(async (req: Request) => {
         border-radius: 10px;
         padding: 20px 16px;
         text-align: center;
-        height: 180px;
         vertical-align: top;
       }
       .benefit-icon {
-        font-size: 40px;
+        font-size: 36px;
         line-height: 1;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
         display: block;
       }
       .benefit-title {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 700;
         color: #93c5fd;
-        margin-bottom: 8px;
-        line-height: 1.3;
+        margin-bottom: 6px;
+        line-height: 1.2;
       }
       .benefit-text {
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 400;
         color: #cbd5e1;
-        line-height: 1.5;
+        line-height: 1.4;
+      }
+      @media only screen and (max-width: 600px) {
+        .benefits-grid td {
+          display: block !important;
+          width: 100% !important;
+          margin-bottom: 12px;
+        }
+        .benefit-card {
+          min-height: 140px;
+        }
       }
       .footer {
         background: #0f172a;
@@ -194,20 +203,20 @@ Deno.serve(async (req: Request) => {
         </div>
         <div class=\"content\">
           <!-- Example benefit cards structure: -->
-          <table class=\"benefits-grid\" cellpadding=\"0\" cellspacing=\"12\" width=\"100%\">
+          <table class=\"benefits-grid\" cellpadding=\"0\" cellspacing=\"12\" width=\"100%\" role=\"presentation\">
             <tr>
-              <td width=\"48%\">
-                <div class=\"benefit-card\" style=\"height: 180px;\">
+              <td width=\"48%\" style=\"vertical-align: top;\">
+                <div class=\"benefit-card\">
                   <span class=\"benefit-icon\">🔒</span>
-                  <div class=\"benefit-title\">Feature Title</div>
-                  <div class=\"benefit-text\">Brief 2-3 line description that fits within fixed height.</div>
+                  <div class=\"benefit-title\">Short Title</div>
+                  <div class=\"benefit-text\">One concise sentence.</div>
                 </div>
               </td>
-              <td width=\"48%\">
-                <div class=\"benefit-card\" style=\"height: 180px;\">
+              <td width=\"48%\" style=\"vertical-align: top;\">
+                <div class=\"benefit-card\">
                   <span class=\"benefit-icon\">⚡</span>
-                  <div class=\"benefit-title\">Feature Title</div>
-                  <div class=\"benefit-text\">Brief 2-3 line description that fits within fixed height.</div>
+                  <div class=\"benefit-title\">Short Title</div>
+                  <div class=\"benefit-text\">One concise sentence.</div>
                 </div>
               </td>
             </tr>
@@ -255,14 +264,15 @@ ${templateReference}
 IMPORTANT STYLING REQUIREMENTS:
 - Maintain exact color schemes from the template
 - Keep the header gradient and footer styling
-- Ensure responsive design
+- Ensure responsive design (mobile stacks to single column)
 - Use the same font stack
 - Keep consistent spacing and padding
 - Benefits MUST use HTML TABLE layout (not CSS grid) for email client compatibility
-- ALL benefit/feature cards MUST have EXACTLY height: 180px (fixed height, not min-height)
 - Use table with 2 columns, each cell contains one benefit card
-- Card structure: icon (40px emoji), title (bold, 16px), description (13px, 2-3 lines max)
-- Keep card content concise so it fits in the fixed 180px height
+- Card structure: icon (36px emoji), title (bold, 15px, 2-4 words max), description (12px, ONE sentence max)
+- CRITICAL: Description must be VERY SHORT - maximum 8-10 words, ONE sentence only
+- Titles should be 2-4 words maximum
+- Mobile displays cards in single column, desktop shows 2 columns
 - Add visual breaks with graphics/cards early - don't put too much text before the first visual elements
 
 ${featureContext ? `PRODUCT FEATURE CONTEXT:\n${featureContext}\n\nUse this context to create accurate, specific content about our actual features and benefits.\n` : ''}
@@ -287,11 +297,11 @@ Please regenerate the email incorporating this feedback while maintaining the br
 2. Personalized greeting with {{firstName}} variable
 3. Brief opening paragraph (2-3 sentences max)
 4. IMMEDIATELY after opening text, show 4-6 benefit cards using HTML TABLE layout:
-   - Use <table class="benefits-grid" cellpadding="0" cellspacing="12" width="100%">
-   - Each row has 2 cells (td), each containing one card
-   - Each card MUST be <div class="benefit-card" style="height: 180px;">
-   - Card content: <span class="benefit-icon">emoji</span><div class="benefit-title">Title</div><div class="benefit-text">Brief description (2-3 lines)</div>
-   - Keep text SHORT so it fits in 180px height
+   - Use <table class="benefits-grid" cellpadding="0" cellspacing="12" width="100%" role="presentation">
+   - Each row has 2 cells (td width="48%" style="vertical-align: top;"), each containing one card
+   - Each card: <div class="benefit-card">
+   - Card content: <span class="benefit-icon">emoji</span><div class="benefit-title">2-4 Word Title</div><div class="benefit-text">One short sentence (8-10 words max).</div>
+   - CRITICAL: Titles 2-4 words, descriptions ONE sentence of 8-10 words maximum
 5. Additional content sections with visuals interspersed
 6. At least 2 CTA buttons (one near top, one at bottom) - use "Launch AI Rocket" as button text
 7. Professional footer (do NOT include unsubscribe links)
@@ -299,8 +309,9 @@ Please regenerate the email incorporating this feedback while maintaining the br
 CRITICAL REMINDERS:
 - Keep opening text BRIEF before showing graphics
 - Use TABLE layout for benefit cards (NOT CSS grid)
-- ALL cards MUST have style="height: 180px;" inline
-- Keep card text concise to fit fixed height
+- Card titles: 2-4 words ONLY
+- Card descriptions: ONE sentence, 8-10 words MAXIMUM
+- Mobile will stack cards vertically, desktop shows 2 columns
 - DO NOT modify the header text or tagline
 
 Return ONLY the complete HTML code, no markdown formatting or additional text.`;
