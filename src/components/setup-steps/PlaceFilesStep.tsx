@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, ExternalLink, Upload, Sparkles } from 'lucide-react';
+import { FileText, ExternalLink, Upload, Sparkles, CheckCircle2, X } from 'lucide-react';
 import { SetupGuideProgress } from '../../lib/setup-guide-utils';
 import { StrategyDocumentModal } from '../StrategyDocumentModal';
 import { supabase } from '../../lib/supabase';
@@ -201,6 +201,51 @@ export const PlaceFilesStep: React.FC<PlaceFilesStepProps> = ({ onComplete, fold
           )}
         </div>
 
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-4">
+          <h4 className="text-white text-sm font-semibold mb-3 flex items-center gap-2">
+            <FileText className="w-4 h-4 text-blue-400" />
+            Supported File Types
+          </h4>
+
+          <div className="grid grid-cols-2 gap-2">
+            {/* Supported */}
+            <div className="bg-green-900/20 border border-green-700 rounded-lg p-2 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+              <span className="text-lg">📄</span>
+              <span className="text-xs text-white font-medium">Google Docs</span>
+            </div>
+            <div className="bg-green-900/20 border border-green-700 rounded-lg p-2 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+              <span className="text-lg">📊</span>
+              <span className="text-xs text-white font-medium">Google Sheets</span>
+            </div>
+
+            {/* Not Supported */}
+            <div className="bg-red-900/20 border border-red-700 rounded-lg p-2 flex items-center gap-2 opacity-60">
+              <X className="w-4 h-4 text-red-400 flex-shrink-0" />
+              <span className="text-lg">📕</span>
+              <span className="text-xs text-gray-400 font-medium">PDF Files</span>
+            </div>
+            <div className="bg-red-900/20 border border-red-700 rounded-lg p-2 flex items-center gap-2 opacity-60">
+              <X className="w-4 h-4 text-red-400 flex-shrink-0" />
+              <span className="text-lg">📝</span>
+              <span className="text-xs text-gray-400 font-medium">Word/Excel</span>
+            </div>
+          </div>
+
+          <div className="bg-blue-900/20 border border-blue-600 rounded-lg p-2 mt-3">
+            <p className="text-xs text-blue-200">
+              <span className="font-medium">💡 Tip:</span> Convert other file types to Google Docs/Sheets in Drive
+            </p>
+          </div>
+
+          <div className="bg-gray-900/50 border border-gray-600 rounded-lg p-2 mt-2">
+            <p className="text-xs text-gray-400 text-center">
+              ℹ️ More file types may be supported in future updates
+            </p>
+          </div>
+        </div>
+
         {showDocumentModal && (
           <StrategyDocumentModal
             isOpen={showDocumentModal}
@@ -254,28 +299,78 @@ export const PlaceFilesStep: React.FC<PlaceFilesStepProps> = ({ onComplete, fold
           </ol>
         </div>
 
-        <div className="bg-amber-900/20 border border-amber-700 rounded-lg p-3">
-          <h4 className="text-white text-xs font-medium mb-2 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-amber-400" />
-            Supported File Types:
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-4">
+          <h4 className="text-white text-sm font-semibold mb-3 flex items-center gap-2">
+            <FileText className="w-4 h-4 text-blue-400" />
+            Supported File Types
           </h4>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="flex items-center gap-1">
-              <div className="w-6 h-6 rounded bg-blue-500/20 border border-blue-500 flex items-center justify-center">
-                <FileText className="w-4 h-4 text-blue-400" />
+
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            {/* Supported Files */}
+            <div className="space-y-2">
+              <div className="bg-green-900/20 border border-green-700 rounded-lg p-2 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-2xl">📄</span>
+                  <span className="text-xs text-white font-medium">Google Docs</span>
+                </div>
               </div>
-              <span className="text-xs text-blue-300 font-medium">Google Docs</span>
+              <div className="bg-green-900/20 border border-green-700 rounded-lg p-2 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-2xl">📊</span>
+                  <span className="text-xs text-white font-medium">Google Sheets</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-6 h-6 rounded bg-green-500/20 border border-green-500 flex items-center justify-center">
-                <FileText className="w-4 h-4 text-green-400" />
+
+            {/* Unsupported Files */}
+            <div className="space-y-2">
+              <div className="bg-red-900/20 border border-red-700 rounded-lg p-2 flex items-center gap-2 opacity-60">
+                <X className="w-4 h-4 text-red-400 flex-shrink-0" />
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-2xl">📕</span>
+                  <span className="text-xs text-gray-400 font-medium">PDF Files</span>
+                </div>
               </div>
-              <span className="text-xs text-green-300 font-medium">Google Sheets</span>
+              <div className="bg-red-900/20 border border-red-700 rounded-lg p-2 flex items-center gap-2 opacity-60">
+                <X className="w-4 h-4 text-red-400 flex-shrink-0" />
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-2xl">📝</span>
+                  <span className="text-xs text-gray-400 font-medium">Word Docs</span>
+                </div>
+              </div>
             </div>
           </div>
-          <p className="text-xs text-amber-300">
-            Only Google Doc and Google Sheet files will be synced at this time
-          </p>
+
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className="bg-red-900/20 border border-red-700 rounded-lg p-2 flex items-center gap-2 opacity-60">
+              <X className="w-4 h-4 text-red-400 flex-shrink-0" />
+              <div className="flex items-center gap-2 flex-1">
+                <span className="text-2xl">📗</span>
+                <span className="text-xs text-gray-400 font-medium">Excel Files</span>
+              </div>
+            </div>
+            <div className="bg-red-900/20 border border-red-700 rounded-lg p-2 flex items-center gap-2 opacity-60">
+              <X className="w-4 h-4 text-red-400 flex-shrink-0" />
+              <div className="flex items-center gap-2 flex-1">
+                <span className="text-2xl">📁</span>
+                <span className="text-xs text-gray-400 font-medium">Other Files</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-blue-900/20 border border-blue-600 rounded-lg p-2">
+            <p className="text-xs text-blue-200">
+              <span className="font-medium">💡 Tip:</span> Convert PDFs, Word docs, and Excel files to Google Docs/Sheets in your Drive
+            </p>
+          </div>
+
+          <div className="bg-gray-900/50 border border-gray-600 rounded-lg p-2 mt-2">
+            <p className="text-xs text-gray-400 text-center">
+              ℹ️ More file types may be supported in future updates
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
