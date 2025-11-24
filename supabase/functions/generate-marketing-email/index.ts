@@ -13,6 +13,7 @@ interface GenerateEmailRequest {
   specialNotes?: string;
   previousHtml?: string;
   regenerationComments?: string;
+  featureContext?: string;
 }
 
 Deno.serve(async (req: Request) => {
@@ -49,7 +50,8 @@ Deno.serve(async (req: Request) => {
       contentDescription,
       specialNotes,
       previousHtml,
-      regenerationComments
+      regenerationComments,
+      featureContext
     }: GenerateEmailRequest = await req.json();
 
     const genAI = new GoogleGenerativeAI(geminiApiKey);
@@ -219,6 +221,8 @@ IMPORTANT STYLING REQUIREMENTS:
 - Use the same font stack
 - Keep consistent spacing and padding
 - Benefits should be in a 2-column grid with icons
+
+${featureContext ? `PRODUCT FEATURE CONTEXT:\n${featureContext}\n\nUse this context to create accurate, specific content about our actual features and benefits.\n` : ''}
 
 USER REQUEST:
 Subject: ${subject || 'To be determined'}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Sparkles, Eye, Code, Send, Clock, Mail, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { getFeatureContext } from '../lib/marketing-context';
 
 interface MarketingEmailComposerProps {
   emailId: string | null;
@@ -18,6 +19,7 @@ interface EmailData {
     emails?: string[];
   };
   scheduled_for: string | null;
+  context_type?: 'full' | 'core' | 'benefits' | 'useCases';
 }
 
 const INITIAL_DATA: EmailData = {
@@ -26,7 +28,8 @@ const INITIAL_DATA: EmailData = {
   special_notes: '',
   html_content: '',
   recipient_filter: { type: 'all' },
-  scheduled_for: null
+  scheduled_for: null,
+  context_type: 'full'
 };
 
 export function MarketingEmailComposer({ emailId, onClose }: MarketingEmailComposerProps) {
@@ -93,6 +96,8 @@ export function MarketingEmailComposer({ emailId, onClose }: MarketingEmailCompo
   const generateEmail = async () => {
     setGenerating(true);
     try {
+      const featureContext = getFeatureContext(emailData.context_type || 'full');
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-marketing-email`,
         {
@@ -106,7 +111,8 @@ export function MarketingEmailComposer({ emailId, onClose }: MarketingEmailCompo
             contentDescription: emailData.content_description,
             specialNotes: emailData.special_notes,
             previousHtml: emailData.html_content || undefined,
-            regenerationComments: regenerationComments || undefined
+            regenerationComments: regenerationComments || undefined,
+            featureContext
           }),
         }
       );
@@ -328,6 +334,25 @@ export function MarketingEmailComposer({ emailId, onClose }: MarketingEmailCompo
                       className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-none"
                       placeholder="Describe what this email should communicate to users..."
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Feature Context
+                    </label>
+                    <select
+                      value={emailData.context_type}
+                      onChange={(e) => setEmailData(prev => ({ ...prev, context_type: e.target.value as any }))}
+                      className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="full">Full Context (All features & benefits)</option>
+                      <option value="core">Core Features Only</option>
+                      <option value="benefits">Benefits Focus</option>
+                      <option value="useCases">Use Cases Focus</option>
+                    </select>
+                    <p className="text-sm text-gray-400 mt-2">
+                      Choose how much product context to include. Full context provides the most detail about features.
+                    </p>
                   </div>
 
                   <div>
