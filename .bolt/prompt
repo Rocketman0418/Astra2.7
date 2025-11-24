@@ -241,8 +241,11 @@ Is this feature secure and respecting user permissions?
 Does this maintain our performance benchmarks?
 Is the user feedback clear and immediate?
 
-Gemini API:
-**Always use gemini-flash-latest when calling the Gemini API for Ask Astra and generating Visualizations.
+Gemini Model API:
+# Gemini Model Standard
+## Critical: Standard Model Configuration
+**ALL Gemini API calls in this application MUST use `gemini-flash-latest`**
+This is a non-negotiable standard unless explicitly changed by project leadership.
 
 
 Core Principle: Astra Intelligence should feel like magic - powerful AI capabilities delivered through an interface so intuitive it becomes invisible. Every technical decision should serve the entrepreneur's journey to leverage AI for business, health, and life optimization.
