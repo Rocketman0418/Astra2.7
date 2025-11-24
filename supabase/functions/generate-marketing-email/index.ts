@@ -151,6 +151,10 @@ Deno.serve(async (req: Request) => {
         border-radius: 10px;
         padding: 16px;
         text-align: center;
+        min-height: 140px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
       }
       .benefit-icon {
         font-size: 32px;
@@ -215,6 +219,12 @@ KEY PRODUCT MESSAGING:
 - Astra is powered by Gemini, Claude, and OpenAI working together in alignment with your team
 - Emphasize the multi-AI approach as a unique strength
 
+CRITICAL HEADER REQUIREMENTS:
+- DO NOT modify the header HTML or text in any way
+- The header MUST be EXACTLY: "🚀 AI Rocket + Astra Intelligence"
+- The tagline MUST be EXACTLY: "AI that Works for Work"
+- DO NOT add parentheses, extra descriptions, or modify these in ANY way
+
 TEMPLATE STRUCTURE TO FOLLOW:
 ${templateReference}
 
@@ -225,6 +235,8 @@ IMPORTANT STYLING REQUIREMENTS:
 - Use the same font stack
 - Keep consistent spacing and padding
 - Benefits should be in a 2-column grid with icons
+- ALL benefit/feature cards MUST have consistent height - use min-height CSS or equal content length
+- Add visual breaks with graphics/cards early - don't put too much text before the first visual elements
 
 ${featureContext ? `PRODUCT FEATURE CONTEXT:\n${featureContext}\n\nUse this context to create accurate, specific content about our actual features and benefits.\n` : ''}
 
@@ -244,11 +256,19 @@ ${regenerationComments}
 Please regenerate the email incorporating this feedback while maintaining the brand guidelines and template structure.`;
     } else {
       prompt += `\n\nGenerate a complete HTML email that matches the template structure above while incorporating the user's content request. Include:
-1. Personalized greeting with {{firstName}} variable
-2. Compelling hero text that explains the main message
-3. 4-6 benefit cards in a grid layout with emojis as icons
-4. At least 2 CTA buttons (one near top, one at bottom) - use "Launch AI Rocket" as button text
-5. Professional footer (do NOT include unsubscribe links)
+1. Header with EXACT text: "🚀 AI Rocket + Astra Intelligence" and tagline "AI that Works for Work" - DO NOT modify these
+2. Personalized greeting with {{firstName}} variable
+3. Brief opening paragraph (2-3 sentences max)
+4. IMMEDIATELY after opening text, show 4-6 benefit cards in a 2-column grid with emojis as icons
+   - Ensure all cards have equal height (use min-height: 140px or equal content)
+5. Additional content sections with visuals interspersed
+6. At least 2 CTA buttons (one near top, one at bottom) - use "Launch AI Rocket" as button text
+7. Professional footer (do NOT include unsubscribe links)
+
+CRITICAL REMINDERS:
+- Keep opening text BRIEF before showing graphics
+- ALL benefit/feature cards must be same height
+- DO NOT modify the header text or tagline
 
 Return ONLY the complete HTML code, no markdown formatting or additional text.`;
     }
