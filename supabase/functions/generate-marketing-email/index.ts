@@ -53,7 +53,7 @@ Deno.serve(async (req: Request) => {
     }: GenerateEmailRequest = await req.json();
 
     const genAI = new GoogleGenerativeAI(geminiApiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
     const templateReference = `
 <!DOCTYPE html>
