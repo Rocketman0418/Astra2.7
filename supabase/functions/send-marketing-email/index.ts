@@ -312,6 +312,10 @@ Deno.serve(async (req: Request) => {
                     </a>
                   </div>
 
+                  <div class="hero-text" style="font-size: 16px; margin-bottom: 12px; color: #cbd5e1;">
+                    Connect your Strategy Documents, Meeting Notes, and Financial Data to unlock:
+                  </div>
+
                   <div class="benefits-grid">
                     <div class="benefit-card">
                       <div class="benefit-icon">📊</div>
@@ -336,23 +340,6 @@ Deno.serve(async (req: Request) => {
                     <div class="benefit-card">
                       <div class="benefit-icon">🤝</div>
                       <div class="benefit-text">Team Collaboration</div>
-                    </div>
-                  </div>
-
-                  <div class="feature-grid">
-                    <div class="feature-card">
-                      <div class="feature-icon">📊</div>
-                      <div class="feature-title">Strategy Documents</div>
-                    </div>
-
-                    <div class="feature-card">
-                      <div class="feature-icon">📝</div>
-                      <div class="feature-title">Meeting Notes</div>
-                    </div>
-
-                    <div class="feature-card">
-                      <div class="feature-icon">💰</div>
-                      <div class="feature-title">Financial Documents</div>
                     </div>
                   </div>
 
