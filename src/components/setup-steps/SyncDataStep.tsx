@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, CheckCircle, AlertCircle, Sparkles } from 'lucide-react';
+import { RefreshCw, CheckCircle, AlertCircle, Sparkles, X, ArrowLeft } from 'lucide-react';
 import { SetupGuideProgress } from '../../lib/setup-guide-utils';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface SyncDataStepProps {
   onComplete: () => void;
+  onGoBack?: () => void;
   progress: SetupGuideProgress | null;
 }
 
@@ -22,14 +23,15 @@ const ROTATING_QUESTIONS = [
   "What problems are we solving that matter most to our customers?"
 ];
 
-export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete }) => {
+export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack }) => {
   const { user } = useAuth();
   const [syncing, setSyncing] = useState(true);
   const [syncComplete, setSyncComplete] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [documentCounts, setDocumentCounts] = useState<{ meetings: number; strategy: number; financial: number }>({ meetings: 0, strategy: 0, financial: 0 });
   const [checkAttempts, setCheckAttempts] = useState(0);
-  const maxCheckAttempts = 30; // Check for up to 60 seconds (30 * 2s intervals)
+  const [showNoDocumentModal, setShowNoDocumentModal] = useState(false);
+  const maxCheckAttempts = 90; // Check for up to 3 minutes (90 * 2s intervals)
 
   useEffect(() => {
     // Start syncing process
@@ -122,13 +124,17 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete }) => {
         setSyncComplete(true);
       } else {
         // Increment check attempts
-        setCheckAttempts(prev => prev + 1);
+        setCheckAttempts(prev => {
+          const newCount = prev + 1;
 
-        // If we've exceeded max attempts, stop syncing
-        if (checkAttempts >= maxCheckAttempts) {
-          setSyncing(false);
-          // syncComplete stays false
-        }
+          // If we've exceeded max attempts (3 minutes), show error modal
+          if (newCount >= maxCheckAttempts) {
+            setSyncing(false);
+            setShowNoDocumentModal(true);
+          }
+
+          return newCount;
+        });
       }
     } catch (error) {
       console.error('Error checking synced data:', error);
@@ -289,44 +295,129 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete }) => {
     );
   }
 
-  // No data found after waiting
+  // No data found after waiting - This shouldn't be reached now since we show the modal
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-600/20 mb-4">
-          <AlertCircle className="w-8 h-8 text-yellow-400" />
+    <>
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-600/20 mb-4">
+            <AlertCircle className="w-8 h-8 text-yellow-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-3">Sync Not Complete Yet</h2>
+          <p className="text-gray-300">
+            Documents are still being processed. This can take a few minutes.
+          </p>
         </div>
-        <h2 className="text-2xl font-bold text-white mb-3">Sync Not Complete Yet</h2>
-        <p className="text-gray-300">
-          Documents are still being processed. This can take a few minutes.
-        </p>
+
+        <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-4">
+          <p className="text-sm text-yellow-300">
+            <span className="font-medium">⏳ Please wait:</span> The document sync is handled by our n8n workflow and may take 2-5 minutes depending on the number and size of documents. You can continue with the setup and check back later.
+          </p>
+        </div>
+
+        <div className="flex justify-center gap-3 pt-4">
+          <button
+            onClick={() => {
+              setCheckAttempts(0);
+              setSyncing(true);
+              checkSyncedData();
+            }}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center space-x-2 min-h-[44px]"
+          >
+            <RefreshCw className="w-5 h-5" />
+            <span>Check Again</span>
+          </button>
+          <button
+            onClick={onComplete}
+            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all min-h-[44px]"
+          >
+            Continue Anyway →
+          </button>
+        </div>
       </div>
 
-      <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-4">
-        <p className="text-sm text-yellow-300">
-          <span className="font-medium">⏳ Please wait:</span> The document sync is handled by our n8n workflow and may take 2-5 minutes depending on the number and size of documents. You can continue with the setup and check back later.
-        </p>
-      </div>
+      {/* No Document Found Modal */}
+      {showNoDocumentModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 rounded-lg border border-red-700 max-w-md w-full shadow-2xl">
+            <div className="bg-gradient-to-r from-red-900/30 to-orange-900/30 border-b border-red-700 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-red-600/20 flex items-center justify-center">
+                    <AlertCircle className="w-6 h-6 text-red-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">No Documents Found</h3>
+                </div>
+              </div>
+            </div>
 
-      <div className="flex justify-center gap-3 pt-4">
-        <button
-          onClick={() => {
-            setCheckAttempts(0);
-            setSyncing(true);
-            checkSyncedData();
-          }}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center space-x-2 min-h-[44px]"
-        >
-          <RefreshCw className="w-5 h-5" />
-          <span>Check Again</span>
-        </button>
-        <button
-          onClick={onComplete}
-          className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all min-h-[44px]"
-        >
-          Continue Anyway →
-        </button>
-      </div>
-    </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-2">
+                <p className="text-sm text-gray-300">
+                  After 3 minutes of checking, we couldn't find any synced documents in your folder.
+                </p>
+                <p className="text-sm text-gray-300">
+                  This usually happens when:
+                </p>
+              </div>
+
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-2">
+                <div className="flex items-start gap-2">
+                  <span className="text-red-400 mt-0.5">•</span>
+                  <p className="text-xs text-gray-300">
+                    <span className="font-medium text-white">Wrong file type:</span> Only Google Docs and Google Sheets are supported
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-red-400 mt-0.5">•</span>
+                  <p className="text-xs text-gray-300">
+                    <span className="font-medium text-white">Empty folder:</span> No files were added to the folder
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-red-400 mt-0.5">•</span>
+                  <p className="text-xs text-gray-300">
+                    <span className="font-medium text-white">Wrong folder:</span> Files were added to a different folder
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-3">
+                <p className="text-xs text-blue-200">
+                  <span className="font-medium">💡 Reminder:</span> Convert PDFs, Word docs, and Excel files to Google Docs/Sheets format before syncing.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2 pt-2">
+                <button
+                  onClick={() => {
+                    setShowNoDocumentModal(false);
+                    if (onGoBack) {
+                      onGoBack();
+                    }
+                  }}
+                  className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 min-h-[44px]"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Go Back and Check My Files</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setShowNoDocumentModal(false);
+                    setCheckAttempts(0);
+                    setSyncing(true);
+                    triggerSync();
+                  }}
+                  className="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 min-h-[44px]"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span>Try Syncing Again</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };

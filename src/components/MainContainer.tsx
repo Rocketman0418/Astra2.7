@@ -58,6 +58,7 @@ export const MainContainer: React.FC = () => {
         setShowSetupGuide(true);
         // Clean up the URL parameter
         window.history.replaceState({}, '', '/');
+        return; // Exit early - we're showing the guide
       }
 
       // Fetch team name
@@ -74,6 +75,20 @@ export const MainContainer: React.FC = () => {
         }
       }
 
+      // Check if user has incomplete guided setup progress
+      const { data: setupProgress } = await supabase
+        .from('setup_guide_progress')
+        .select('is_completed, current_step')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      // If user has setup progress but hasn't completed it, show the guide
+      if (setupProgress && !setupProgress.is_completed) {
+        setShowSetupGuide(true);
+        return; // Exit early - we're showing the guide
+      }
+
+      // Only show welcome modal if no guided setup is needed
       const onboardingCompleted = user.user_metadata?.onboarding_completed;
       const onboardingDismissed = user.user_metadata?.onboarding_dismissed;
 

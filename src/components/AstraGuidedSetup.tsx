@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, CheckCircle, Circle, Loader } from 'lucide-react';
 import { useSetupGuide } from '../hooks/useSetupGuide';
 import { useAuth } from '../contexts/AuthContext';
+import { SupportMenu } from './SupportMenu';
 
 // Import step components (we'll create these next)
 import { WelcomeStep } from './setup-steps/WelcomeStep';
@@ -96,8 +97,12 @@ export const AstraGuidedSetup: React.FC<AstraGuidedSetupProps> = ({ isOpen, onCl
   };
 
   const handleClose = () => {
-    if (progress?.is_completed || window.confirm('Are you sure you want to exit the setup guide? Your progress will be saved.')) {
+    // Only allow closing if setup is completed
+    if (progress?.is_completed) {
       onClose();
+    } else {
+      // Don't allow closing during setup - setup must be completed
+      alert('Please complete the Guided Setup before closing. Your progress is saved automatically, and you can return to continue where you left off.');
     }
   };
 
@@ -132,13 +137,16 @@ export const AstraGuidedSetup: React.FC<AstraGuidedSetupProps> = ({ isOpen, onCl
                 Step {currentStep} of {STEP_TITLES.length}: {STEP_TITLES[currentStep - 1]}
               </p>
             </div>
-            <button
-              onClick={handleClose}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors min-h-[44px] min-w-[44px]"
-              aria-label="Close"
-            >
-              <X className="w-6 h-6 text-white" />
-            </button>
+            <div className="flex items-center gap-2">
+              <SupportMenu />
+              <button
+                onClick={handleClose}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors min-h-[44px] min-w-[44px]"
+                aria-label="Close"
+              >
+                <X className="w-6 h-6 text-white" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -234,6 +242,7 @@ export const AstraGuidedSetup: React.FC<AstraGuidedSetupProps> = ({ isOpen, onCl
             {currentStep === 5 && (
               <SyncDataStep
                 onComplete={() => handleStepComplete(5)}
+                onGoBack={() => setCurrentStep(4)}
                 progress={progress}
               />
             )}
