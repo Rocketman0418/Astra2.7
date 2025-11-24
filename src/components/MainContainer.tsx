@@ -95,6 +95,7 @@ export const MainContainer: React.FC = () => {
       if (hasGuidedSetupParam && isTeamCreator) {
         console.log('✅ [MainContainer] Opening Guided Setup for team creator');
         setShowSetupGuide(true);
+        setShowWelcomeModal(false); // CRITICAL: Prevent Welcome Modal from showing
         // Clean up the URL parameter
         window.history.replaceState({}, '', '/');
         return; // Exit early - we're showing the guide
@@ -119,6 +120,7 @@ export const MainContainer: React.FC = () => {
         if (setupProgress && !setupProgress.is_completed) {
           console.log('✅ [MainContainer] Resuming incomplete Guided Setup');
           setShowSetupGuide(true);
+          setShowWelcomeModal(false); // CRITICAL: Prevent Welcome Modal from showing
           return; // Exit early - we're showing the guide
         }
       }
@@ -363,8 +365,8 @@ export const MainContainer: React.FC = () => {
         </div>
       </div>
 
-      {/* Onboarding Modals */}
-      {showWelcomeModal && (
+      {/* Onboarding Modals - CRITICAL: Guided Setup takes precedence over Welcome Modal */}
+      {showWelcomeModal && !showSetupGuide && (
         <WelcomeModal
           userName={user?.user_metadata?.full_name || 'there'}
           teamName={teamName}
@@ -373,7 +375,7 @@ export const MainContainer: React.FC = () => {
         />
       )}
 
-      {showTour && (
+      {showTour && !showSetupGuide && (
         <InteractiveTour
           steps={tourSteps}
           currentStep={tourStep}
@@ -394,7 +396,7 @@ export const MainContainer: React.FC = () => {
         initialTab={helpCenterTab}
       />
 
-      {/* Astra Guided Setup */}
+      {/* Astra Guided Setup - Always takes precedence over other onboarding flows */}
       <AstraGuidedSetup
         isOpen={showSetupGuide}
         onClose={() => setShowSetupGuide(false)}
