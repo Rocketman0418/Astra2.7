@@ -329,15 +329,50 @@ export function MarketingEmailComposer({ emailId, onClose }: MarketingEmailCompo
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Subject Line *
+                      Subject Line * <span className="text-xs text-gray-500">(Emojis supported: 🚀✨💡)</span>
                     </label>
-                    <input
-                      type="text"
-                      value={emailData.subject}
-                      onChange={(e) => setEmailData(prev => ({ ...prev, subject: e.target.value }))}
-                      className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-                      placeholder="e.g., Exciting New Features Now Available!"
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={emailData.subject}
+                        onChange={(e) => setEmailData(prev => ({ ...prev, subject: e.target.value }))}
+                        className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                        placeholder="e.g., 🚀 Exciting New Features Now Available!"
+                        maxLength={150}
+                        spellCheck={true}
+                        autoComplete="off"
+                        style={{ unicodeBidi: 'plaintext' }}
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setEmailData(prev => ({ ...prev, subject: prev.subject + '🚀' }))}
+                          className="text-xl hover:scale-110 transition-transform"
+                          title="Add rocket emoji"
+                        >
+                          🚀
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEmailData(prev => ({ ...prev, subject: prev.subject + '✨' }))}
+                          className="text-xl hover:scale-110 transition-transform"
+                          title="Add sparkles emoji"
+                        >
+                          ✨
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEmailData(prev => ({ ...prev, subject: prev.subject + '💡' }))}
+                          className="text-xl hover:scale-110 transition-transform"
+                          title="Add lightbulb emoji"
+                        >
+                          💡
+                        </button>
+                      </div>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Tip: You can paste emojis directly or use the buttons above
+                    </p>
                   </div>
 
                   <div>
