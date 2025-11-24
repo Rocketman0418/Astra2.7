@@ -47,7 +47,6 @@ Deno.serve(async (req: Request) => {
     let recipients: { email: string; firstName: string }[] = [];
 
     if (recipientEmails && recipientEmails.length > 0) {
-      // Test mode: send to specific emails
       const { data: users, error } = await supabaseAdmin
         .from('users')
         .select('email, name')
@@ -66,7 +65,6 @@ Deno.serve(async (req: Request) => {
         firstName: u.name?.split(' ')[0] || 'there'
       }));
     } else {
-      // Production mode: send to all users
       const { data: users, error } = await supabaseAdmin
         .from('users')
         .select('email, name');
@@ -147,21 +145,23 @@ Deno.serve(async (req: Request) => {
                 padding: 40px 30px;
               }
               .greeting {
-                font-size: 20px;
+                font-size: 22px;
                 font-weight: 600;
                 color: #f3f4f6;
-                margin-bottom: 20px;
+                margin-bottom: 16px;
+                text-align: center;
               }
-              .message {
-                font-size: 16px;
+              .hero-text {
+                font-size: 18px;
                 color: #d1d5db;
-                margin-bottom: 20px;
-                line-height: 1.8;
+                margin-bottom: 24px;
+                line-height: 1.7;
+                text-align: center;
               }
               .cta-button {
                 display: inline-block;
                 background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-                color: white;
+                color: white !important;
                 padding: 18px 48px;
                 border-radius: 12px;
                 text-decoration: none;
@@ -178,131 +178,102 @@ Deno.serve(async (req: Request) => {
               .feature-grid {
                 display: grid;
                 grid-template-columns: 1fr;
-                gap: 20px;
+                gap: 16px;
                 margin: 30px 0;
               }
               .feature-card {
                 background: #334155;
                 border: 2px solid #475569;
                 border-radius: 12px;
-                padding: 24px;
+                padding: 20px;
                 text-align: center;
               }
               .feature-icon {
-                font-size: 48px;
+                font-size: 56px;
                 margin-bottom: 12px;
               }
               .feature-title {
                 font-size: 18px;
                 font-weight: 700;
                 color: #f3f4f6;
-                margin-bottom: 8px;
-              }
-              .feature-description {
-                font-size: 14px;
-                color: #cbd5e1;
-                line-height: 1.6;
-              }
-              .feature-list {
-                list-style: none;
-                padding: 0;
-                margin: 8px 0 0 0;
-                text-align: left;
-              }
-              .feature-list li {
-                padding: 4px 0 4px 20px;
-                position: relative;
-                color: #94a3b8;
-                font-size: 13px;
-              }
-              .feature-list li:before {
-                content: "•";
-                position: absolute;
-                left: 0;
-                color: #60a5fa;
-              }
-              .benefits-section {
-                background: #1e3a5f;
-                border-left: 4px solid #3b82f6;
-                padding: 24px;
-                margin: 30px 0;
-                border-radius: 4px;
-              }
-              .benefits-title {
-                font-weight: 700;
-                color: #60a5fa;
-                margin-bottom: 16px;
-                font-size: 18px;
+                margin-bottom: 4px;
               }
               .benefits-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 16px;
-                margin-top: 16px;
+                gap: 12px;
+                margin: 24px 0;
               }
-              .benefit-item {
-                display: flex;
-                align-items: start;
-                gap: 8px;
+              .benefit-card {
+                background: #1e3a5f;
+                border: 1px solid #3b82f6;
+                border-radius: 10px;
+                padding: 16px;
+                text-align: center;
               }
               .benefit-icon {
-                font-size: 20px;
-                flex-shrink: 0;
+                font-size: 32px;
+                margin-bottom: 8px;
               }
               .benefit-text {
-                font-size: 14px;
+                font-size: 13px;
+                font-weight: 600;
                 color: #93c5fd;
               }
               .access-section {
-                background: #422006;
-                border-left: 4px solid #f59e0b;
-                padding: 24px;
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: 2px solid #f59e0b;
+                border-radius: 16px;
+                padding: 32px 24px;
                 margin: 30px 0;
-                border-radius: 4px;
               }
               .access-title {
                 font-weight: 700;
                 color: #fbbf24;
-                margin-bottom: 16px;
-                font-size: 18px;
-              }
-              .access-steps {
-                margin: 0;
-                padding-left: 24px;
-                color: #fcd34d;
-              }
-              .access-steps li {
-                margin-bottom: 12px;
-                font-size: 15px;
-              }
-              .access-steps li strong {
-                color: #fef3c7;
-              }
-              .visual-guide {
-                background: #334155;
-                border-radius: 12px;
-                padding: 24px;
-                margin: 20px 0;
+                margin-bottom: 24px;
+                font-size: 20px;
                 text-align: center;
               }
-              .visual-step {
-                margin: 16px 0;
+              .steps-container {
+                background: #475569;
+                border-radius: 12px;
+                padding: 24px;
               }
-              .visual-step-number {
-                display: inline-block;
-                width: 32px;
-                height: 32px;
+              .step-row {
+                background: #1e293b;
+                border-radius: 8px;
+                padding: 16px;
+                margin-bottom: 12px;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+              }
+              .step-row:last-child {
+                margin-bottom: 0;
+              }
+              .step-number {
+                flex-shrink: 0;
+                width: 40px;
+                height: 40px;
                 background: linear-gradient(135deg, #f97316 0%, #3b82f6 100%);
                 border-radius: 50%;
                 color: white;
                 font-weight: 700;
-                line-height: 32px;
-                margin-bottom: 8px;
+                font-size: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
               }
-              .visual-step-text {
+              .step-text {
                 font-size: 15px;
                 color: #e2e8f0;
                 font-weight: 600;
+              }
+              .arrow-down {
+                text-align: center;
+                font-size: 24px;
+                color: #64748b;
+                margin: 8px 0;
               }
               .footer {
                 background: #0f172a;
@@ -316,10 +287,6 @@ Deno.serve(async (req: Request) => {
                 color: #60a5fa;
                 text-decoration: none;
               }
-              .divider {
-                border-top: 1px solid #334155;
-                margin: 30px 0;
-              }
             </style>
           </head>
           <body>
@@ -332,49 +299,43 @@ Deno.serve(async (req: Request) => {
 
                 <div class="content">
                   <div class="greeting">
-                    Hi ${recipient.firstName}!
+                    Hi ${recipient.firstName}! 👋
                   </div>
 
-                  <div class="message">
-                    We're excited to announce that <strong>Astra Guided Setup</strong> is now live! Astra will now walk you through a step-by-step setup process to connect your team's data and unlock powerful AI insights across your business.
+                  <div class="hero-text">
+                    <strong>Astra Guided Setup</strong> is now live! Let Astra walk you through connecting your team's data in just 5 minutes.
                   </div>
 
-                  <div class="message">
-                    No more guessing which folders to connect or how to organize your data. Astra will guide you through selecting the right folders for <strong>Strategy Documents</strong>, <strong>Meeting Notes</strong>, and <strong>Financial Data</strong> — making setup simple and fast.
+                  <div class="cta-container">
+                    <a href="${appUrl}" class="cta-button">
+                      Launch AI Rocket →
+                    </a>
                   </div>
 
-                  <div class="divider"></div>
-
-                  <div class="benefits-section">
-                    <div class="benefits-title">✨ What Guided Setup Accomplishes For You</div>
-                    <div class="message" style="color: #93c5fd; font-size: 15px;">
-                      By following Astra's guided setup, you'll unlock these powerful capabilities:
+                  <div class="benefits-grid">
+                    <div class="benefit-card">
+                      <div class="benefit-icon">📊</div>
+                      <div class="benefit-text">Strategy Intelligence</div>
                     </div>
-                    <div class="benefits-grid">
-                      <div class="benefit-item">
-                        <div class="benefit-icon">📊</div>
-                        <div class="benefit-text"><strong>Strategy Intelligence</strong> - Ask about your mission, goals, and OKRs</div>
-                      </div>
-                      <div class="benefit-item">
-                        <div class="benefit-icon">📝</div>
-                        <div class="benefit-text"><strong>Meeting Insights</strong> - Track decisions and action items</div>
-                      </div>
-                      <div class="benefit-item">
-                        <div class="benefit-icon">💰</div>
-                        <div class="benefit-text"><strong>Financial Analysis</strong> - Understand P&L and budget trends</div>
-                      </div>
-                      <div class="benefit-item">
-                        <div class="benefit-icon">🎯</div>
-                        <div class="benefit-text"><strong>Cross-Data Insights</strong> - Connect strategy to execution</div>
-                      </div>
-                      <div class="benefit-item">
-                        <div class="benefit-icon">📈</div>
-                        <div class="benefit-text"><strong>Visual Reports</strong> - Get automatic charts and graphs</div>
-                      </div>
-                      <div class="benefit-item">
-                        <div class="benefit-icon">🤝</div>
-                        <div class="benefit-text"><strong>Team Collaboration</strong> - AI-powered group discussions</div>
-                      </div>
+                    <div class="benefit-card">
+                      <div class="benefit-icon">📝</div>
+                      <div class="benefit-text">Meeting Insights</div>
+                    </div>
+                    <div class="benefit-card">
+                      <div class="benefit-icon">💰</div>
+                      <div class="benefit-text">Financial Analysis</div>
+                    </div>
+                    <div class="benefit-card">
+                      <div class="benefit-icon">🎯</div>
+                      <div class="benefit-text">Cross-Data Insights</div>
+                    </div>
+                    <div class="benefit-card">
+                      <div class="benefit-icon">📈</div>
+                      <div class="benefit-text">Visual Reports</div>
+                    </div>
+                    <div class="benefit-card">
+                      <div class="benefit-icon">🤝</div>
+                      <div class="benefit-text">Team Collaboration</div>
                     </div>
                   </div>
 
@@ -382,82 +343,48 @@ Deno.serve(async (req: Request) => {
                     <div class="feature-card">
                       <div class="feature-icon">📊</div>
                       <div class="feature-title">Strategy Documents</div>
-                      <div class="feature-description">Connect your mission, vision, OKRs, and strategic plans</div>
-                      <ul class="feature-list">
-                        <li>Mission & Vision statements</li>
-                        <li>Quarterly goals & OKRs</li>
-                        <li>Strategic roadmaps</li>
-                        <li>Company values documents</li>
-                      </ul>
                     </div>
 
                     <div class="feature-card">
                       <div class="feature-icon">📝</div>
                       <div class="feature-title">Meeting Notes</div>
-                      <div class="feature-description">Sync team meetings and capture decisions</div>
-                      <ul class="feature-list">
-                        <li>Team meeting notes</li>
-                        <li>1-on-1 summaries</li>
-                        <li>Sprint retrospectives</li>
-                        <li>Planning sessions</li>
-                      </ul>
                     </div>
 
                     <div class="feature-card">
                       <div class="feature-icon">💰</div>
                       <div class="feature-title">Financial Documents</div>
-                      <div class="feature-description">Connect P&L, budgets, and expense reports</div>
-                      <ul class="feature-list">
-                        <li>Profit & Loss statements</li>
-                        <li>Budget forecasts</li>
-                        <li>Expense reports</li>
-                        <li>Revenue tracking</li>
-                      </ul>
                     </div>
                   </div>
 
-                  <div class="divider"></div>
-
                   <div class="access-section">
                     <div class="access-title">🎯 How to Access Guided Setup</div>
-                    <div class="visual-guide">
-                      <div class="visual-step">
-                        <div class="visual-step-number">1</div>
-                        <div class="visual-step-text">Open AI Rocket app</div>
+                    <div class="steps-container">
+                      <div class="step-row">
+                        <div class="step-number">1</div>
+                        <div class="step-text">Open AI Rocket app</div>
                       </div>
-                      <div style="font-size: 24px; color: #64748b; margin: 8px 0;">↓</div>
-                      <div class="visual-step">
-                        <div class="visual-step-number">2</div>
-                        <div class="visual-step-text">Click the <strong>+ button</strong> in the Features Menu</div>
+                      <div class="arrow-down">↓</div>
+                      <div class="step-row">
+                        <div class="step-number">2</div>
+                        <div class="step-text">Click the <strong>+</strong> button in Features Menu</div>
                       </div>
-                      <div style="font-size: 24px; color: #64748b; margin: 8px 0;">↓</div>
-                      <div class="visual-step">
-                        <div class="visual-step-number">3</div>
-                        <div class="visual-step-text">Select <strong>"Launch Guided Setup"</strong></div>
+                      <div class="arrow-down">↓</div>
+                      <div class="step-row">
+                        <div class="step-number">3</div>
+                        <div class="step-text">Select "Launch Guided Setup"</div>
                       </div>
-                      <div style="font-size: 24px; color: #64748b; margin: 8px 0;">↓</div>
-                      <div class="visual-step">
-                        <div class="visual-step-number">4</div>
-                        <div class="visual-step-text">Follow Astra's step-by-step guidance</div>
+                      <div class="arrow-down">↓</div>
+                      <div class="step-row">
+                        <div class="step-number">4</div>
+                        <div class="step-text">Follow Astra's guidance</div>
                       </div>
                     </div>
-
-                    <ol class="access-steps">
-                      <li>The <strong>Features Menu</strong> is located in the top navigation bar</li>
-                      <li>Look for the <strong>+ button</strong> (it's the add/plus icon)</li>
-                      <li>You can pause and resume setup anytime</li>
-                      <li>Setup typically takes <strong>5-10 minutes</strong></li>
-                    </ol>
                   </div>
 
                   <div class="cta-container">
                     <a href="${appUrl}" class="cta-button">
-                      Open AI Rocket →
+                      Launch AI Rocket →
                     </a>
-                  </div>
-
-                  <div class="message" style="text-align: center; color: #94a3b8; font-size: 14px;">
-                    Have questions? Just ask Astra once you're in the app — I'm here to help!
                   </div>
                 </div>
 
