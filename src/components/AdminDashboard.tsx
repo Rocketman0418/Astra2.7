@@ -3,7 +3,7 @@ import {
   Users, Building2, FileText, MessageSquare, BarChart3, Download,
   TrendingUp, TrendingDown, Minus, Mail, HardDrive, AlertCircle,
   CheckCircle, XCircle, Search, ArrowUpDown, MessageCircleQuestion, Shield, X, ChevronRight, MessageCircle,
-  Copy, UserPlus, Send
+  Copy, UserPlus, Send, RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -112,6 +112,8 @@ interface AdminDashboardProps {
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, onClose }) => {
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [overviewMetrics, setOverviewMetrics] = useState<OverviewMetrics | null>(null);
   const [users, setUsers] = useState<UserMetric[]>([]);
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
@@ -185,6 +187,88 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
     }
   }, [isOpen, timeFilter, user, isSuperAdmin, authLoading]);
 
+  // Auto-refresh every 5 minutes
+  useEffect(() => {
+    if (!isOpen || !user || !isSuperAdmin) return;
+
+    const autoRefreshInterval = setInterval(() => {
+      handleRefresh();
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(autoRefreshInterval);
+  }, [isOpen, user, isSuperAdmin]);
+
+  // Real-time subscriptions for key tables
+  useEffect(() => {
+    if (!isOpen || !user || !isSuperAdmin) return;
+
+    // Subscribe to users table
+    const usersChannel = supabase
+      .channel('admin-users-changes')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'users' },
+        () => {
+          console.log('Users table changed, refreshing...');
+          handleRefresh();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to feedback_submissions
+    const feedbackChannel = supabase
+      .channel('admin-feedback-changes')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'feedback_submissions' },
+        () => {
+          console.log('Feedback submitted, refreshing...');
+          handleRefresh();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to support submissions
+    const supportChannel = supabase
+      .channel('admin-support-changes')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'feedback_submissions', filter: 'support_type=neq.null' },
+        () => {
+          console.log('Support message received, refreshing...');
+          handleRefresh();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to preview_requests
+    const previewChannel = supabase
+      .channel('admin-preview-changes')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'preview_requests' },
+        () => {
+          console.log('Preview request changed, refreshing...');
+          loadPreviewRequests();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(usersChannel);
+      supabase.removeChannel(feedbackChannel);
+      supabase.removeChannel(supportChannel);
+      supabase.removeChannel(previewChannel);
+    };
+  }, [isOpen, user, isSuperAdmin]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await loadAllMetrics();
+      await loadPreviewRequests();
+      await loadActiveUsersToday();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const loadAllMetrics = async () => {
     setLoading(true);
     try {
@@ -225,6 +309,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
 
       const data = await response.json();
       await processAdminDashboardData(data);
+      setLastUpdated(new Date());
     } catch (error: any) {
       console.error('Error loading metrics:', error);
       // Log detailed error for debugging
@@ -1165,9 +1250,25 @@ Sign up here: https://airocket.app`;
           <div className="flex items-center justify-between sticky top-0 bg-gray-900 py-4 z-10">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
-              <p className="text-sm md:text-base text-gray-400">Comprehensive metrics and analytics for AI Rocket</p>
+              <div className="flex items-center gap-3">
+                <p className="text-sm md:text-base text-gray-400">Comprehensive metrics and analytics for AI Rocket</p>
+                {lastUpdated && (
+                  <span className="text-xs text-gray-500">
+                    Last updated: {format(lastUpdated, 'h:mm a')}
+                  </span>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-3">
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 border border-blue-500 rounded-lg text-white text-sm transition-colors disabled:cursor-not-allowed"
+                title="Refresh dashboard data"
+              >
+                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                <span className="hidden md:inline">Refresh</span>
+              </button>
               <select
                 value={timeFilter}
                 onChange={(e) => setTimeFilter(e.target.value as TimeFilter)}
