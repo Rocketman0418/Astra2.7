@@ -52,40 +52,47 @@ export const MainContainer: React.FC = () => {
     const checkOnboardingStatus = async () => {
       if (!user) return;
 
+      // Fetch team info first
+      const teamId = user.user_metadata?.team_id;
+      let isTeamCreator = false;
+
+      if (teamId) {
+        const { data: teamData } = await supabase
+          .from('teams')
+          .select('name, created_by')
+          .eq('id', teamId)
+          .maybeSingle();
+
+        if (teamData) {
+          setTeamName(teamData.name);
+          isTeamCreator = teamData.created_by === user.id;
+        }
+      }
+
       // Check if we should open Guided Setup from URL parameter
+      // ONLY for team creators
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('openGuidedSetup') === 'true') {
+      if (urlParams.get('openGuidedSetup') === 'true' && isTeamCreator) {
         setShowSetupGuide(true);
         // Clean up the URL parameter
         window.history.replaceState({}, '', '/');
         return; // Exit early - we're showing the guide
       }
 
-      // Fetch team name
-      const teamId = user.user_metadata?.team_id;
-      if (teamId) {
-        const { data: teamData } = await supabase
-          .from('teams')
-          .select('name')
-          .eq('id', teamId)
+      // Check if user has incomplete guided setup progress
+      // ONLY for team creators
+      if (isTeamCreator) {
+        const { data: setupProgress } = await supabase
+          .from('setup_guide_progress')
+          .select('is_completed, current_step')
+          .eq('user_id', user.id)
           .maybeSingle();
 
-        if (teamData) {
-          setTeamName(teamData.name);
+        // If user has setup progress but hasn't completed it, show the guide
+        if (setupProgress && !setupProgress.is_completed) {
+          setShowSetupGuide(true);
+          return; // Exit early - we're showing the guide
         }
-      }
-
-      // Check if user has incomplete guided setup progress
-      const { data: setupProgress } = await supabase
-        .from('setup_guide_progress')
-        .select('is_completed, current_step')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      // If user has setup progress but hasn't completed it, show the guide
-      if (setupProgress && !setupProgress.is_completed) {
-        setShowSetupGuide(true);
-        return; // Exit early - we're showing the guide
       }
 
       // Only show welcome modal if no guided setup is needed
