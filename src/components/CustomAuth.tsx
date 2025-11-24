@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Mail, Lock, Key, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { PasswordResetModal } from './PasswordResetModal';
+import { LegalDocumentModal } from './LegalDocumentModal';
+import { PRIVACY_POLICY, TERMS_OF_SERVICE } from '../data/legalDocuments';
 
 type AuthStep = 'email' | 'signup' | 'login' | 'preview-confirmation';
 
@@ -18,6 +20,9 @@ export const CustomAuth: React.FC = () => {
   const [error, setError] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showTermsOfService, setShowTermsOfService] = useState(false);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -162,6 +167,12 @@ export const CustomAuth: React.FC = () => {
         return;
       }
 
+      if (!acceptedTerms) {
+        setError('You must accept the Privacy Policy and Terms of Service to create an account');
+        setLoading(false);
+        return;
+      }
+
       if (!validateEmail(email)) {
         setError('Please enter a valid email address');
         setLoading(false);
@@ -260,6 +271,32 @@ export const CustomAuth: React.FC = () => {
         }
       } else {
         console.log('New team signup - will complete setup during onboarding');
+      }
+
+      // Record legal acceptance for both Privacy Policy and Terms of Service
+      try {
+        const userAgent = navigator.userAgent;
+        // Note: We can't get the real IP address from client-side, so we'll record null
+
+        await supabase.from('legal_acceptance').insert([
+          {
+            user_id: data.user.id,
+            document_type: 'privacy_policy',
+            version: PRIVACY_POLICY.lastUpdated,
+            user_agent: userAgent
+          },
+          {
+            user_id: data.user.id,
+            document_type: 'terms_of_service',
+            version: TERMS_OF_SERVICE.lastUpdated,
+            user_agent: userAgent
+          }
+        ]);
+
+        console.log('Legal acceptance recorded successfully');
+      } catch (legalError) {
+        console.error('Failed to record legal acceptance:', legalError);
+        // Don't block signup if legal recording fails, but log it
       }
     } catch (err: any) {
       console.error('Signup error details:', {
@@ -515,6 +552,18 @@ export const CustomAuth: React.FC = () => {
         defaultEmail={email}
       />
 
+      <LegalDocumentModal
+        isOpen={showPrivacyPolicy}
+        onClose={() => setShowPrivacyPolicy(false)}
+        document={PRIVACY_POLICY}
+      />
+
+      <LegalDocumentModal
+        isOpen={showTermsOfService}
+        onClose={() => setShowTermsOfService(false)}
+        document={TERMS_OF_SERVICE}
+      />
+
       <div className="w-full">
         <div className="text-center mb-6">
           <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-blue-400 shadow-lg">
@@ -649,6 +698,42 @@ export const CustomAuth: React.FC = () => {
                   </p>
                 </div>
               )}
+
+              <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    className="mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+                    required
+                  />
+                  <span className="text-sm text-gray-300 group-hover:text-gray-200 transition-colors">
+                    I agree to the{' '}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowPrivacyPolicy(true);
+                      }}
+                      className="text-blue-400 hover:text-blue-300 underline font-medium"
+                    >
+                      Privacy Policy
+                    </button>
+                    {' '}and{' '}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowTermsOfService(true);
+                      }}
+                      className="text-blue-400 hover:text-blue-300 underline font-medium"
+                    >
+                      Terms of Service
+                    </button>
+                  </span>
+                </label>
+              </div>
             </>
           )}
 
