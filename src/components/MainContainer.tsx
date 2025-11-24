@@ -52,9 +52,19 @@ export const MainContainer: React.FC = () => {
     const checkOnboardingStatus = async () => {
       if (!user) return;
 
-      // Fetch team info first
-      const teamId = user.user_metadata?.team_id;
+      console.log('🔍 [MainContainer] Starting onboarding check for user:', user.id);
+
+      // CRITICAL FIX: Get team_id from database, not metadata (metadata may not be fresh)
+      const { data: userData } = await supabase
+        .from('users')
+        .select('team_id, role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const teamId = userData?.team_id;
       let isTeamCreator = false;
+
+      console.log('📊 [MainContainer] User data from DB:', { teamId, role: userData?.role });
 
       if (teamId) {
         const { data: teamData } = await supabase
@@ -66,17 +76,32 @@ export const MainContainer: React.FC = () => {
         if (teamData) {
           setTeamName(teamData.name);
           isTeamCreator = teamData.created_by === user.id;
+          console.log('👥 [MainContainer] Team data:', {
+            teamName: teamData.name,
+            created_by: teamData.created_by,
+            user_id: user.id,
+            isTeamCreator
+          });
         }
       }
 
       // Check if we should open Guided Setup from URL parameter
       // ONLY for team creators
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('openGuidedSetup') === 'true' && isTeamCreator) {
+      const hasGuidedSetupParam = urlParams.get('openGuidedSetup') === 'true';
+
+      console.log('🔗 [MainContainer] URL check:', { hasGuidedSetupParam, isTeamCreator });
+
+      if (hasGuidedSetupParam && isTeamCreator) {
+        console.log('✅ [MainContainer] Opening Guided Setup for team creator');
         setShowSetupGuide(true);
         // Clean up the URL parameter
         window.history.replaceState({}, '', '/');
         return; // Exit early - we're showing the guide
+      }
+
+      if (hasGuidedSetupParam && !isTeamCreator) {
+        console.log('⚠️ [MainContainer] URL has openGuidedSetup but user is NOT team creator - ignoring');
       }
 
       // Check if user has incomplete guided setup progress
@@ -88,8 +113,11 @@ export const MainContainer: React.FC = () => {
           .eq('user_id', user.id)
           .maybeSingle();
 
+        console.log('📋 [MainContainer] Setup progress:', setupProgress);
+
         // If user has setup progress but hasn't completed it, show the guide
         if (setupProgress && !setupProgress.is_completed) {
+          console.log('✅ [MainContainer] Resuming incomplete Guided Setup');
           setShowSetupGuide(true);
           return; // Exit early - we're showing the guide
         }
@@ -99,7 +127,10 @@ export const MainContainer: React.FC = () => {
       const onboardingCompleted = user.user_metadata?.onboarding_completed;
       const onboardingDismissed = user.user_metadata?.onboarding_dismissed;
 
+      console.log('👋 [MainContainer] Welcome modal check:', { onboardingCompleted, onboardingDismissed, willShow: !onboardingCompleted && !onboardingDismissed });
+
       if (!onboardingCompleted && !onboardingDismissed) {
+        console.log('✅ [MainContainer] Showing Welcome Modal');
         setShowWelcomeModal(true);
       }
     };
