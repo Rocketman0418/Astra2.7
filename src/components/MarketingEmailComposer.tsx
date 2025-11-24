@@ -44,6 +44,7 @@ export function MarketingEmailComposer({ emailId, onClose }: MarketingEmailCompo
   const [allUsers, setAllUsers] = useState<Array<{ id: string; email: string; name: string }>>([]);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [scheduleType, setScheduleType] = useState<'immediate' | 'scheduled'>('immediate');
+  const [draftId, setDraftId] = useState<string | null>(emailId);
 
   useEffect(() => {
     if (emailId) {
@@ -51,6 +52,16 @@ export function MarketingEmailComposer({ emailId, onClose }: MarketingEmailCompo
     }
     loadUsers();
   }, [emailId]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (emailData.subject || emailData.content_description) {
+        saveDraft();
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [emailData.subject, emailData.content_description, emailData.special_notes, emailData.context_type]);
 
   const loadEmail = async () => {
     try {
@@ -149,17 +160,23 @@ export function MarketingEmailComposer({ emailId, onClose }: MarketingEmailCompo
         status: 'draft'
       };
 
-      if (emailId) {
+      if (draftId) {
         const { error } = await supabase
           .from('marketing_emails')
           .update(payload)
-          .eq('id', emailId);
+          .eq('id', draftId);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('marketing_emails')
-          .insert({ ...payload, created_by: user?.id });
+          .insert({ ...payload, created_by: user?.id })
+          .select()
+          .single();
         if (error) throw error;
+        if (data) {
+          setDraftId(data.id);
+          sessionStorage.setItem('marketingEmailEditingId', data.id);
+        }
       }
     } catch (error) {
       console.error('Error saving draft:', error);

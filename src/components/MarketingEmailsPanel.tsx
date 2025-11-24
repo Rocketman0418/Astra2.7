@@ -18,13 +18,27 @@ interface MarketingEmail {
 export function MarketingEmailsPanel() {
   const [emails, setEmails] = useState<MarketingEmail[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showComposer, setShowComposer] = useState(false);
-  const [editingEmail, setEditingEmail] = useState<string | null>(null);
+  const [showComposer, setShowComposer] = useState(() => {
+    const saved = sessionStorage.getItem('marketingEmailComposerOpen');
+    return saved === 'true';
+  });
+  const [editingEmail, setEditingEmail] = useState<string | null>(() => {
+    return sessionStorage.getItem('marketingEmailEditingId');
+  });
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
   useEffect(() => {
     loadEmails();
   }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem('marketingEmailComposerOpen', showComposer.toString());
+    if (editingEmail) {
+      sessionStorage.setItem('marketingEmailEditingId', editingEmail);
+    } else {
+      sessionStorage.removeItem('marketingEmailEditingId');
+    }
+  }, [showComposer, editingEmail]);
 
   const loadEmails = async () => {
     try {

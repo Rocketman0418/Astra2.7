@@ -210,6 +210,11 @@ BRAND GUIDELINES:
 - Use emojis sparingly but purposefully
 - Always include the RocketHub branding and tagline
 - CTA button should link to https://airocket.app
+- CTA button text should be "Launch AI Rocket"
+
+KEY PRODUCT MESSAGING:
+- Astra is powered by Gemini, Claude, and OpenAI working together in alignment with your team
+- Emphasize the multi-AI approach as a unique strength
 
 TEMPLATE STRUCTURE TO FOLLOW:
 ${templateReference}
@@ -243,7 +248,7 @@ Please regenerate the email incorporating this feedback while maintaining the br
 1. Personalized greeting with {{firstName}} variable
 2. Compelling hero text that explains the main message
 3. 4-6 benefit cards in a grid layout with emojis as icons
-4. At least 2 CTA buttons (one near top, one at bottom)
+4. At least 2 CTA buttons (one near top, one at bottom) - use "Launch AI Rocket" as button text
 5. Professional footer with unsubscribe context
 
 Return ONLY the complete HTML code, no markdown formatting or additional text.`;

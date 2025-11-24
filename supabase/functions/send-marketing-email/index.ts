@@ -9,6 +9,8 @@ const corsHeaders = {
 
 interface MarketingEmailRequest {
   recipientEmails?: string[];
+  subject?: string;
+  htmlContent?: string;
 }
 
 Deno.serve(async (req: Request) => {
@@ -42,7 +44,7 @@ Deno.serve(async (req: Request) => {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { recipientEmails }: MarketingEmailRequest = await req.json();
+    const { recipientEmails, subject, htmlContent }: MarketingEmailRequest = await req.json();
 
     let recipients: { email: string; firstName: string }[] = [];
 
@@ -84,28 +86,28 @@ Deno.serve(async (req: Request) => {
     }
 
     const appUrl = 'https://airocket.app';
-    const emailSubject = 'Astra Guided Setup now Live';
+    const emailSubject = subject || 'Astra Guided Setup now Live';
 
     const results = [];
     const errors = [];
 
-    // Helper function to delay execution (rate limiting: 2 per second = 500ms delay)
     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
     for (let i = 0; i < recipients.length; i++) {
       const recipient = recipients[i];
 
-      // Add delay after every 2 emails (500ms allows 2 per second)
       if (i > 0 && i % 2 === 0) {
         await delay(1000);
       }
 
-      const emailHtml = `
+      const emailHtml = htmlContent
+        ? htmlContent.replace(/\{\{firstName\}\}/g, recipient.firstName)
+        : `
         <!DOCTYPE html>
         <html>
           <head>
-            <meta name="color-scheme" content="light dark">
-            <meta name="supported-color-schemes" content="light dark">
+            <meta name=\"color-scheme\" content=\"light dark\">
+            <meta name=\"supported-color-schemes\" content=\"light dark\">
             <style>
               :root {
                 color-scheme: light dark;
@@ -300,105 +302,105 @@ Deno.serve(async (req: Request) => {
             </style>
           </head>
           <body>
-            <div class="email-wrapper">
-              <div class="container">
-                <div class="header">
+            <div class=\"email-wrapper\">
+              <div class=\"container\">
+                <div class=\"header\">
                   <h1>🚀 AI Rocket + Astra Intelligence</h1>
-                  <p class="tagline">AI that Works for Work</p>
+                  <p class=\"tagline\">AI that Works for Work</p>
                 </div>
 
-                <div class="content">
-                  <div class="greeting">
+                <div class=\"content\">
+                  <div class=\"greeting\">
                     Hi ${recipient.firstName}! 👋
                   </div>
 
-                  <div class="hero-text">
+                  <div class=\"hero-text\">
                     <strong>Astra Guided Setup</strong> is now live! Let Astra walk you through connecting your team's data in just 5 minutes.
                   </div>
 
-                  <div class="cta-container">
-                    <a href="${appUrl}" class="cta-button">
+                  <div class=\"cta-container\">
+                    <a href=\"${appUrl}\" class=\"cta-button\">
                       Launch AI Rocket →
                     </a>
                   </div>
 
-                  <div class="hero-text" style="font-size: 16px; margin-bottom: 12px; color: #cbd5e1;">
+                  <div class=\"hero-text\" style=\"font-size: 16px; margin-bottom: 12px; color: #cbd5e1;\">
                     Connect your Strategy Documents, Meeting Notes, and Financial Data to unlock:
                   </div>
 
-                  <div class="benefits-grid">
-                    <div class="benefit-card">
-                      <div class="benefit-icon">📊</div>
-                      <div class="benefit-text">Strategy Intelligence</div>
+                  <div class=\"benefits-grid\">
+                    <div class=\"benefit-card\">
+                      <div class=\"benefit-icon\">📊</div>
+                      <div class=\"benefit-text\">Strategy Intelligence</div>
                     </div>
-                    <div class="benefit-card">
-                      <div class="benefit-icon">📝</div>
-                      <div class="benefit-text">Meeting Insights</div>
+                    <div class=\"benefit-card\">
+                      <div class=\"benefit-icon\">📝</div>
+                      <div class=\"benefit-text\">Meeting Insights</div>
                     </div>
-                    <div class="benefit-card">
-                      <div class="benefit-icon">💰</div>
-                      <div class="benefit-text">Financial Analysis</div>
+                    <div class=\"benefit-card\">
+                      <div class=\"benefit-icon\">💰</div>
+                      <div class=\"benefit-text\">Financial Analysis</div>
                     </div>
-                    <div class="benefit-card">
-                      <div class="benefit-icon">🎯</div>
-                      <div class="benefit-text">Cross-Data Insights</div>
+                    <div class=\"benefit-card\">
+                      <div class=\"benefit-icon\">🎯</div>
+                      <div class=\"benefit-text\">Cross-Data Insights</div>
                     </div>
-                    <div class="benefit-card">
-                      <div class="benefit-icon">📈</div>
-                      <div class="benefit-text">Visual Reports</div>
+                    <div class=\"benefit-card\">
+                      <div class=\"benefit-icon\">📈</div>
+                      <div class=\"benefit-text\">Visual Reports</div>
                     </div>
-                    <div class="benefit-card">
-                      <div class="benefit-icon">🤝</div>
-                      <div class="benefit-text">Team Collaboration</div>
-                    </div>
-                  </div>
-
-                  <div class="access-section">
-                    <div class="access-title">🎯 How to Access Guided Setup</div>
-                    <div class="steps-container">
-                      <div class="step-row">
-                        <div class="step-number">1</div>
-                        <div class="step-text">Open AI Rocket app</div>
-                      </div>
-                      <div class="arrow-down">↓</div>
-                      <div class="step-row">
-                        <div class="step-number">2</div>
-                        <div class="step-text">Click the <strong>+</strong> button in Features Menu</div>
-                      </div>
-                      <div class="arrow-down">↓</div>
-                      <div class="step-row">
-                        <div class="step-number">3</div>
-                        <div class="step-text">Select \"Launch Guided Setup\"</div>
-                      </div>
-                      <div class="arrow-down">↓</div>
-                      <div class="step-row">
-                        <div class="step-number">4</div>
-                        <div class="step-text">Follow Astra's guidance</div>
-                      </div>
+                    <div class=\"benefit-card\">
+                      <div class=\"benefit-icon\">🤝</div>
+                      <div class=\"benefit-text\">Team Collaboration</div>
                     </div>
                   </div>
 
-                  <div class="cta-container">
-                    <a href="${appUrl}" class="cta-button">
+                  <div class=\"access-section\">
+                    <div class=\"access-title\">🎯 How to Access Guided Setup</div>
+                    <div class=\"steps-container\">
+                      <div class=\"step-row\">
+                        <div class=\"step-number\">1</div>
+                        <div class=\"step-text\">Open AI Rocket app</div>
+                      </div>
+                      <div class=\"arrow-down\">↓</div>
+                      <div class=\"step-row\">
+                        <div class=\"step-number\">2</div>
+                        <div class=\"step-text\">Click the <strong>+</strong> button in Features Menu</div>
+                      </div>
+                      <div class=\"arrow-down\">↓</div>
+                      <div class=\"step-row\">
+                        <div class=\"step-number\">3</div>
+                        <div class=\"step-text\">Select \"Launch Guided Setup\"</div>
+                      </div>
+                      <div class=\"arrow-down\">↓</div>
+                      <div class=\"step-row\">
+                        <div class=\"step-number\">4</div>
+                        <div class=\"step-text\">Follow Astra's guidance</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class=\"cta-container\">
+                    <a href=\"${appUrl}\" class=\"cta-button\">
                       Launch AI Rocket →
                     </a>
                   </div>
                 </div>
 
-                <div class="footer">
+                <div class=\"footer\">
                   <p>
                     You're receiving this email because you have an account with AI Rocket.<br>
                     This is a product announcement about new features available to you.
                   </p>
-                  <p style="margin-top: 20px;">
-                    <a href="${appUrl}">AI Rocket + Astra</a> - AI that Works for Work
+                  <p style=\"margin-top: 20px;\">
+                    <a href=\"${appUrl}\">AI Rocket + Astra</a> - AI that Works for Work
                   </p>
                 </div>
               </div>
             </div>
           </body>
         </html>
-      `;
+      `.replace(/\{\{firstName\}\}/g, recipient.firstName);
 
       try {
         const resendResponse = await fetch("https://api.resend.com/emails", {
