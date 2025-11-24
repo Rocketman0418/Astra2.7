@@ -111,7 +111,11 @@ export function MarketingEmailComposer({ emailId, onClose }: MarketingEmailCompo
         }
       );
 
-      if (!response.ok) throw new Error('Failed to generate email');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Generate email error:', errorData);
+        throw new Error(errorData.error || 'Failed to generate email');
+      }
 
       const result = await response.json();
       setEmailData(prev => ({ ...prev, html_content: result.html }));
@@ -121,7 +125,7 @@ export function MarketingEmailComposer({ emailId, onClose }: MarketingEmailCompo
       await saveDraft();
     } catch (error) {
       console.error('Error generating email:', error);
-      alert('Failed to generate email. Please try again.');
+      alert(`Failed to generate email: ${error.message}\n\nPlease ensure GEMINI_API_KEY is configured in Supabase secrets.`);
     } finally {
       setGenerating(false);
     }
