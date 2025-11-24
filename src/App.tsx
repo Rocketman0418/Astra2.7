@@ -90,26 +90,23 @@ const AppContent: React.FC = () => {
       setNeedsOnboarding(false);
 
       // Check if user created a team or joined an existing team
-      const inviteCode = refreshedUser.user_metadata?.invite_code;
-      let isTeamCreator = false;
+      // New users who create teams have role 'admin', invited members have role 'member'
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role, team_id')
+        .eq('id', refreshedUser.id)
+        .maybeSingle();
 
-      if (inviteCode) {
-        // Check if the invite code was for creating a new team or joining existing
-        const { data: invite } = await supabase
-          .from('invite_codes')
-          .select('team_id')
-          .eq('code', inviteCode.toUpperCase())
-          .maybeSingle();
+      const isTeamCreator = userData?.role === 'admin';
 
-        // If invite.team_id is NULL, the invite was for creating a new team
-        // If invite.team_id exists, the invite was for joining an existing team
-        isTeamCreator = invite && invite.team_id === null;
-      }
+      console.log('🎯 [Onboarding Complete] User role:', userData?.role, 'Is team creator:', isTeamCreator);
 
       // Only redirect to guided setup if user created a new team
       if (isTeamCreator) {
+        console.log('✅ [Onboarding Complete] Redirecting team creator to Guided Setup');
         window.location.href = '/?openGuidedSetup=true';
       } else {
+        console.log('✅ [Onboarding Complete] Invited member - skipping Guided Setup');
         // Invited members skip guided setup and just reload the app
         // They will see the Interactive Tour on first login
         window.location.href = '/';
