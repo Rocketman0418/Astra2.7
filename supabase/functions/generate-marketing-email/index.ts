@@ -140,30 +140,36 @@ Deno.serve(async (req: Request) => {
         margin: 30px 0;
       }
       .benefits-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        width: 100%;
         margin: 24px 0;
       }
       .benefit-card {
         background: #1e3a5f;
         border: 1px solid #3b82f6;
         border-radius: 10px;
-        padding: 16px;
+        padding: 20px 16px;
         text-align: center;
-        min-height: 140px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
+        height: 180px;
+        vertical-align: top;
       }
       .benefit-icon {
-        font-size: 32px;
+        font-size: 40px;
+        line-height: 1;
+        margin-bottom: 12px;
+        display: block;
+      }
+      .benefit-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #93c5fd;
         margin-bottom: 8px;
+        line-height: 1.3;
       }
       .benefit-text {
         font-size: 13px;
-        font-weight: 600;
-        color: #93c5fd;
+        font-weight: 400;
+        color: #cbd5e1;
+        line-height: 1.5;
       }
       .footer {
         background: #0f172a;
@@ -187,7 +193,25 @@ Deno.serve(async (req: Request) => {
           <p class=\"tagline\">AI that Works for Work</p>
         </div>
         <div class=\"content\">
-          <!-- Main content goes here -->
+          <!-- Example benefit cards structure: -->
+          <table class=\"benefits-grid\" cellpadding=\"0\" cellspacing=\"12\" width=\"100%\">
+            <tr>
+              <td width=\"48%\">
+                <div class=\"benefit-card\" style=\"height: 180px;\">
+                  <span class=\"benefit-icon\">🔒</span>
+                  <div class=\"benefit-title\">Feature Title</div>
+                  <div class=\"benefit-text\">Brief 2-3 line description that fits within fixed height.</div>
+                </div>
+              </td>
+              <td width=\"48%\">
+                <div class=\"benefit-card\" style=\"height: 180px;\">
+                  <span class=\"benefit-icon\">⚡</span>
+                  <div class=\"benefit-title\">Feature Title</div>
+                  <div class=\"benefit-text\">Brief 2-3 line description that fits within fixed height.</div>
+                </div>
+              </td>
+            </tr>
+          </table>
         </div>
         <div class=\"footer\">
           <p>
@@ -234,8 +258,11 @@ IMPORTANT STYLING REQUIREMENTS:
 - Ensure responsive design
 - Use the same font stack
 - Keep consistent spacing and padding
-- Benefits should be in a 2-column grid with icons
-- ALL benefit/feature cards MUST have consistent height - use min-height CSS or equal content length
+- Benefits MUST use HTML TABLE layout (not CSS grid) for email client compatibility
+- ALL benefit/feature cards MUST have EXACTLY height: 180px (fixed height, not min-height)
+- Use table with 2 columns, each cell contains one benefit card
+- Card structure: icon (40px emoji), title (bold, 16px), description (13px, 2-3 lines max)
+- Keep card content concise so it fits in the fixed 180px height
 - Add visual breaks with graphics/cards early - don't put too much text before the first visual elements
 
 ${featureContext ? `PRODUCT FEATURE CONTEXT:\n${featureContext}\n\nUse this context to create accurate, specific content about our actual features and benefits.\n` : ''}
@@ -259,15 +286,21 @@ Please regenerate the email incorporating this feedback while maintaining the br
 1. Header with EXACT text: "🚀 AI Rocket + Astra Intelligence" and tagline "AI that Works for Work" - DO NOT modify these
 2. Personalized greeting with {{firstName}} variable
 3. Brief opening paragraph (2-3 sentences max)
-4. IMMEDIATELY after opening text, show 4-6 benefit cards in a 2-column grid with emojis as icons
-   - Ensure all cards have equal height (use min-height: 140px or equal content)
+4. IMMEDIATELY after opening text, show 4-6 benefit cards using HTML TABLE layout:
+   - Use <table class="benefits-grid" cellpadding="0" cellspacing="12" width="100%">
+   - Each row has 2 cells (td), each containing one card
+   - Each card MUST be <div class="benefit-card" style="height: 180px;">
+   - Card content: <span class="benefit-icon">emoji</span><div class="benefit-title">Title</div><div class="benefit-text">Brief description (2-3 lines)</div>
+   - Keep text SHORT so it fits in 180px height
 5. Additional content sections with visuals interspersed
 6. At least 2 CTA buttons (one near top, one at bottom) - use "Launch AI Rocket" as button text
 7. Professional footer (do NOT include unsubscribe links)
 
 CRITICAL REMINDERS:
 - Keep opening text BRIEF before showing graphics
-- ALL benefit/feature cards must be same height
+- Use TABLE layout for benefit cards (NOT CSS grid)
+- ALL cards MUST have style="height: 180px;" inline
+- Keep card text concise to fit fixed height
 - DO NOT modify the header text or tagline
 
 Return ONLY the complete HTML code, no markdown formatting or additional text.`;
