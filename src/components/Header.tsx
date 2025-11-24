@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, User, Plus, BookOpen, MessageCircleQuestion, Sparkles, Workflow, Zap, Rocket } from 'lucide-react';
+import { Menu, User, HelpCircle, BookOpen, MessageCircleQuestion, Sparkles, Workflow, Zap, Rocket } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { ChatMode } from '../types';
@@ -152,6 +152,9 @@ export const Header: React.FC<HeaderProps> = ({
           <InstallAppButton />
           <NotificationBell onOpenSettings={() => setShowSettings(true)} />
 
+          {/* Support Menu */}
+          <SupportMenu />
+
           {/* Help Menu */}
           <div className="relative" ref={helpMenuRef}>
             <button
@@ -161,8 +164,8 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg opacity-0 group-hover:opacity-30 transition-opacity"></div>
               <div className="relative">
-                <Plus className="w-7 h-7 text-blue-400 relative z-10 drop-shadow-[0_0_8px_rgba(96,165,250,0.5)] animate-pulse" />
-                <Plus className="w-7 h-7 text-purple-400 absolute top-0 left-0 opacity-50 blur-sm" />
+                <HelpCircle className="w-7 h-7 text-blue-400 relative z-10 drop-shadow-[0_0_8px_rgba(96,165,250,0.5)] animate-pulse" />
+                <HelpCircle className="w-7 h-7 text-purple-400 absolute top-0 left-0 opacity-50 blur-sm" />
               </div>
               <Sparkles className="w-3 h-3 text-purple-400 absolute top-1.5 right-1.5 animate-pulse" style={{ animationDelay: '0.5s' }} />
             </button>
@@ -235,9 +238,6 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
           </div>
-
-          {/* Support Menu */}
-          <SupportMenu />
 
           <button
             data-tour="user-menu"

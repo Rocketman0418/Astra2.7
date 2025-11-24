@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { HelpCircle, Bug, MessageSquare, Lightbulb, X, Send, Upload, Paperclip, Trash2 } from 'lucide-react';
+import { Plus, Bug, MessageSquare, Lightbulb, X, Send, Upload, Paperclip, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 type SupportType = 'bug_report' | 'support_message' | 'feature_request';
@@ -211,7 +211,7 @@ export function SupportMenu() {
           className="w-8 h-8 rounded-full border-2 border-blue-800 flex items-center justify-center hover:ring-2 hover:ring-white/30 transition-all"
           title="Support & Feedback"
         >
-          <HelpCircle className="w-4 h-4 text-white" />
+          <Plus className="w-4 h-4 text-white" />
         </button>
 
         {isDropdownOpen && (
