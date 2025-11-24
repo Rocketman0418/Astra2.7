@@ -208,10 +208,10 @@ export function SupportMenu() {
         <button
           ref={buttonRef}
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="w-8 h-8 rounded-full border-2 border-blue-800 flex items-center justify-center hover:ring-2 hover:ring-white/30 transition-all"
+          className="w-8 h-8 rounded-full border border-white flex items-center justify-center hover:ring-2 hover:ring-white/30 transition-all"
           title="Support & Feedback"
         >
-          <HelpCircle className="w-4 h-4 text-white" />
+          <HelpCircle className="w-5 h-5 text-white" />
         </button>
 
         {isDropdownOpen && (
