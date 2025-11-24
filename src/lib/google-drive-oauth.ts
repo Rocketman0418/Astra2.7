@@ -38,6 +38,7 @@ export interface GoogleDriveConnection {
   connection_status: 'connected' | 'error' | 'disconnected' | 'token_expired';
   last_sync_at: string | null;
   google_account_email: string;
+  scope_version: number;
   created_at: string;
   updated_at: string;
 }

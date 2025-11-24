@@ -112,7 +112,7 @@ export const GoogleDriveSettings: React.FC = () => {
 
       // Check if scope upgrade is needed (version < 2 means missing Sheets scope)
       if (conn && conn.is_active) {
-        const scopeVersion = (conn as any).scope_version || 1;
+        const scopeVersion = conn.scope_version || 1;
         if (scopeVersion < 2) {
           console.warn('🔄 OAuth scope upgrade needed: Current version', scopeVersion, ', required version: 2');
           setNeedsScopeUpgrade(true);

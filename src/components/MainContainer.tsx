@@ -12,9 +12,11 @@ import { InteractiveTour } from './InteractiveTour';
 import { HelpCenter, HelpCenterTab } from './HelpCenter';
 import { AstraGuidedSetup } from './AstraGuidedSetup';
 import { ExpiredTokenBanner } from './ExpiredTokenBanner';
+import { OAuthReconnectModal } from './OAuthReconnectModal';
 import { ChatMode } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useSavedVisualizations } from '../hooks/useSavedVisualizations';
+import { useOAuthReconnectPrompt } from '../hooks/useOAuthReconnectPrompt';
 import { getTourStepsForRole } from '../data/tourSteps';
 import { supabase } from '../lib/supabase';
 
@@ -38,6 +40,14 @@ export const MainContainer: React.FC = () => {
   const [showSetupGuide, setShowSetupGuide] = useState(false);
   const [hasExpiredToken, setHasExpiredToken] = useState(false);
   const [tokenBannerDismissed, setTokenBannerDismissed] = useState(false);
+
+  // OAuth Reconnect Prompt Hook
+  const {
+    showModal: showOAuthReconnectModal,
+    needsReconnect,
+    dismissModal: dismissOAuthReconnectModal,
+    handleReconnect: handleOAuthReconnect
+  } = useOAuthReconnectPrompt();
 
   const isAdmin = user?.user_metadata?.role === 'admin';
   const tourSteps = getTourStepsForRole(isAdmin);
@@ -407,6 +417,14 @@ export const MainContainer: React.FC = () => {
         isOpen={showSetupGuide}
         onClose={() => setShowSetupGuide(false)}
       />
+
+      {/* OAuth Reconnect Modal - Prompts users to update OAuth scopes */}
+      {showOAuthReconnectModal && (
+        <OAuthReconnectModal
+          onClose={dismissOAuthReconnectModal}
+          onReconnect={handleOAuthReconnect}
+        />
+      )}
     </div>
   );
 };
