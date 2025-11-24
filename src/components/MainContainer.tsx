@@ -67,11 +67,13 @@ export const MainContainer: React.FC = () => {
       console.log('📊 [MainContainer] User data from DB:', { teamId, role: userData?.role });
 
       if (teamId) {
-        const { data: teamData } = await supabase
+        const { data: teamData, error: teamError } = await supabase
           .from('teams')
           .select('name, created_by')
           .eq('id', teamId)
           .maybeSingle();
+
+        console.log('🔍 [MainContainer] Team query result:', { teamData, teamError, teamId });
 
         if (teamData) {
           setTeamName(teamData.name);
@@ -82,7 +84,11 @@ export const MainContainer: React.FC = () => {
             user_id: user.id,
             isTeamCreator
           });
+        } else {
+          console.error('❌ [MainContainer] No team data found for teamId:', teamId, 'Error:', teamError);
         }
+      } else {
+        console.error('❌ [MainContainer] No teamId found in user data');
       }
 
       // Check if we should open Guided Setup from URL parameter
