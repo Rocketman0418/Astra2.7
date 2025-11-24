@@ -45,13 +45,37 @@ const AppContent: React.FC = () => {
         return;
       }
 
-      const teamId = user.user_metadata?.team_id;
+      // Check both metadata and database for team assignment
+      const metadataTeamId = user.user_metadata?.team_id;
 
-      // Only check for team_id - if user has a team, they're onboarded
-      if (!teamId) {
-        setNeedsOnboarding(true);
-      } else {
+      // If metadata has team_id, user is onboarded
+      if (metadataTeamId) {
         setNeedsOnboarding(false);
+        setCheckingOnboarding(false);
+        return;
+      }
+
+      // Metadata doesn't have team_id, check the database
+      // (handles case where trigger assigned team but metadata not yet updated)
+      const { data: userData } = await supabase
+        .from('users')
+        .select('team_id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (userData?.team_id) {
+        console.log('User has team in database, updating metadata');
+        // User has team in database but not in metadata - update metadata
+        await supabase.auth.updateUser({
+          data: {
+            team_id: userData.team_id,
+            pending_team_setup: false
+          }
+        });
+        setNeedsOnboarding(false);
+      } else {
+        // User truly needs onboarding
+        setNeedsOnboarding(true);
       }
 
       setCheckingOnboarding(false);

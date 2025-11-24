@@ -29,48 +29,14 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
           .maybeSingle();
 
         if (invite?.team_id) {
-          // User is joining an existing team - they should skip onboarding entirely
-          console.log('User joining existing team:', invite.teams?.name);
           setJoiningExistingTeam(true);
           setExistingTeamName(invite.teams?.name || 'the team');
-
-          // Automatically complete onboarding for users joining existing teams
-          // They already have team assignment, just need to update metadata
-          setLoading(true);
-          try {
-            // Verify user is in the team
-            const { data: userData } = await supabase
-              .from('users')
-              .select('team_id, name')
-              .eq('id', user.id)
-              .maybeSingle();
-
-            if (userData?.team_id) {
-              // User is already assigned to team, update metadata and complete
-              await supabase.auth.updateUser({
-                data: {
-                  team_id: userData.team_id,
-                  pending_team_setup: false
-                }
-              });
-
-              console.log('Automatically completing onboarding for existing team member');
-              // Complete immediately - no need for user input
-              onComplete();
-            } else {
-              // Team not assigned yet, show form to complete
-              setLoading(false);
-            }
-          } catch (error) {
-            console.error('Error auto-completing onboarding:', error);
-            setLoading(false);
-          }
         }
       }
     };
 
     checkInviteType();
-  }, [onComplete]);
+  }, []);
 
   // Debug: Log state changes
   React.useEffect(() => {

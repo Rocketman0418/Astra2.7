@@ -268,6 +268,10 @@ export const CustomAuth: React.FC = () => {
         if (metadataError) {
           console.error('Failed to update auth metadata:', metadataError);
           // Don't throw - user is still setup, just log the error
+        } else {
+          // Force refresh the session to get updated metadata
+          console.log('Refreshing session to get updated metadata');
+          await supabase.auth.refreshSession();
         }
       } else {
         console.log('New team signup - will complete setup during onboarding');
