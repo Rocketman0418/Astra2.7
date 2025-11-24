@@ -231,8 +231,31 @@ export const VisualizationStep: React.FC<VisualizationStepProps> = ({ onComplete
 
     setIsExporting(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
       const title = extractVisualizationTitle(visualizationContent) || 'Visualization';
-      await exportVisualizationToPDF(visualizationContent, title);
+
+      // Create a temporary container element for PDF export
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '-9999px';
+      tempContainer.style.width = '1200px';
+      tempContainer.style.padding = '40px';
+      tempContainer.style.backgroundColor = '#1f2937';
+      tempContainer.innerHTML = visualizationContent;
+      document.body.appendChild(tempContainer);
+
+      // Wait for any dynamic content to render
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      await exportVisualizationToPDF(tempContainer, {
+        filename: title,
+        title: title,
+        userName: user?.user_metadata?.name || user?.email || 'User'
+      });
+
+      // Clean up
+      document.body.removeChild(tempContainer);
     } catch (error) {
       console.error('Error exporting to PDF:', error);
       alert('Failed to export to PDF');
