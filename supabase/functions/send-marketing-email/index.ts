@@ -89,7 +89,17 @@ Deno.serve(async (req: Request) => {
     const results = [];
     const errors = [];
 
-    for (const recipient of recipients) {
+    // Helper function to delay execution (rate limiting: 2 per second = 500ms delay)
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    for (let i = 0; i < recipients.length; i++) {
+      const recipient = recipients[i];
+
+      // Add delay after every 2 emails (500ms allows 2 per second)
+      if (i > 0 && i % 2 === 0) {
+        await delay(1000);
+      }
+
       const emailHtml = `
         <!DOCTYPE html>
         <html>
@@ -358,7 +368,7 @@ Deno.serve(async (req: Request) => {
                       <div class="arrow-down">↓</div>
                       <div class="step-row">
                         <div class="step-number">3</div>
-                        <div class="step-text">Select "Launch Guided Setup"</div>
+                        <div class="step-text">Select \"Launch Guided Setup\"</div>
                       </div>
                       <div class="arrow-down">↓</div>
                       <div class="step-row">
