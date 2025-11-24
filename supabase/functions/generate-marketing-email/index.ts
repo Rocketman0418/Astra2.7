@@ -24,15 +24,17 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const geminiApiKey = Deno.env.get("GEMINI_API_KEY")!;
+    const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
 
     if (!geminiApiKey) {
       console.error("GEMINI_API_KEY not configured");
       return new Response(
-        JSON.stringify({ error: "AI service not configured" }),
+        JSON.stringify({ error: "AI service not configured - GEMINI_API_KEY secret missing" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    console.log("Starting email generation request...");
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -51,7 +53,7 @@ Deno.serve(async (req: Request) => {
     }: GenerateEmailRequest = await req.json();
 
     const genAI = new GoogleGenerativeAI(geminiApiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
     const templateReference = `
 <!DOCTYPE html>
@@ -243,12 +245,15 @@ Please regenerate the email incorporating this feedback while maintaining the br
 Return ONLY the complete HTML code, no markdown formatting or additional text.`;
     }
 
+    console.log("Calling Gemini API...");
     const result = await model.generateContent(prompt);
     const response = result.response;
     let htmlContent = response.text();
 
+    console.log("Generated content length:", htmlContent.length);
     htmlContent = htmlContent.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
 
+    console.log("Email generation successful");
     return new Response(
       JSON.stringify({ html: htmlContent }),
       {
@@ -258,8 +263,12 @@ Return ONLY the complete HTML code, no markdown formatting or additional text.`;
     );
   } catch (error) {
     console.error("Error in generate-marketing-email function:", error);
+    console.error("Error details:", error.message, error.stack);
     return new Response(
-      JSON.stringify({ error: error.message || "Internal server error" }),
+      JSON.stringify({
+        error: error.message || "Internal server error",
+        details: error.toString()
+      }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
