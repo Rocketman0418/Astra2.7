@@ -187,8 +187,7 @@ Deno.serve(async (req: Request) => {
         </div>
         <div class=\"footer\">
           <p>
-            You're receiving this email because you have an account with AI Rocket.<br>
-            This is a product announcement about new features available to you.
+            You're receiving this email because you have an account with AI Rocket.
           </p>
           <p style=\"margin-top: 20px;\">
             <a href=\"https://airocket.app\">AI Rocket + Astra</a> - AI that Works for Work
@@ -249,7 +248,7 @@ Please regenerate the email incorporating this feedback while maintaining the br
 2. Compelling hero text that explains the main message
 3. 4-6 benefit cards in a grid layout with emojis as icons
 4. At least 2 CTA buttons (one near top, one at bottom) - use "Launch AI Rocket" as button text
-5. Professional footer with unsubscribe context
+5. Professional footer (do NOT include unsubscribe links)
 
 Return ONLY the complete HTML code, no markdown formatting or additional text.`;
     }

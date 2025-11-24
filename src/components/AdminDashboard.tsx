@@ -166,9 +166,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
 
   useEffect(() => {
     if (isOpen && user && isSuperAdmin) {
-      loadAllMetrics();
-      loadPreviewRequests();
-      loadActiveUsersToday();
+      // Only reload if data doesn't exist or timeFilter changed
+      const lastTimeFilter = sessionStorage.getItem('adminDashboardTimeFilter');
+      if (!overviewMetrics || timeFilter !== lastTimeFilter) {
+        loadAllMetrics();
+        loadPreviewRequests();
+        loadActiveUsersToday();
+        sessionStorage.setItem('adminDashboardTimeFilter', timeFilter);
+      } else {
+        setLoading(false);
+      }
     } else if (isOpen && user && !isSuperAdmin) {
       // User is not a super admin
       setLoading(false);

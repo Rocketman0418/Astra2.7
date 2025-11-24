@@ -389,8 +389,7 @@ Deno.serve(async (req: Request) => {
 
                 <div class=\"footer\">
                   <p>
-                    You're receiving this email because you have an account with AI Rocket.<br>
-                    This is a product announcement about new features available to you.
+                    You're receiving this email because you have an account with AI Rocket.
                   </p>
                   <p style=\"margin-top: 20px;\">
                     <a href=\"${appUrl}\">AI Rocket + Astra</a> - AI that Works for Work
