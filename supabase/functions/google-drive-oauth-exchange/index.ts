@@ -183,6 +183,7 @@ Deno.serve(async (req: Request) => {
         google_account_email: profile.email,
         is_active: true,
         connection_status: 'connected',
+        scope_version: 2, // Current scope version (includes Sheets API)
         // Folder IDs will be set later via the UI
         meetings_folder_id: null,
         meetings_folder_name: null,

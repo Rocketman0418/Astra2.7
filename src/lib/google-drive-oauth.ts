@@ -16,7 +16,9 @@ const SCOPES = [
   'https://www.googleapis.com/auth/drive',
   'https://www.googleapis.com/auth/drive.metadata.readonly',
   // Google Docs scope - for editing document content
-  'https://www.googleapis.com/auth/documents'
+  'https://www.googleapis.com/auth/documents',
+  // Google Sheets scope - for reading/writing spreadsheet data
+  'https://www.googleapis.com/auth/spreadsheets'
 ].join(' ');
 
 export interface GoogleDriveConnection {

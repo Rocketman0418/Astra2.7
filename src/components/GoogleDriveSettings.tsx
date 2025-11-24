@@ -38,6 +38,7 @@ export const GoogleDriveSettings: React.FC = () => {
   const [documentTypeFilter, setDocumentTypeFilter] = useState<'all' | 'strategy' | 'meetings' | 'financial'>('all');
   const [documentSearchTerm, setDocumentSearchTerm] = useState('');
   const [showGuidedSetup, setShowGuidedSetup] = useState(false);
+  const [needsScopeUpgrade, setNeedsScopeUpgrade] = useState(false);
 
   // Temporary state for folder selection
   const [selectedMeetingsFolder, setSelectedMeetingsFolder] = useState<FolderInfo | null>(null);
@@ -108,6 +109,19 @@ export const GoogleDriveSettings: React.FC = () => {
 
       const conn = await getGoogleDriveConnection();
       setConnection(conn);
+
+      // Check if scope upgrade is needed (version < 2 means missing Sheets scope)
+      if (conn && conn.is_active) {
+        const scopeVersion = (conn as any).scope_version || 1;
+        if (scopeVersion < 2) {
+          console.warn('🔄 OAuth scope upgrade needed: Current version', scopeVersion, ', required version: 2');
+          setNeedsScopeUpgrade(true);
+        } else {
+          setNeedsScopeUpgrade(false);
+        }
+      } else {
+        setNeedsScopeUpgrade(false);
+      }
 
       // Set selected folders from existing connection
       if (conn) {
@@ -438,6 +452,37 @@ export const GoogleDriveSettings: React.FC = () => {
       {error && (
         <div className="mb-4 bg-red-500/10 border border-red-500/50 rounded-lg p-3">
           <p className="text-red-400 text-sm">{error}</p>
+        </div>
+      )}
+
+      {/* Scope Upgrade Warning Banner */}
+      {needsScopeUpgrade && connection && connection.is_active && (
+        <div className="mb-4 bg-yellow-500/10 border border-yellow-500/50 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <Info className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <h4 className="text-white font-medium mb-1">
+                Reconnection Required for Full Features
+              </h4>
+              <p className="text-sm text-gray-300 mb-3">
+                We've added support for Google Sheets to provide richer data insights.
+                To enable this feature, you'll need to reconnect your Google account with updated permissions.
+              </p>
+              <button
+                onClick={() => {
+                  console.log('🔄 Initiating OAuth reconnection for scope upgrade');
+                  initiateGoogleDriveOAuth();
+                }}
+                className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Reconnect Google Account</span>
+              </button>
+              <p className="text-xs text-gray-400 mt-2">
+                Your existing folder selections and data will be preserved. This is a one-time update.
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
