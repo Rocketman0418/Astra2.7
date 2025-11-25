@@ -56,15 +56,13 @@ export const SetupProgressPanel: React.FC<SetupProgressPanelProps> = ({ progress
 
   const totalUsers = progressData.length;
   const completedSetups = progressData.filter(p => p.is_completed).length;
-  const skippedSetups = progressData.filter(p => p.is_skipped).length;
-  const inProgressSetups = totalUsers - completedSetups - skippedSetups;
+  const inProgressSetups = totalUsers - completedSetups;
 
   const completionRate = totalUsers > 0 ? (completedSetups / totalUsers) * 100 : 0;
-  const skipRate = totalUsers > 0 ? (skippedSetups / totalUsers) * 100 : 0;
 
   const stepDistribution = STEP_NAMES.map((name, index) => {
     const stepNum = index + 1;
-    const usersOnThisStep = progressData.filter(p => p.current_step === stepNum && !p.is_completed && !p.is_skipped).length;
+    const usersOnThisStep = progressData.filter(p => p.current_step === stepNum && !p.is_completed).length;
     return { name, step: stepNum, count: usersOnThisStep };
   });
 
@@ -90,7 +88,7 @@ export const SetupProgressPanel: React.FC<SetupProgressPanelProps> = ({ progress
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 border border-blue-500/20 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -120,17 +118,6 @@ export const SetupProgressPanel: React.FC<SetupProgressPanelProps> = ({ progress
               <p className="text-xs text-yellow-400">Avg {avgStepsCompleted.toFixed(1)} steps done</p>
             </div>
             <TrendingUp className="w-8 h-8 text-yellow-400" />
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-gray-500/10 to-gray-600/10 border border-gray-500/20 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-400">Skipped</p>
-              <p className="text-3xl font-bold text-white">{skippedSetups}</p>
-              <p className="text-xs text-gray-400">{skipRate.toFixed(1)}% skip rate</p>
-            </div>
-            <XCircle className="w-8 h-8 text-gray-400" />
           </div>
         </div>
       </div>
@@ -256,11 +243,6 @@ export const SetupProgressPanel: React.FC<SetupProgressPanelProps> = ({ progress
                           <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs font-medium">
                             <CheckCircle className="w-3 h-3" />
                             Completed
-                          </span>
-                        ) : user.is_skipped ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-500/20 text-gray-400 rounded text-xs font-medium">
-                            <XCircle className="w-3 h-3" />
-                            Skipped
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs font-medium">

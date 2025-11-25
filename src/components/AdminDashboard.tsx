@@ -639,32 +639,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
   const loadSetupProgress = async () => {
     setLoadingSetupProgress(true);
     try {
+      // Use a direct SQL query to join setup_guide_progress with users and teams
       const { data: progressData, error: progressError } = await supabase
         .from('setup_guide_progress')
-        .select('*')
+        .select(`
+          *,
+          users!inner(email, team_id, teams(name))
+        `)
         .order('last_updated_at', { ascending: false });
 
       if (progressError) throw progressError;
 
-      const { data: usersData, error: usersError } = await supabase
-        .from('users')
-        .select('id, email, team_id');
-
-      if (usersError) throw usersError;
-
-      const { data: teamsData, error: teamsError } = await supabase
-        .from('teams')
-        .select('id, name');
-
-      if (teamsError) throw teamsError;
-
-      const userMap = new Map(usersData?.map(u => [u.id, { email: u.email, team_id: u.team_id }]) || []);
-      const teamMap = new Map(teamsData?.map(t => [t.id, t.name]) || []);
-
-      const enrichedProgress = (progressData || []).map(p => {
-        const user = userMap.get(p.user_id);
-        const teamName = user?.team_id ? teamMap.get(user.team_id) : null;
-
+      const enrichedProgress = (progressData || []).map((p: any) => {
         const stepsCompleted = [
           p.step_1_onboarding_completed,
           p.step_2_google_drive_connected,
@@ -680,10 +666,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
         ].filter(Boolean).length;
 
         return {
-          ...p,
-          user_email: user?.email || 'Unknown',
-          team_name: teamName || 'No team',
+          user_id: p.user_id,
+          user_email: p.users?.email || 'Unknown',
+          team_name: p.users?.teams?.name || 'No team',
+          current_step: p.current_step,
+          is_completed: p.is_completed,
+          is_skipped: p.is_skipped,
+          started_at: p.started_at,
+          completed_at: p.completed_at,
+          last_updated_at: p.last_updated_at,
           steps_completed: stepsCompleted,
+          step_1_onboarding_completed: p.step_1_onboarding_completed,
+          step_2_google_drive_connected: p.step_2_google_drive_connected,
+          step_3_folder_selected_or_created: p.step_3_folder_selected_or_created,
+          step_4_files_placed_in_folder: p.step_4_files_placed_in_folder,
+          step_5_data_synced: p.step_5_data_synced,
+          step_6_team_settings_configured: p.step_6_team_settings_configured,
+          step_7_first_prompt_sent: p.step_7_first_prompt_sent,
+          step_8_visualization_created: p.step_8_visualization_created,
+          step_9_manual_report_run: p.step_9_manual_report_run,
+          step_10_scheduled_report_created: p.step_10_scheduled_report_created,
+          step_11_team_members_invited: p.step_11_team_members_invited,
         };
       });
 
