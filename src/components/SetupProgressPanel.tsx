@@ -201,7 +201,6 @@ export const SetupProgressPanel: React.FC<SetupProgressPanelProps> = ({ progress
             <thead className="bg-gray-900/50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">User</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Team</th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">Current Step</th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">Progress</th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">Status</th>
@@ -211,7 +210,7 @@ export const SetupProgressPanel: React.FC<SetupProgressPanelProps> = ({ progress
             <tbody className="divide-y divide-gray-700">
               {progressData.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
+                  <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
                     No setup progress data available
                   </td>
                 </tr>
@@ -221,7 +220,6 @@ export const SetupProgressPanel: React.FC<SetupProgressPanelProps> = ({ progress
                   return (
                     <tr key={user.user_id} className="hover:bg-gray-700/30 transition-colors">
                       <td className="px-4 py-3 text-sm text-white">{user.user_email}</td>
-                      <td className="px-4 py-3 text-sm text-gray-300">{user.team_name || 'No team'}</td>
                       <td className="px-4 py-3 text-center">
                         <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-medium">
                           Step {user.current_step} / 11
