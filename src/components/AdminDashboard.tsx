@@ -3,13 +3,14 @@ import {
   Users, Building2, FileText, MessageSquare, BarChart3, Download,
   TrendingUp, TrendingDown, Minus, Mail, HardDrive, AlertCircle,
   CheckCircle, XCircle, Search, ArrowUpDown, MessageCircleQuestion, Shield, X, ChevronRight, MessageCircle,
-  Copy, UserPlus, Send, RefreshCw
+  Copy, UserPlus, Send, RefreshCw, ClipboardList
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
 import SupportResponseModal from './SupportResponseModal';
 import { MarketingEmailsPanel } from './MarketingEmailsPanel';
+import { SetupProgressPanel } from './SetupProgressPanel';
 
 interface UserMetric {
   id: string;
@@ -101,7 +102,7 @@ interface FeedbackStats {
 type TimeFilter = '7days' | '30days' | '90days' | 'all';
 type SortField = 'email' | 'created_at' | 'team_name' | 'documents' | 'messages';
 type SortDirection = 'asc' | 'desc';
-type DetailView = 'users' | 'teams' | 'documents' | 'chats' | 'preview_requests' | 'support' | 'feedback' | 'active_users' | 'marketing_emails' | null;
+type DetailView = 'users' | 'teams' | 'documents' | 'chats' | 'preview_requests' | 'support' | 'feedback' | 'active_users' | 'marketing_emails' | 'setup_progress' | null;
 type SupportFilter = 'all' | 'bug_report' | 'support_message' | 'feature_request';
 
 interface AdminDashboardProps {
@@ -162,6 +163,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
     reports_today: number;
     total_actions_today: number;
   }>>([]);
+  const [setupProgressData, setSetupProgressData] = useState<any[]>([]);
+  const [loadingSetupProgress, setLoadingSetupProgress] = useState(false);
 
   const superAdminEmails = ['clay@rockethub.ai', 'derek@rockethub.ai', 'marshall@rockethub.ai'];
   const isSuperAdmin = user?.email && superAdminEmails.includes(user.email);
@@ -174,6 +177,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
         loadAllMetrics();
         loadPreviewRequests();
         loadActiveUsersToday();
+        loadSetupProgress();
         sessionStorage.setItem('adminDashboardTimeFilter', timeFilter);
       } else {
         setLoading(false);
@@ -198,42 +202,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
     return () => clearInterval(autoRefreshInterval);
   }, [isOpen, user, isSuperAdmin]);
 
-  // Real-time subscriptions for key tables
+  // Real-time subscriptions for key tables - use granular updates instead of full refresh
   useEffect(() => {
     if (!isOpen || !user || !isSuperAdmin) return;
 
-    // Subscribe to users table
-    const usersChannel = supabase
-      .channel('admin-users-changes')
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'users' },
-        () => {
-          console.log('Users table changed, refreshing...');
-          handleRefresh();
-        }
-      )
-      .subscribe();
-
-    // Subscribe to feedback_submissions
+    // Subscribe to feedback_submissions - only reload feedback data
     const feedbackChannel = supabase
       .channel('admin-feedback-changes')
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'feedback_submissions' },
         () => {
-          console.log('Feedback submitted, refreshing...');
-          handleRefresh();
-        }
-      )
-      .subscribe();
-
-    // Subscribe to support submissions
-    const supportChannel = supabase
-      .channel('admin-support-changes')
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'feedback_submissions', filter: 'support_type=neq.null' },
-        () => {
-          console.log('Support message received, refreshing...');
-          handleRefresh();
+          console.log('Feedback submitted, updating feedback data...');
+          loadFeedback();
+          loadFeedbackStats();
         }
       )
       .subscribe();
@@ -244,17 +225,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'preview_requests' },
         () => {
-          console.log('Preview request changed, refreshing...');
+          console.log('Preview request changed, updating preview data...');
           loadPreviewRequests();
         }
       )
       .subscribe();
 
+    // Subscribe to setup_guide_progress
+    const setupProgressChannel = supabase
+      .channel('admin-setup-progress-changes')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'setup_guide_progress' },
+        () => {
+          console.log('Setup progress changed, updating setup data...');
+          loadSetupProgress();
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(usersChannel);
       supabase.removeChannel(feedbackChannel);
-      supabase.removeChannel(supportChannel);
       supabase.removeChannel(previewChannel);
+      supabase.removeChannel(setupProgressChannel);
     };
   }, [isOpen, user, isSuperAdmin]);
 
@@ -641,6 +633,65 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
       setActiveUsersToday(activeWithActions);
     } catch (error) {
       console.error('Error loading active users today:', error);
+    }
+  };
+
+  const loadSetupProgress = async () => {
+    setLoadingSetupProgress(true);
+    try {
+      const { data: progressData, error: progressError } = await supabase
+        .from('setup_guide_progress')
+        .select('*')
+        .order('last_updated_at', { ascending: false });
+
+      if (progressError) throw progressError;
+
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('id, email, team_id');
+
+      if (usersError) throw usersError;
+
+      const { data: teamsData, error: teamsError } = await supabase
+        .from('teams')
+        .select('id, name');
+
+      if (teamsError) throw teamsError;
+
+      const userMap = new Map(usersData?.map(u => [u.id, { email: u.email, team_id: u.team_id }]) || []);
+      const teamMap = new Map(teamsData?.map(t => [t.id, t.name]) || []);
+
+      const enrichedProgress = (progressData || []).map(p => {
+        const user = userMap.get(p.user_id);
+        const teamName = user?.team_id ? teamMap.get(user.team_id) : null;
+
+        const stepsCompleted = [
+          p.step_1_onboarding_completed,
+          p.step_2_google_drive_connected,
+          p.step_3_folder_selected_or_created,
+          p.step_4_files_placed_in_folder,
+          p.step_5_data_synced,
+          p.step_6_team_settings_configured,
+          p.step_7_first_prompt_sent,
+          p.step_8_visualization_created,
+          p.step_9_manual_report_run,
+          p.step_10_scheduled_report_created,
+          p.step_11_team_members_invited,
+        ].filter(Boolean).length;
+
+        return {
+          ...p,
+          user_email: user?.email || 'Unknown',
+          team_name: teamName || 'No team',
+          steps_completed: stepsCompleted,
+        };
+      });
+
+      setSetupProgressData(enrichedProgress);
+    } catch (error) {
+      console.error('Error loading setup progress:', error);
+    } finally {
+      setLoadingSetupProgress(false);
     }
   };
 
@@ -1453,6 +1504,25 @@ Sign up here: https://airocket.app`;
                 <div className="text-sm text-gray-400">Marketing Emails</div>
                 <div className="mt-2 text-xs text-gray-500">
                   Create and manage campaigns
+                </div>
+              </button>
+
+              <button
+                onClick={() => setDetailView('setup_progress')}
+                className={`bg-gray-800 border rounded-xl p-6 transition-all text-left w-full ${
+                  detailView === 'setup_progress'
+                    ? 'border-cyan-500 shadow-lg shadow-cyan-500/20'
+                    : 'border-gray-700 hover:border-cyan-500 hover:shadow-lg hover:shadow-cyan-500/20'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <ClipboardList className="w-8 h-8 text-cyan-400" />
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+                <div className="text-3xl font-bold text-white mb-1">{setupProgressData.length}</div>
+                <div className="text-sm text-gray-400">Setup Progress</div>
+                <div className="mt-2 text-xs text-gray-500">
+                  {setupProgressData.filter(p => p.is_completed).length} completed
                 </div>
               </button>
 
@@ -2302,6 +2372,21 @@ Sign up here: https://airocket.app`;
 
             {detailView === 'marketing_emails' && (
               <MarketingEmailsPanel />
+            )}
+
+            {detailView === 'setup_progress' && (
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                    <ClipboardList className="w-6 h-6 text-cyan-400" />
+                    Guided Setup Progress ({setupProgressData.length} users)
+                  </h2>
+                </div>
+                <SetupProgressPanel
+                  progressData={setupProgressData}
+                  loading={loadingSetupProgress}
+                />
+              </div>
             )}
           </div>
         </div>
