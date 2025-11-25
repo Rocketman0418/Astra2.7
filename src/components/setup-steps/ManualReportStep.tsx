@@ -418,16 +418,6 @@ export const ManualReportStep: React.FC<ManualReportStepProps> = ({ onComplete, 
         </div>
       )}
 
-      <div className="flex justify-center pt-2">
-        <button
-          onClick={onComplete}
-          disabled={isGenerating}
-          className="px-8 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-all min-h-[44px]"
-        >
-          Skip for Now →
-        </button>
-      </div>
-
       {/* Visualization Modal */}
       {visualizationContent && currentReportId && (
         <VisualizationView

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, PieChart, Calendar, Target, DollarSign } from 'lucide-react';
+import { BarChart3, TrendingUp, PieChart, Calendar, Target, DollarSign, Sparkles, FileText, MessageSquare, BookOpen } from 'lucide-react';
 
 interface CarouselItem {
   icon: React.ReactNode;
@@ -9,7 +9,7 @@ interface CarouselItem {
 }
 
 interface LoadingCarouselProps {
-  type: 'visualization' | 'report';
+  type: 'visualization' | 'report' | 'sync';
 }
 
 export const LoadingCarousel: React.FC<LoadingCarouselProps> = ({ type }) => {
@@ -69,7 +69,34 @@ export const LoadingCarousel: React.FC<LoadingCarouselProps> = ({ type }) => {
     }
   ];
 
-  const items = type === 'visualization' ? visualizationItems : reportItems;
+  const syncItems: CarouselItem[] = [
+    {
+      icon: <Sparkles className="w-8 h-8" />,
+      title: 'Ask Strategic Questions',
+      description: 'Get answers about your mission and priorities',
+      color: 'text-purple-400'
+    },
+    {
+      icon: <FileText className="w-8 h-8" />,
+      title: 'Analyze Documents',
+      description: 'Understand patterns across your strategy docs',
+      color: 'text-blue-400'
+    },
+    {
+      icon: <MessageSquare className="w-8 h-8" />,
+      title: 'Track Alignment',
+      description: 'See how meetings align with strategic goals',
+      color: 'text-green-400'
+    },
+    {
+      icon: <BookOpen className="w-8 h-8" />,
+      title: 'Generate Insights',
+      description: 'Create reports and visualizations instantly',
+      color: 'text-orange-400'
+    }
+  ];
+
+  const items = type === 'visualization' ? visualizationItems : type === 'report' ? reportItems : syncItems;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -83,7 +110,7 @@ export const LoadingCarousel: React.FC<LoadingCarouselProps> = ({ type }) => {
     <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
       <div className="text-center mb-4">
         <h3 className="text-sm font-semibold text-white mb-1">
-          {type === 'visualization' ? 'Visualizations Can Show:' : 'Reports Can Provide:'}
+          {type === 'visualization' ? 'Visualizations Can Show:' : type === 'report' ? 'Reports Can Provide:' : 'Soon You\'ll Be Able To:'}
         </h3>
       </div>
 

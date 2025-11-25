@@ -3,6 +3,7 @@ import { RefreshCw, CheckCircle, AlertCircle, Sparkles, X, ArrowLeft } from 'luc
 import { SetupGuideProgress } from '../../lib/setup-guide-utils';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { LoadingCarousel } from './LoadingCarousel';
 
 interface SyncDataStepProps {
   onComplete: () => void;
@@ -10,24 +11,11 @@ interface SyncDataStepProps {
   progress: SetupGuideProgress | null;
 }
 
-const ROTATING_QUESTIONS = [
-  "What is our team's mission and how can we better align our daily work with it?",
-  "What are the top 3 strategic priorities we should focus on this quarter?",
-  "How do our core values show up in our recent team decisions and meetings?",
-  "What progress have we made toward our one-year goals?",
-  "Are there any gaps between our stated goals and our actual activities?",
-  "What unique strengths does our team have that we should leverage more?",
-  "How can we better communicate our strategic direction to new team members?",
-  "What metrics should we track to ensure we're moving in the right direction?",
-  "How do our current projects align with our three-year vision?",
-  "What problems are we solving that matter most to our customers?"
-];
 
 export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack }) => {
   const { user } = useAuth();
   const [syncing, setSyncing] = useState(true);
   const [syncComplete, setSyncComplete] = useState(false);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [documentCounts, setDocumentCounts] = useState<{ meetings: number; strategy: number; financial: number }>({ meetings: 0, strategy: 0, financial: 0 });
   const [checkAttempts, setCheckAttempts] = useState(0);
   const [showNoDocumentModal, setShowNoDocumentModal] = useState(false);
@@ -38,16 +26,6 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack
     triggerSync();
   }, []);
 
-  useEffect(() => {
-    // Rotate questions every 5 seconds while syncing
-    if (syncing && !syncComplete) {
-      const interval = setInterval(() => {
-        setCurrentQuestionIndex((prev) => (prev + 1) % ROTATING_QUESTIONS.length);
-      }, 5000);
-
-      return () => clearInterval(interval);
-    }
-  }, [syncing, syncComplete]);
 
   useEffect(() => {
     // Poll for synced data every 2 seconds
@@ -165,30 +143,8 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack
           </div>
         </div>
 
-        {/* Rotating Questions */}
-        <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-700/50 rounded-lg p-4">
-          <div className="flex items-center justify-center space-x-2 mb-2">
-            <Sparkles className="w-4 h-4 text-purple-400" />
-            <h3 className="text-xs font-semibold text-white">Soon You'll Ask:</h3>
-          </div>
-          <div className="text-center mb-3">
-            <p className="text-sm text-purple-200 italic transition-opacity duration-500 line-clamp-2">
-              "{ROTATING_QUESTIONS[currentQuestionIndex]}"
-            </p>
-          </div>
-          <div className="flex items-center justify-center space-x-1">
-            {ROTATING_QUESTIONS.slice(0, 5).map((_, idx) => (
-              <div
-                key={idx}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  idx === currentQuestionIndex
-                    ? 'w-6 bg-purple-400'
-                    : 'w-1.5 bg-gray-600'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
+        {/* Graphic Loading Carousel */}
+        <LoadingCarousel type="sync" />
       </div>
     );
   }
