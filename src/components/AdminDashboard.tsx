@@ -639,18 +639,45 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
   const loadSetupProgress = async () => {
     setLoadingSetupProgress(true);
     try {
-      // Use a direct SQL query to join setup_guide_progress with users and teams
+      // Get setup progress data
       const { data: progressData, error: progressError } = await supabase
         .from('setup_guide_progress')
-        .select(`
-          *,
-          users!inner(email, team_id, teams(name))
-        `)
+        .select('*')
         .order('last_updated_at', { ascending: false });
 
-      if (progressError) throw progressError;
+      if (progressError) {
+        console.error('Error fetching setup progress:', progressError);
+        throw progressError;
+      }
+
+      // Get users data
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('id, email, team_id');
+
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
+        throw usersError;
+      }
+
+      // Get teams data
+      const { data: teamsData, error: teamsError } = await supabase
+        .from('teams')
+        .select('id, name');
+
+      if (teamsError) {
+        console.error('Error fetching teams:', teamsError);
+        throw teamsError;
+      }
+
+      // Create lookup maps
+      const userMap = new Map(usersData?.map(u => [u.id, { email: u.email, team_id: u.team_id }]) || []);
+      const teamMap = new Map(teamsData?.map(t => [t.id, t.name]) || []);
 
       const enrichedProgress = (progressData || []).map((p: any) => {
+        const user = userMap.get(p.user_id);
+        const teamName = user?.team_id ? teamMap.get(user.team_id) : null;
+
         const stepsCompleted = [
           p.step_1_onboarding_completed,
           p.step_2_google_drive_connected,
@@ -667,8 +694,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
 
         return {
           user_id: p.user_id,
-          user_email: p.users?.email || 'Unknown',
-          team_name: p.users?.teams?.name || 'No team',
+          user_email: user?.email || 'Unknown',
+          team_name: teamName || 'No team',
           current_step: p.current_step,
           is_completed: p.is_completed,
           is_skipped: p.is_skipped,
