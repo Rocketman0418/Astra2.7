@@ -155,7 +155,7 @@ export const Header: React.FC<HeaderProps> = ({
           <SupportMenu />
 
           {/* Features Menu - Plus icon with resources and tools */}
-          <div className="pl-1">
+          <div className="mr-1">
             <FeaturesMenu
               onOpenSetupGuide={onOpenSetupGuide}
               onStartTour={onStartTour}
