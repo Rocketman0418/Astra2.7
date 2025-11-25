@@ -44,18 +44,19 @@ Deno.serve(async (req: Request) => {
     }
 
     // Update the user_drive_connections table with selected folders
-    // Update both the array field (selected_*_folder_ids) and the legacy single folder fields
-    const updateField = `selected_${folderType}_folder_ids`;
-    const updateData: any = {
-      [updateField]: folderIds,
-    };
+    // Use ONLY the original columns that n8n workflow expects (not JSONB arrays)
+    const updateData: any = {};
 
-    // Also update the legacy single folder fields for backward compatibility with sync agent
+    // Take the first folder ID from the array and save to original single folder columns
     if (folderIds.length > 0) {
       updateData[`${folderType}_folder_id`] = folderIds[0];
       if (folderName) {
         updateData[`${folderType}_folder_name`] = folderName;
       }
+    } else {
+      // If no folders selected, clear the columns
+      updateData[`${folderType}_folder_id`] = null;
+      updateData[`${folderType}_folder_name`] = null;
     }
 
     const { error: updateError } = await supabaseClient

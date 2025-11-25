@@ -363,15 +363,19 @@ export const createAstraFolder = async (
   console.log('📁 Folder created successfully:', data.id);
 
   // Update user_drive_connections with new folder based on type
+  // Use the ORIGINAL columns that n8n workflow expects
   const folderMapping: Record<string, any> = {
     strategy: {
-      selected_strategy_folder_ids: [data.id]
+      strategy_folder_id: data.id,
+      strategy_folder_name: folderName
     },
     meetings: {
-      selected_meetings_folder_ids: [data.id]
+      meetings_folder_id: data.id,
+      meetings_folder_name: folderName
     },
     financial: {
-      selected_financial_folder_ids: [data.id]
+      financial_folder_id: data.id,
+      financial_folder_name: folderName
     }
   };
 

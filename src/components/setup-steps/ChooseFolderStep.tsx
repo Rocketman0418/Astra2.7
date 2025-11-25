@@ -41,9 +41,8 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }
         return;
       }
 
-      // Check if strategy folders are already configured
-      const strategyIds = connection.selected_strategy_folder_ids || [];
-      if (Array.isArray(strategyIds) && strategyIds.length > 0) {
+      // Check if strategy folders are already configured (use original columns)
+      if (connection.strategy_folder_id) {
         setHasExistingFolders(true);
       }
     } catch (error) {
