@@ -155,12 +155,14 @@ export const Header: React.FC<HeaderProps> = ({
           <SupportMenu />
 
           {/* Features Menu - Plus icon with resources and tools */}
-          <FeaturesMenu
-            onOpenSetupGuide={onOpenSetupGuide}
-            onStartTour={onStartTour}
-            onOpenHelpCenter={onOpenHelpCenter}
-            hasN8NAccess={hasN8NAccess}
-          />
+          <div className="pl-1">
+            <FeaturesMenu
+              onOpenSetupGuide={onOpenSetupGuide}
+              onStartTour={onStartTour}
+              onOpenHelpCenter={onOpenHelpCenter}
+              hasN8NAccess={hasN8NAccess}
+            />
+          </div>
 
           <button
             data-tour="user-menu"
