@@ -11,6 +11,7 @@ import {
 } from '../lib/google-drive-oauth';
 import { supabase } from '../lib/supabase';
 import { AstraGuidedSetupModal } from './AstraGuidedSetupModal';
+import { FolderSelectionWrapper } from './FolderSelectionWrapper';
 
 export const GoogleDriveSettings: React.FC = () => {
   const [connection, setConnection] = useState<GoogleDriveConnection | null>(null);
@@ -1086,158 +1087,35 @@ export const GoogleDriveSettings: React.FC = () => {
 
             <div className="p-6 overflow-y-auto flex-1">
               <div className="space-y-6">
-                <div>
-                  <label className="text-sm font-semibold text-white mb-3 block">
-                    Strategy Documents Folder
-                  </label>
-                  <div className="relative mb-3">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search folders..."
-                      value={strategySearchTerm}
-                      onChange={(e) => setStrategySearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
-                    />
-                  </div>
-                  <div className="max-h-48 overflow-y-auto bg-gray-700/30 border border-gray-600 rounded-lg">
-                    <button
-                      onClick={() => setSelectedStrategyFolder(null)}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
-                        !selectedStrategyFolder
-                          ? 'bg-blue-600/30 text-blue-200 border-l-4 border-blue-500 font-semibold'
-                          : 'text-gray-400 hover:bg-gray-700/50'
-                      }`}
-                    >
-                      <span>-- No folder selected --</span>
-                      {!selectedStrategyFolder && <CheckCircle className="w-4 h-4 text-blue-400" />}
-                    </button>
-                    {folders
-                      .filter(folder => folder.name.toLowerCase().includes(strategySearchTerm.toLowerCase()))
-                      .map(folder => (
-                        <button
-                          key={folder.id}
-                          onClick={() => setSelectedStrategyFolder(folder)}
-                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-t border-gray-600/50 flex items-center justify-between ${
-                            selectedStrategyFolder?.id === folder.id
-                              ? 'bg-blue-600/30 text-blue-200 border-l-4 border-blue-500 font-semibold'
-                              : 'text-white hover:bg-gray-700/50'
-                          }`}
-                        >
-                          <span className="flex items-center">
-                            <FolderOpen className="w-4 h-4 inline mr-2" />
-                            {folder.name}
-                          </span>
-                          {selectedStrategyFolder?.id === folder.id && <CheckCircle className="w-4 h-4 text-blue-400" />}
-                        </button>
-                      ))}
-                  </div>
-                  <p className="text-xs text-gray-400 mt-2">
-                    Folder containing your strategy documents and plans
-                  </p>
-                </div>
+                <FolderSelectionWrapper
+                  accessToken={connection?.access_token || ''}
+                  folderType="strategy"
+                  folders={folders}
+                  currentFolder={selectedStrategyFolder}
+                  searchTerm={strategySearchTerm}
+                  onSearchChange={setStrategySearchTerm}
+                  onFolderSelect={setSelectedStrategyFolder}
+                />
 
-                <div>
-                  <label className="text-sm font-semibold text-white mb-3 block">
-                    Meetings Folder
-                  </label>
-                  <div className="relative mb-3">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search folders..."
-                      value={meetingsSearchTerm}
-                      onChange={(e) => setMeetingsSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
-                    />
-                  </div>
-                  <div className="max-h-48 overflow-y-auto bg-gray-700/30 border border-gray-600 rounded-lg">
-                    <button
-                      onClick={() => setSelectedMeetingsFolder(null)}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
-                        !selectedMeetingsFolder
-                          ? 'bg-blue-600/30 text-blue-200 border-l-4 border-blue-500 font-semibold'
-                          : 'text-gray-400 hover:bg-gray-700/50'
-                      }`}
-                    >
-                      <span>-- No folder selected --</span>
-                      {!selectedMeetingsFolder && <CheckCircle className="w-4 h-4 text-blue-400" />}
-                    </button>
-                    {folders
-                      .filter(folder => folder.name.toLowerCase().includes(meetingsSearchTerm.toLowerCase()))
-                      .map(folder => (
-                        <button
-                          key={folder.id}
-                          onClick={() => setSelectedMeetingsFolder(folder)}
-                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-t border-gray-600/50 flex items-center justify-between ${
-                            selectedMeetingsFolder?.id === folder.id
-                              ? 'bg-blue-600/30 text-blue-200 border-l-4 border-blue-500 font-semibold'
-                              : 'text-white hover:bg-gray-700/50'
-                          }`}
-                        >
-                          <span className="flex items-center">
-                            <FolderOpen className="w-4 h-4 inline mr-2" />
-                            {folder.name}
-                          </span>
-                          {selectedMeetingsFolder?.id === folder.id && <CheckCircle className="w-4 h-4 text-blue-400" />}
-                        </button>
-                      ))}
-                  </div>
-                  <p className="text-xs text-gray-400 mt-2">
-                    Folder containing your meeting recordings and notes
-                  </p>
-                </div>
+                <FolderSelectionWrapper
+                  accessToken={connection?.access_token || ''}
+                  folderType="meetings"
+                  folders={folders}
+                  currentFolder={selectedMeetingsFolder}
+                  searchTerm={meetingsSearchTerm}
+                  onSearchChange={setMeetingsSearchTerm}
+                  onFolderSelect={setSelectedMeetingsFolder}
+                />
 
-                <div>
-                  <label className="text-sm font-semibold text-white mb-3 block">
-                    Financial Documents Folder
-                  </label>
-                  <div className="relative mb-3">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search folders..."
-                      value={financialSearchTerm}
-                      onChange={(e) => setFinancialSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
-                    />
-                  </div>
-                  <div className="max-h-48 overflow-y-auto bg-gray-700/30 border border-gray-600 rounded-lg">
-                    <button
-                      onClick={() => setSelectedFinancialFolder(null)}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
-                        !selectedFinancialFolder
-                          ? 'bg-blue-600/30 text-blue-200 border-l-4 border-blue-500 font-semibold'
-                          : 'text-gray-400 hover:bg-gray-700/50'
-                      }`}
-                    >
-                      <span>-- No folder selected --</span>
-                      {!selectedFinancialFolder && <CheckCircle className="w-4 h-4 text-blue-400" />}
-                    </button>
-                    {folders
-                      .filter(folder => folder.name.toLowerCase().includes(financialSearchTerm.toLowerCase()))
-                      .map(folder => (
-                        <button
-                          key={folder.id}
-                          onClick={() => setSelectedFinancialFolder(folder)}
-                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-t border-gray-600/50 flex items-center justify-between ${
-                            selectedFinancialFolder?.id === folder.id
-                              ? 'bg-blue-600/30 text-blue-200 border-l-4 border-blue-500 font-semibold'
-                              : 'text-white hover:bg-gray-700/50'
-                          }`}
-                        >
-                          <span className="flex items-center">
-                            <FolderOpen className="w-4 h-4 inline mr-2" />
-                            {folder.name}
-                          </span>
-                          {selectedFinancialFolder?.id === folder.id && <CheckCircle className="w-4 h-4 text-blue-400" />}
-                        </button>
-                      ))}
-                  </div>
-                  <p className="text-xs text-gray-400 mt-2">
-                    Folder containing your financial documents (Google Sheets only)
-                  </p>
-                </div>
+                <FolderSelectionWrapper
+                  accessToken={connection?.access_token || ''}
+                  folderType="financial"
+                  folders={folders}
+                  currentFolder={selectedFinancialFolder}
+                  searchTerm={financialSearchTerm}
+                  onSearchChange={setFinancialSearchTerm}
+                  onFolderSelect={setSelectedFinancialFolder}
+                />
               </div>
             </div>
 
