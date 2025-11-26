@@ -96,7 +96,11 @@ export const useChats = () => {
       }>();
 
       data.forEach((chat) => {
-        const convId = chat.conversation_id || 'default';
+        // Skip messages with null conversation_id (orphaned messages)
+        if (!chat.conversation_id) {
+          return;
+        }
+        const convId = chat.conversation_id;
         if (!conversationMap.has(convId)) {
           conversationMap.set(convId, {
             messages: [],
@@ -175,7 +179,14 @@ export const useChats = () => {
     if (!user) return null;
 
     try {
-      const chatConversationId = conversationId || currentConversationId || createNewConversation();
+      // Ensure we have a valid conversation ID (either provided, current, or create new)
+      let chatConversationId = conversationId || currentConversationId;
+
+      // Validate it's a valid UUID, if not create a new one
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!chatConversationId || !uuidRegex.test(chatConversationId)) {
+        chatConversationId = createNewConversation();
+      }
 
       // CRITICAL: Always set currentConversationId to ensure it's tracked
       if (chatConversationId !== currentConversationId) {
@@ -255,13 +266,20 @@ export const useChats = () => {
   const loadConversation = useCallback(async (conversationId: string) => {
     if (!user) return;
 
+    // Validate conversation ID is a valid UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(conversationId)) {
+      console.error('Invalid conversation ID:', conversationId);
+      return;
+    }
+
     // Don't reload if it's already the current conversation
     if (conversationId === currentConversationId && currentMessages.length > 0) {
       return;
     }
     try {
       setLoading(true);
-      
+
       // Clear current messages first to show loading state
       setCurrentMessages([]);
       setCurrentConversationId(conversationId);
