@@ -3,6 +3,8 @@ import { FolderPlus, CheckCircle, Folder, Loader2, FolderOpen, Plus, Search } fr
 import { SetupGuideProgress } from '../../lib/setup-guide-utils';
 import { getGoogleDriveConnection } from '../../lib/google-drive-oauth';
 import { supabase } from '../../lib/supabase';
+import { useFeatureFlag } from '../../hooks/useFeatureFlag';
+import { GoogleDriveFolderPicker } from '../GoogleDriveFolderPicker';
 
 interface ChooseFolderStepProps {
   onComplete: (folderData: any) => void;
@@ -26,6 +28,8 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }
   const [error, setError] = useState('');
   const [hasExistingFolders, setHasExistingFolders] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [accessToken, setAccessToken] = useState<string>('');
+  const useGooglePicker = useFeatureFlag('google_picker_folder_selection');
 
   useEffect(() => {
     checkExistingSetup();
@@ -56,6 +60,22 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }
     setLoading(true);
     setError('');
     try {
+      const connection = await getGoogleDriveConnection();
+      if (!connection) {
+        setError('Not authenticated with Google Drive');
+        return;
+      }
+
+      setAccessToken(connection.access_token);
+
+      // If using Google Picker, skip loading folder list
+      if (useGooglePicker) {
+        setViewMode('select-existing');
+        setLoading(false);
+        return;
+      }
+
+      // Legacy: Load folder list via API
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         setError('Not authenticated');
@@ -312,6 +332,50 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }
 
   // Folder selection view
   if (viewMode === 'select-existing') {
+    // Use Google Picker for beta users
+    if (useGooglePicker) {
+      return (
+        <div className="space-y-6">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-600/20 mb-4">
+              <Folder className="w-8 h-8 text-purple-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-3">Select a Folder</h2>
+            <p className="text-gray-300">
+              Choose a folder from your Google Drive for strategy documents
+            </p>
+          </div>
+
+          {error && (
+            <div className="bg-red-900/20 border border-red-700 rounded-lg p-4">
+              <p className="text-sm text-red-300">{error}</p>
+            </div>
+          )}
+
+          <GoogleDriveFolderPicker
+            accessToken={accessToken}
+            folderType="strategy"
+            onFolderSelected={(folder) => {
+              handleSelectFolder({ id: folder.id, name: folder.name });
+            }}
+          />
+
+          <div className="flex justify-center space-x-3">
+            <button
+              onClick={() => {
+                setViewMode('initial');
+              }}
+              disabled={loading}
+              className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 min-h-[44px]"
+            >
+              Back
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Legacy folder list view
     return (
       <div className="space-y-6">
         <div className="text-center">
