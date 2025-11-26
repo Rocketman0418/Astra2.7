@@ -21,12 +21,12 @@ export const useFeatureFlag = (featureName: string): boolean => {
           return;
         }
 
-        // Check feature_flags table
+        // Check feature_flags table - first try user_id match, then email match
         const { data, error } = await supabase
           .from('feature_flags')
           .select('enabled')
-          .eq('user_id', user.id)
           .eq('feature_name', featureName)
+          .or(`user_id.eq.${user.id},email.eq.${user.email}`)
           .maybeSingle();
 
         if (error) {

@@ -6,21 +6,27 @@ Implemented Google Picker API as an alternative to the restricted OAuth scope (`
 ## Implementation Strategy
 
 ### Phased Rollout with Feature Flags
-- **Phase 1**: Beta testing with `clay@rockethub.ai` only
+- **Phase 1**: Beta testing with `clay@rockethub.ai` and `clayspeakman@gmail.com`
 - **Phase 2**: Gradual rollout to more users
 - **Phase 3**: Full migration and removal of restricted scope
 
 ### Architecture
 
 #### 1. Feature Flag System
-**File**: `supabase/migrations/[timestamp]_add_google_picker_feature_flag.sql`
+**Files**:
+- `supabase/migrations/[timestamp]_add_google_picker_feature_flag.sql`
+- `supabase/migrations/20251126160309_add_email_based_feature_flags.sql`
+
 - Created `feature_flags` table with RLS policies
-- Enabled Google Picker for `clay@rockethub.ai`
+- Supports both user_id-based flags (for existing users) and email-based flags (for pre-signup users)
+- Email-based flags automatically migrate to user_id flags when user signs up
+- Enabled Google Picker for `clay@rockethub.ai` and `clayspeakman@gmail.com`
 - Super admins can manage feature flags for other users
 
 #### 2. Feature Flag Hook
 **File**: `src/hooks/useFeatureFlag.ts`
 - React hook to check if feature is enabled for current user
+- Checks both user_id and email matches (supports pre-signup feature flags)
 - Returns `false` during loading to prevent flashing
 - Handles errors gracefully
 
@@ -73,9 +79,38 @@ Implemented Google Picker API as an alternative to the restricted OAuth scope (`
 - Regular users see familiar dropdown
 - No breaking changes
 
+## Email-Based Feature Flags
+
+### How It Works
+The feature flag system supports **two types of flags**:
+
+1. **User ID-based flags**: For existing users already in the database
+2. **Email-based flags**: For users who haven't signed up yet
+
+### Pre-Signup Feature Enablement
+You can enable features for users **before they sign up**:
+
+```sql
+INSERT INTO feature_flags (email, feature_name, enabled)
+VALUES ('new-user@example.com', 'google_picker_folder_selection', true);
+```
+
+### Automatic Migration on Signup
+When a user signs up with that email:
+1. Their email-based feature flags are automatically migrated to user_id-based flags
+2. The old email-based flags are deleted
+3. The user immediately has access to the enabled features
+
+### Benefits
+- Test onboarding experience with new features enabled
+- Enable features for invited users before they create accounts
+- Seamless transition from email-based to user_id-based flags
+
 ## Testing Plan
 
 ### Phase 1: Beta User Testing
+
+**Testing with existing user (clay@rockethub.ai)**:
 1. Log in as `clay@rockethub.ai`
 2. Navigate to User Settings → Google Drive
 3. Click "Select Existing Folders"
@@ -83,6 +118,13 @@ Implemented Google Picker API as an alternative to the restricted OAuth scope (`
 5. Select a folder via Picker
 6. Confirm folder saves correctly to database
 7. Verify n8n workflow reads folder correctly
+
+**Testing onboarding (clayspeakman@gmail.com)**:
+1. Sign up with `clayspeakman@gmail.com`
+2. Go through Guided Setup
+3. When reaching folder selection step, verify Google Picker appears
+4. Test folder selection through Picker during onboarding
+5. Complete setup and verify folders are properly connected
 
 ### Phase 2: Gradual Rollout
 1. Monitor beta user feedback
@@ -113,6 +155,7 @@ Implemented Google Picker API as an alternative to the restricted OAuth scope (`
 - `src/components/GoogleDriveFolderPicker.tsx`
 - `src/components/FolderSelectionWrapper.tsx`
 - `supabase/migrations/[timestamp]_add_google_picker_feature_flag.sql`
+- `supabase/migrations/20251126160309_add_email_based_feature_flags.sql`
 
 ### Modified Files
 - `src/components/GoogleDriveSettings.tsx`
