@@ -34,6 +34,8 @@ export const Header: React.FC<HeaderProps> = ({
   const { profile } = useUserProfile();
   const [showSettings, setShowSettings] = useState(false);
   const [hasN8NAccess, setHasN8NAccess] = useState(false);
+  const helpMenuRef = useRef<HTMLDivElement>(null);
+  const [showHelpMenu, setShowHelpMenu] = useState(false);
 
   useEffect(() => {
     const checkN8NAccess = async () => {

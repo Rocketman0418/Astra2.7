@@ -36,26 +36,52 @@ export const GoogleDriveFolderPicker = ({
 
   // Load Google Picker API script
   useEffect(() => {
-    // Check if script already loaded
-    if (window.gapi && window.google?.picker) {
-      setScriptLoaded(true);
-      return;
-    }
+    const loadGooglePicker = () => {
+      // Check if already fully loaded
+      if (window.gapi && window.google?.picker) {
+        setScriptLoaded(true);
+        return;
+      }
 
-    const script = document.createElement('script');
-    script.src = 'https://apis.google.com/js/api.js';
-    script.async = true;
-    script.defer = true;
+      // Check if gapi script exists
+      const existingScript = document.querySelector('script[src="https://apis.google.com/js/api.js"]');
 
-    script.onload = () => {
-      setScriptLoaded(true);
+      if (existingScript) {
+        // Script exists, wait for it to load
+        if (window.gapi) {
+          window.gapi.load('picker', () => {
+            setScriptLoaded(true);
+          });
+        } else {
+          existingScript.addEventListener('load', () => {
+            window.gapi.load('picker', () => {
+              setScriptLoaded(true);
+            });
+          });
+        }
+        return;
+      }
+
+      // Script doesn't exist, create it
+      const script = document.createElement('script');
+      script.src = 'https://apis.google.com/js/api.js';
+      script.async = true;
+      script.defer = true;
+
+      script.onload = () => {
+        window.gapi.load('picker', () => {
+          setScriptLoaded(true);
+        });
+      };
+
+      script.onerror = () => {
+        console.error('Failed to load Google Picker API');
+      };
+
+      document.body.appendChild(script);
     };
 
-    script.onerror = () => {
-      console.error('Failed to load Google Picker API');
-    };
-
-    document.body.appendChild(script);
+    loadGooglePicker();
 
     return () => {
       // Don't remove script on unmount - other components might need it
@@ -64,45 +90,47 @@ export const GoogleDriveFolderPicker = ({
 
   const openPicker = () => {
     if (!scriptLoaded || !window.gapi || !window.google?.picker) {
-      console.error('Google Picker API not loaded');
+      console.error('Google Picker API not loaded', {
+        scriptLoaded,
+        hasGapi: !!window.gapi,
+        hasPicker: !!window.google?.picker
+      });
       return;
     }
 
     setIsLoading(true);
 
-    window.gapi.load('picker', () => {
-      try {
-        // Create folder view
-        const view = new window.google.picker.DocsView(
-          window.google.picker.ViewId.FOLDERS
-        )
-          .setSelectFolderEnabled(true)
-          .setIncludeFolders(true)
-          .setMimeTypes('application/vnd.google-apps.folder');
+    try {
+      // Create folder view
+      const view = new window.google.picker.DocsView(
+        window.google.picker.ViewId.FOLDERS
+      )
+        .setSelectFolderEnabled(true)
+        .setIncludeFolders(true)
+        .setMimeTypes('application/vnd.google-apps.folder');
 
-        // Build the picker
-        const picker = new window.google.picker.PickerBuilder()
-          .addView(view)
-          .setOAuthToken(accessToken)
-          .setTitle(`Select ${folderType.charAt(0).toUpperCase() + folderType.slice(1)} Folder`)
-          .setCallback((data: any) => {
-            if (data.action === window.google.picker.Action.PICKED) {
-              const folder = data.docs[0];
-              onFolderSelected({
-                id: folder.id,
-                name: folder.name
-              });
-            }
-            setIsLoading(false);
-          })
-          .build();
+      // Build the picker
+      const picker = new window.google.picker.PickerBuilder()
+        .addView(view)
+        .setOAuthToken(accessToken)
+        .setTitle(`Select ${folderType.charAt(0).toUpperCase() + folderType.slice(1)} Folder`)
+        .setCallback((data: any) => {
+          if (data.action === window.google.picker.Action.PICKED) {
+            const folder = data.docs[0];
+            onFolderSelected({
+              id: folder.id,
+              name: folder.name
+            });
+          }
+          setIsLoading(false);
+        })
+        .build();
 
-        picker.setVisible(true);
-      } catch (error) {
-        console.error('Error opening picker:', error);
-        setIsLoading(false);
-      }
-    });
+      picker.setVisible(true);
+    } catch (error) {
+      console.error('Error opening picker:', error);
+      setIsLoading(false);
+    }
   };
 
   const getFolderTypeLabel = () => {
