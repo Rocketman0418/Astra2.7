@@ -73,7 +73,7 @@ export const AstraGuidedChatModal: React.FC<AstraGuidedChatModalProps> = ({
           </button>
         </div>
 
-        <div className="overflow-y-auto max-h-[calc(90vh-140px)] p-6">
+        <div className="overflow-y-auto max-h-[calc(90vh-200px)] p-6">
           {state === 'analyzing' && (
             <div className="text-center py-12">
               <Loader2 className="w-12 h-12 text-blue-400 animate-spin mx-auto mb-4" />
@@ -118,25 +118,25 @@ export const AstraGuidedChatModal: React.FC<AstraGuidedChatModalProps> = ({
                 {dataSnapshot.hasStrategyDocs && (
                   <div className="flex items-center gap-2">
                     <FileText className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                    <span>{dataSnapshot.strategyDocCount} strategy documents found</span>
+                    <span>{dataSnapshot.strategyDocCount} strategy document{dataSnapshot.strategyDocCount !== 1 ? 's' : ''} found</span>
                   </div>
                 )}
                 {dataSnapshot.hasMeetings && (
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-green-400 flex-shrink-0" />
-                    <span>{dataSnapshot.meetingCount} meeting notes found</span>
+                    <span>{dataSnapshot.meetingCount} meeting note{dataSnapshot.meetingCount !== 1 ? 's' : ''} found</span>
                   </div>
                 )}
                 {dataSnapshot.hasFinancials && (
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-yellow-400 flex-shrink-0" />
-                    <span>{dataSnapshot.financialCount} financial records found</span>
+                    <span>{dataSnapshot.financialCount} financial record{dataSnapshot.financialCount !== 1 ? 's' : ''} found</span>
                   </div>
                 )}
                 {dataSnapshot.hasEmails && (
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                    <span>{dataSnapshot.emailThreadCount} email threads indexed</span>
+                    <span>{dataSnapshot.emailThreadCount} email thread{dataSnapshot.emailThreadCount !== 1 ? 's' : ''} indexed</span>
                   </div>
                 )}
               </div>
@@ -208,7 +208,7 @@ export const AstraGuidedChatModal: React.FC<AstraGuidedChatModalProps> = ({
         </div>
 
         {state === 'ready' && (
-          <div className="border-t border-gray-700 p-4 bg-gray-800/50 flex justify-between items-center">
+          <div className="border-t border-gray-700 p-4 bg-gray-800/50 flex justify-between items-center flex-shrink-0">
             <button
               onClick={onClose}
               className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
@@ -217,7 +217,7 @@ export const AstraGuidedChatModal: React.FC<AstraGuidedChatModalProps> = ({
             </button>
             <button
               onClick={handleGenerateMore}
-              className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all flex items-center gap-2 shadow-lg hover:shadow-xl"
+              className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all flex items-center gap-2 shadow-lg hover:shadow-xl min-h-[44px]"
             >
               <RefreshCw className="w-4 h-4" />
               Generate 3 More

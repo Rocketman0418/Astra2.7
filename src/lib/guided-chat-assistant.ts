@@ -42,25 +42,25 @@ export async function analyzeUserData(userId: string, teamId: string): Promise<U
         .maybeSingle(),
 
       supabase
-        .from('document_chunks_strategy')
-        .select('title, document_category, created_at')
+        .from('documents')
+        .select('title, folder_type, document_type, metadata, modified_time')
         .eq('team_id', teamId)
-        .order('created_at', { ascending: false })
-        .limit(100),
+        .eq('folder_type', 'strategy')
+        .order('modified_time', { ascending: false }),
 
       supabase
-        .from('document_chunks_meetings')
-        .select('title, document_category, document_date, created_at')
+        .from('documents')
+        .select('title, folder_type, document_type, metadata, modified_time')
         .eq('team_id', teamId)
-        .order('created_at', { ascending: false })
-        .limit(100),
+        .eq('folder_type', 'meeting')
+        .order('modified_time', { ascending: false }),
 
       supabase
-        .from('document_chunks_financial')
-        .select('data_category, financial_period, created_at')
+        .from('documents')
+        .select('title, folder_type, document_type, metadata, modified_time')
         .eq('team_id', teamId)
-        .order('created_at', { ascending: false })
-        .limit(100),
+        .eq('folder_type', 'financial')
+        .order('modified_time', { ascending: false }),
 
       supabase
         .from('company_emails')
@@ -83,30 +83,29 @@ export async function analyzeUserData(userId: string, teamId: string): Promise<U
       strategyDocs
         .filter(d => d.title)
         .map(d => d.title)
-        .slice(0, 10)
-    )];
+    )].slice(0, 10);
 
     const meetingCategories = [...new Set(
       meetings
-        .filter(m => m.document_category)
-        .map(m => m.document_category)
+        .filter(m => m.document_type)
+        .map(m => m.document_type)
     )];
 
     const recentMeetingDates = meetings
-      .filter(m => m.document_date)
-      .map(m => m.document_date)
+      .filter(m => m.modified_time)
+      .map(m => new Date(m.modified_time).toLocaleDateString())
       .slice(0, 5);
 
     const financialPeriods = [...new Set(
       financials
-        .filter(f => f.financial_period)
-        .map(f => f.financial_period)
+        .filter(f => f.metadata?.financial_period)
+        .map(f => f.metadata.financial_period)
     )].slice(0, 10);
 
     const financialCategories = [...new Set(
       financials
-        .filter(f => f.data_category)
-        .map(f => f.data_category)
+        .filter(f => f.metadata?.data_category)
+        .map(f => f.metadata.data_category)
     )];
 
     return {
@@ -152,17 +151,23 @@ Based on the user's available data, generate exactly 3 highly specific, actionab
 USER'S DATA SUMMARY:
 ${JSON.stringify(dataSnapshot, null, 2)}
 
+CRITICAL: The counts shown represent actual DOCUMENTS, not chunks or sections. For example:
+- ${dataSnapshot.strategyDocCount} strategy documents means ${dataSnapshot.strategyDocCount} distinct strategy files
+- ${dataSnapshot.meetingCount} meeting notes means ${dataSnapshot.meetingCount} distinct meeting transcripts
+- ${dataSnapshot.financialCount} financial records means ${dataSnapshot.financialCount} distinct financial files
+
 PROMPT REQUIREMENTS:
-1. Each prompt MUST reference the user's actual data (e.g., "Analyze our Q3 financials", "Review our last 5 leadership meetings")
-2. Combine multiple data sources when valuable (e.g., link strategy docs with meeting notes)
-3. Focus on insights, patterns, trends, and actionable recommendations
-4. Be specific enough to drive valuable AI responses
-5. Prioritize prompts based on what data is available
+1. Each prompt MUST accurately reference the user's document counts (not exaggerated)
+2. Reference specific document titles from strategyTopics when available
+3. Combine multiple data sources when valuable (e.g., link strategy docs with meeting notes)
+4. Focus on insights, patterns, trends, and actionable recommendations
+5. Be specific enough to drive valuable AI responses
+6. Use natural language - if there are only 8 strategy documents, say "8 strategy documents" not "100 documents"
 
 PROMPT STRUCTURE:
 - Title: 4-6 words, action-oriented
 - Prompt: The exact text the user will submit (50-100 words)
-- Description: One sentence explaining why this prompt is valuable for THIS user's specific data
+- Description: One sentence explaining why this prompt is valuable, using ACCURATE document counts
 
 IMPORTANT RULES:
 - If no financial data exists, don't suggest financial analysis
@@ -170,12 +175,13 @@ IMPORTANT RULES:
 - If no email data exists, don't suggest email analysis
 - Always ensure at least 3 prompts can be generated from available data
 - Prioritize cross-data-source analysis when multiple types are available
+- NEVER inflate document counts - use the exact numbers provided
 
 OUTPUT FORMAT (JSON only, no other text):
 [
   {
     "title": "Strategic Alignment Check",
-    "prompt": "Review our strategy documents and recent meeting notes to assess how well our day-to-day activities align with our strategic goals. Identify any gaps or misalignments.",
+    "prompt": "Review our ${dataSnapshot.strategyDocCount} strategy documents and recent meeting notes to assess how well our day-to-day activities align with our strategic goals. Identify any gaps or misalignments.",
     "description": "Connects your ${dataSnapshot.strategyDocCount} strategy documents with ${dataSnapshot.meetingCount} meeting notes to ensure execution matches vision."
   }
 ]
