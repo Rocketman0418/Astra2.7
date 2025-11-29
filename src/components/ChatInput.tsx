@@ -2,6 +2,7 @@ import React, { KeyboardEvent, useState, useRef } from 'react';
 import { Send, Bookmark, X, Reply, Sparkles } from 'lucide-react';
 import { FavoritesDropdown } from './FavoritesDropdown';
 import { SuggestedPromptsModal } from './SuggestedPromptsModal';
+import { AstraGuidedChatModal } from './AstraGuidedChatModal';
 import { FavoriteMessage, ReplyState } from '../types';
 
 interface ChatInputProps {
@@ -13,6 +14,8 @@ interface ChatInputProps {
   onRemoveFavorite?: (messageId: string) => void;
   replyState?: ReplyState;
   onCancelReply?: () => void;
+  teamId?: string;
+  onGuidedPromptSelected?: (prompt: string) => void;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -23,7 +26,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   favorites = [],
   onRemoveFavorite,
   replyState,
-  onCancelReply
+  onCancelReply,
+  teamId,
+  onGuidedPromptSelected
 }) => {
   const isSubmittingRef = useRef(false);
 
@@ -53,6 +58,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   const [showSuggestedPrompts, setShowSuggestedPrompts] = useState(false);
+  const [showGuidedChat, setShowGuidedChat] = useState(false);
 
   const handleSelectFavorite = (text: string) => {
     onChange(text);
@@ -60,6 +66,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   const handleSelectSuggestedPrompt = (prompt: string) => {
     onChange(prompt);
+  };
+
+  const handleGuidedPromptSelected = (prompt: string) => {
+    if (onGuidedPromptSelected) {
+      onGuidedPromptSelected(prompt);
+    } else {
+      onChange(prompt);
+    }
   };
 
   return (
@@ -147,7 +161,20 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         isOpen={showSuggestedPrompts}
         onClose={() => setShowSuggestedPrompts(false)}
         onSelectPrompt={handleSelectSuggestedPrompt}
+        onOpenGuidedChat={() => {
+          setShowSuggestedPrompts(false);
+          setShowGuidedChat(true);
+        }}
       />
+
+      {teamId && (
+        <AstraGuidedChatModal
+          isOpen={showGuidedChat}
+          onClose={() => setShowGuidedChat(false)}
+          onSelectPrompt={handleGuidedPromptSelected}
+          teamId={teamId}
+        />
+      )}
     </div>
   );
 };

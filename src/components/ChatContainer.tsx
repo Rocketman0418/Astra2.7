@@ -9,6 +9,7 @@ import { useFavorites } from '../hooks/useFavorites';
 import { useVisualization } from '../hooks/useVisualization';
 import { useAuth } from '../contexts/AuthContext';
 import { useSavedVisualizations } from '../hooks/useSavedVisualizations';
+import { supabase } from '../lib/supabase';
 
 interface ChatContainerProps {
   sidebarOpen: boolean;
@@ -35,12 +36,31 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   const [isCreatingVisualization, setIsCreatingVisualization] = useState(false);
   const savingVisualizationRef = useRef<string | null>(null);
   const hasScrolledInitiallyRef = useRef(false);
+  const [teamId, setTeamId] = useState<string | null>(null);
 
   const {
     saveVisualization,
     isVisualizationSaved,
     savedVisualizations
   } = useSavedVisualizations(user?.id);
+
+  useEffect(() => {
+    const fetchTeamId = async () => {
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('users')
+        .select('team_id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (data?.team_id) {
+        setTeamId(data.team_id);
+      }
+    };
+
+    fetchTeamId();
+  }, [user]);
 
   const {
     messages,
@@ -424,6 +444,14 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
           onRemoveFavorite={removeFromFavorites}
           replyState={replyState}
           onCancelReply={cancelReply}
+          teamId={teamId || undefined}
+          onGuidedPromptSelected={async (prompt) => {
+            await startNewConversation();
+            setInputValue(prompt);
+            setTimeout(() => {
+              sendMessage(prompt);
+            }, 100);
+          }}
         />
       </div>
     </div>
