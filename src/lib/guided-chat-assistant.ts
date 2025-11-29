@@ -52,7 +52,7 @@ export async function analyzeUserData(userId: string, teamId: string): Promise<U
         .from('documents')
         .select('title, folder_type, document_type, metadata, modified_time')
         .eq('team_id', teamId)
-        .eq('folder_type', 'meeting')
+        .eq('folder_type', 'meetings')
         .order('modified_time', { ascending: false }),
 
       supabase
@@ -159,7 +159,10 @@ CRITICAL: The counts shown represent actual DOCUMENTS, not chunks or sections. F
 PROMPT REQUIREMENTS:
 1. Each prompt MUST accurately reference the user's document counts (not exaggerated)
 2. Reference specific document titles from strategyTopics when available
-3. Combine multiple data sources when valuable (e.g., link strategy docs with meeting notes)
+3. When ALL THREE data types exist (strategy, meetings, financials), ensure ALL 3 prompts use a balanced combination:
+   - Prompt 1: Focus on strategy + meetings alignment
+   - Prompt 2: Focus on financials + strategy alignment
+   - Prompt 3: Focus on meetings + financials, or all 3 combined
 4. Focus on insights, patterns, trends, and actionable recommendations
 5. Be specific enough to drive valuable AI responses
 6. Use natural language - if there are only 8 strategy documents, say "8 strategy documents" not "100 documents"
@@ -170,12 +173,14 @@ PROMPT STRUCTURE:
 - Description: One sentence explaining why this prompt is valuable, using ACCURATE document counts
 
 IMPORTANT RULES:
+- If ALL THREE data types exist (hasStrategyDocs, hasMeetings, hasFinancials all true), each prompt MUST reference at least 2 different data types
 - If no financial data exists, don't suggest financial analysis
 - If no meeting data exists, don't suggest meeting analysis
 - If no email data exists, don't suggest email analysis
 - Always ensure at least 3 prompts can be generated from available data
 - Prioritize cross-data-source analysis when multiple types are available
 - NEVER inflate document counts - use the exact numbers provided
+- Ensure variety across all 3 prompts - don't focus only on one data type
 
 OUTPUT FORMAT (JSON only, no other text):
 [
