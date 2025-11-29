@@ -360,9 +360,9 @@ export const useGroupChat = () => {
           }
 
           // Check if the response is empty or invalid
-          if (!astraResponse || astraResponse.trim() === '' || astraResponse.trim() === '""') {
+          if (!astraResponse || astraResponse.trim() === '' || astraResponse.trim() === '""' || astraResponse === '""') {
             console.error('❌ Received empty or invalid response from Astra');
-            astraResponse = "I apologize, but I wasn't able to generate a response. Please try asking your question again. If this issue continues, please contact support through the app's help menu.";
+            astraResponse = "⚠️ I apologize, but I wasn't able to generate a response.\n\n**What you can try:**\n• Rephrase your question and try again\n• Check if you have the necessary data uploaded\n• Make your question more specific\n\nIf this issue continues, please use the Help menu to contact support.";
           }
 
           console.log('🤖 useGroupChat: About to log Astra response...');
@@ -409,16 +409,26 @@ export const useGroupChat = () => {
           }, 200);
         } catch (err) {
           console.error('Error getting Astra response:', err);
-          
+
+          let errorMessage = "⚠️ I'm having trouble connecting right now.\n\n**What you can try:**\n• Wait a moment and try again\n• Check your internet connection\n• Rephrase your question\n\nIf this issue continues, please use the Help menu to contact support.";
+
+          if (err instanceof Error) {
+            if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+              errorMessage = "⚠️ Network connection error.\n\n**What you can try:**\n• Check your internet connection\n• Try again in a moment\n• Refresh the page\n\nIf you're still having issues, please contact support through the Help menu.";
+            } else if (err.message.includes('timeout') || err.message.includes('timed out')) {
+              errorMessage = "⚠️ The request took too long to complete.\n\n**What you can try:**\n• Try a more specific question\n• Break your question into smaller parts\n• Wait a moment and try again\n\nIf you need help, please contact support through the Help menu.";
+            }
+          }
+
           // Log error response to astra_chats table
           await logChatMessage(
-            "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
+            errorMessage,
             false, // isUser (Astra response)
             null, // No conversation ID for team chat
             0, // No response time for errors
             {}, // No tokens used
             'n8n-workflow', // Model used
-            { 
+            {
               team_chat: true,
               message_type: 'astra',
               asked_by_user_name: userName,

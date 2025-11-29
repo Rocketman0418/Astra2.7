@@ -343,9 +343,9 @@ export const useChat = () => {
       }
 
       // Check if the response is empty or invalid
-      if (!messageText || messageText.trim() === '' || messageText.trim() === '""') {
+      if (!messageText || messageText.trim() === '' || messageText.trim() === '""' || messageText === '""') {
         console.error('❌ Received empty or invalid response from Astra');
-        messageText = "I apologize, but I wasn't able to generate a response. Please try asking your question again. If this issue continues, please contact support through the app's help menu.";
+        messageText = "⚠️ I apologize, but I wasn't able to generate a response.\n\n**What you can try:**\n• Rephrase your question and try again\n• Check if you have the necessary data uploaded\n• Make your question more specific\n\nIf this issue continues, please use the Help menu to contact support.";
       }
 
       console.log('✅ Received Astra response:', { messageText: messageText.substring(0, 100) + '...' });
@@ -449,13 +449,15 @@ export const useChat = () => {
         mode: 'chat'
       });
       
-      let errorMessage = "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.";
-      
+      let errorMessage = "⚠️ I'm having trouble connecting right now.\n\n**What you can try:**\n• Wait a moment and try again\n• Check your internet connection\n• Refresh the page\n\nIf this issue continues, please use the Help menu to contact support.";
+
       if (error instanceof Error) {
         if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-          errorMessage = "Network connection error. Please check your internet connection and try again.";
+          errorMessage = "⚠️ Network connection error.\n\n**What you can try:**\n• Check your internet connection\n• Try again in a moment\n• Refresh the page\n\nIf you're still having issues, please contact support through the Help menu.";
         } else if (error.message.includes('Webhook request failed')) {
-          errorMessage = `Server error: ${error.message}. Please contact support if this persists.`;
+          errorMessage = `⚠️ Server error occurred.\n\n**What you can try:**\n• Wait a moment and try again\n• Rephrase your question\n• Try a simpler query\n\nIf this persists, please contact support through the Help menu.`;
+        } else if (error.message.includes('timeout') || error.message.includes('timed out')) {
+          errorMessage = "⚠️ The request took too long to complete.\n\n**What you can try:**\n• Try a more specific question\n• Break your question into smaller parts\n• Wait a moment and try again\n\nIf you need help, please contact support through the Help menu.";
         }
       }
       
