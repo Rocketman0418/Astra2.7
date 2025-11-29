@@ -126,8 +126,8 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Logo and title */}
-          <div className="flex items-center space-x-2 md:space-x-3">
+          {/* Logo and title - Clickable to return home */}
+          <a href="/" className="flex items-center space-x-2 md:space-x-3 hover:opacity-80 transition-opacity cursor-pointer">
             {/* AI Rocket Logo */}
             <div className="flex items-center justify-center w-9 h-9 md:w-11 md:h-11 rounded-full bg-blue-400 shadow-lg flex-shrink-0">
               <span className="text-lg md:text-2xl">🚀</span>
@@ -145,7 +145,7 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="hidden md:inline text-white font-normal">+</span>
               <span className="hidden md:inline text-emerald-400">Astra Intelligence</span>
             </h1>
-          </div>
+          </a>
         </div>
 
         {/* Right side - User info */}

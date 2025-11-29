@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, BookOpen, MessageCircleQuestion, Sparkles, Workflow, Zap, Rocket } from 'lucide-react';
+import { Plus, BookOpen, MessageCircleQuestion, Sparkles, Workflow, Zap, Rocket, Home } from 'lucide-react';
 
 interface FeaturesMenuProps {
   onOpenSetupGuide?: () => void;
@@ -50,19 +50,25 @@ export function FeaturesMenu({ onOpenSetupGuide, onStartTour, onOpenHelpCenter, 
           ref={dropdownRef}
           className="absolute right-0 mt-2 w-56 bg-gray-800 rounded-lg shadow-xl border border-gray-700 py-2 z-50"
         >
+          <a
+            href="/"
+            className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 transition-colors flex items-center gap-3"
+            onClick={() => setIsDropdownOpen(false)}
+          >
+            <Home className="w-4 h-4 text-blue-400" />
+            <span>Home</span>
+          </a>
           {hasN8NAccess && (
-            <>
-              <a
-                href="/build-agents"
-                className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 transition-colors flex items-center gap-3"
-                onClick={() => setIsDropdownOpen(false)}
-              >
-                <Workflow className="w-4 h-4 text-purple-400" />
-                <span>Build Agents</span>
-              </a>
-              <div className="border-t border-gray-700 my-2"></div>
-            </>
+            <a
+              href="/build-agents"
+              className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 transition-colors flex items-center gap-3"
+              onClick={() => setIsDropdownOpen(false)}
+            >
+              <Workflow className="w-4 h-4 text-purple-400" />
+              <span>Build Agents</span>
+            </a>
           )}
+          <div className="border-t border-gray-700 my-2"></div>
           <button
             onClick={() => {
               setIsDropdownOpen(false);
