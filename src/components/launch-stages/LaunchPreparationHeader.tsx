@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { X, HelpCircle } from 'lucide-react';
+import { X } from 'lucide-react';
+import { SupportMenu } from '../SupportMenu';
 
 interface LaunchPreparationHeaderProps {
   onClose: () => void;
-  onHelp?: () => void;
 }
 
 export const LaunchPreparationHeader: React.FC<LaunchPreparationHeaderProps> = ({
-  onClose,
-  onHelp
+  onClose
 }) => {
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
@@ -51,15 +50,9 @@ export const LaunchPreparationHeader: React.FC<LaunchPreparationHeaderProps> = (
 
           {/* Action Buttons */}
           <div className="flex items-center space-x-2">
-            {onHelp && (
-              <button
-                onClick={onHelp}
-                className="p-2 hover:bg-slate-700 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
-                title="Help"
-              >
-                <HelpCircle className="w-5 h-5 text-gray-400 hover:text-white transition-colors" />
-              </button>
-            )}
+            {/* Support Menu - Same as main app */}
+            <SupportMenu />
+
             <button
               onClick={handleClose}
               className="p-2 hover:bg-slate-700 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
