@@ -133,8 +133,6 @@ const AppContent: React.FC = () => {
   const handleOnboardingComplete = async () => {
     const { data: { user: refreshedUser } } = await supabase.auth.getUser();
     if (refreshedUser) {
-      setNeedsOnboarding(false);
-
       // Check if user created a team or joined an existing team
       // New users who create teams have role 'admin', invited members have role 'member'
       const { data: userData } = await supabase
@@ -152,15 +150,21 @@ const AppContent: React.FC = () => {
       console.log('🚀 [Onboarding Complete] Launch Preparation eligible:', eligible);
 
       if (eligible) {
-        // User is eligible for Launch Preparation - redirect to Launch Prep flow
-        console.log('✅ [Onboarding Complete] Redirecting to Launch Preparation');
-        window.location.href = '/';
+        // User is eligible for Launch Preparation
+        // Don't redirect, just update state to trigger re-render
+        console.log('✅ [Onboarding Complete] User eligible for Launch Prep');
+        setNeedsOnboarding(false);
+        setIsEligibleForLaunchPrep(true);
+        setNeedsLaunchPreparation(true);
+        setCheckingLaunchStatus(false);
       } else if (isTeamCreator) {
         // Not eligible for Launch Prep, use old guided setup flow
         console.log('✅ [Onboarding Complete] Redirecting team creator to Guided Setup');
+        setNeedsOnboarding(false);
         window.location.href = '/?openGuidedSetup=true';
       } else {
         console.log('✅ [Onboarding Complete] Invited member - skipping Guided Setup');
+        setNeedsOnboarding(false);
         // Invited members skip guided setup and just reload the app
         // They will see the Interactive Tour on first login
         window.location.href = '/';
