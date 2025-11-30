@@ -147,8 +147,16 @@ const AppContent: React.FC = () => {
 
       console.log('🎯 [Onboarding Complete] User role:', userData?.role, 'Is team creator:', isTeamCreator);
 
-      // Only redirect to guided setup if user created a new team
-      if (isTeamCreator) {
+      // Check if user is eligible for Launch Preparation
+      const eligible = await checkEligibility(refreshedUser.email || '');
+      console.log('🚀 [Onboarding Complete] Launch Preparation eligible:', eligible);
+
+      if (eligible) {
+        // User is eligible for Launch Preparation - redirect to Launch Prep flow
+        console.log('✅ [Onboarding Complete] Redirecting to Launch Preparation');
+        window.location.href = '/';
+      } else if (isTeamCreator) {
+        // Not eligible for Launch Prep, use old guided setup flow
         console.log('✅ [Onboarding Complete] Redirecting team creator to Guided Setup');
         window.location.href = '/?openGuidedSetup=true';
       } else {
