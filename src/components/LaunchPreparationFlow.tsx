@@ -110,6 +110,7 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
             totalPoints={launchStatus.total_points}
             onNavigateToStage={navigateToStage}
             onLaunch={handleLaunch}
+            onExit={onLaunch}
           />
         ) : (
           <StageSelector
@@ -119,6 +120,7 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
             guidanceProgress={guidanceProgress}
             totalPoints={launchStatus.total_points}
             onNavigateToStage={navigateToStage}
+            onExit={onLaunch}
           />
         )}
       </div>

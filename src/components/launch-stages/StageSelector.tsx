@@ -1,7 +1,8 @@
-import React from 'react';
-import { Fuel, Zap, Compass, ArrowRight, Lock, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Fuel, Zap, Compass, ArrowRight, Lock, CheckCircle, Info } from 'lucide-react';
 import { StageProgress } from '../../hooks/useLaunchPreparation';
 import { calculateStageProgress, formatPoints, getStageDisplayName } from '../../lib/launch-preparation-utils';
+import { LaunchPreparationHeader } from './LaunchPreparationHeader';
 
 interface StageSelectorProps {
   currentStage: 'fuel' | 'boosters' | 'guidance' | 'ready' | 'launched';
@@ -10,6 +11,7 @@ interface StageSelectorProps {
   guidanceProgress: StageProgress | null;
   totalPoints: number;
   onNavigateToStage: (stage: 'fuel' | 'boosters' | 'guidance') => void;
+  onExit?: () => void;
 }
 
 export const StageSelector: React.FC<StageSelectorProps> = ({
@@ -18,8 +20,17 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
   boostersProgress,
   guidanceProgress,
   totalPoints,
-  onNavigateToStage
+  onNavigateToStage,
+  onExit
 }) => {
+  const [showInfoTooltip, setShowInfoTooltip] = useState<string | null>(null);
+
+  const handleExit = () => {
+    if (onExit) {
+      onExit();
+    }
+  };
+
   const fuelLevel = fuelProgress?.level || 0;
   const boostersLevel = boostersProgress?.level || 0;
   const guidanceLevel = guidanceProgress?.level || 0;
@@ -38,6 +49,7 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
       id: 'fuel' as const,
       name: 'Fuel',
       description: 'Fuel your rocket with data',
+      helpText: 'Connect your data sources like Google Drive and Gmail to power your AI with relevant context.',
       icon: Fuel,
       color: 'orange',
       progress: fuelPercent,
@@ -49,6 +61,7 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
       id: 'boosters' as const,
       name: 'Boosters',
       description: 'Power up with features',
+      helpText: 'Activate AI features and integrations to enhance your capabilities.',
       icon: Zap,
       color: 'cyan',
       progress: boostersPercent,
@@ -60,6 +73,7 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
       id: 'guidance' as const,
       name: 'Guidance',
       description: 'Set your mission parameters',
+      helpText: 'Configure your AI preferences and establish regular engagement patterns.',
       icon: Compass,
       color: 'green',
       progress: guidancePercent,
@@ -70,116 +84,134 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
   ];
 
   return (
-    <div className="min-h-screen p-4 md:p-8 flex flex-col items-center justify-center">
-      {/* Header */}
-      <div className="text-center mb-8 md:mb-12">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 via-green-500 to-blue-500 rounded-full mb-4 animate-pulse">
-          <Fuel className="w-10 h-10 text-white" />
-        </div>
-        <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-          Prepare for Launch
-        </h1>
-        <p className="text-gray-400 text-lg">
-          Complete these stages to launch your AI Rocket
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <LaunchPreparationHeader onClose={handleExit} />
 
-      {/* Points Display */}
-      <div className="bg-gray-800/50 border border-gray-700 rounded-lg px-6 py-3 mb-8">
-        <p className="text-gray-400 text-sm">Launch Points</p>
-        <p className="text-2xl font-bold text-yellow-400">{formatPoints(totalPoints)}</p>
-      </div>
+      <div className="pt-20 px-4 pb-6 max-h-screen overflow-hidden flex flex-col">
+        <div className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full">
+          {/* Points Display */}
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg px-6 py-2 mb-4 relative">
+            <div className="flex items-center space-x-2">
+              <div>
+                <p className="text-gray-400 text-xs">Launch Points</p>
+                <p className="text-xl font-bold text-yellow-400">{formatPoints(totalPoints)}</p>
+              </div>
+              <button
+                onMouseEnter={() => setShowInfoTooltip('points')}
+                onMouseLeave={() => setShowInfoTooltip(null)}
+                className="text-gray-500 hover:text-gray-400 transition-colors"
+              >
+                <Info className="w-4 h-4" />
+              </button>
+            </div>
+            {showInfoTooltip === 'points' && (
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gray-800 border border-gray-600 rounded-lg p-3 text-sm text-gray-300 w-64 z-10 shadow-lg">
+                Earn points by completing achievements in each stage. Higher levels unlock more AI capabilities!
+              </div>
+            )}
+          </div>
 
-      {/* Stage Cards */}
-      <div className="w-full max-w-4xl space-y-4 mb-8">
-        {stages.map((stage, index) => {
-          const Icon = stage.icon;
-          const isLocked = !stage.unlocked;
+          {/* Stage Cards */}
+          <div className="w-full space-y-3 mb-4">
+            {stages.map((stage, index) => {
+              const Icon = stage.icon;
+              const isLocked = !stage.unlocked;
 
-          return (
-            <button
-              key={stage.id}
-              onClick={() => !isLocked && onNavigateToStage(stage.id)}
-              disabled={isLocked}
-              className={`
-                w-full bg-gray-800/50 border-2 rounded-xl p-6 text-left transition-all
-                ${isLocked
-                  ? 'border-gray-700 opacity-50 cursor-not-allowed'
-                  : `border-${stage.color}-500/30 hover:border-${stage.color}-500 hover:bg-gray-800/70 cursor-pointer`
-                }
-              `}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-4 flex-1">
-                  {/* Icon */}
-                  <div className={`
-                    flex-shrink-0 w-16 h-16 rounded-xl flex items-center justify-center
+              return (
+                <button
+                  key={stage.id}
+                  onClick={() => !isLocked && onNavigateToStage(stage.id)}
+                  disabled={isLocked}
+                  className={`
+                    w-full bg-gray-800/50 border-2 rounded-xl p-4 text-left transition-all
                     ${isLocked
-                      ? 'bg-gray-700'
-                      : `bg-${stage.color}-500/20`
+                      ? 'border-gray-700 opacity-50 cursor-not-allowed'
+                      : `border-${stage.color}-500/30 hover:border-${stage.color}-500 hover:bg-gray-800/70 cursor-pointer`
                     }
-                  `}>
-                    {isLocked ? (
-                      <Lock className="w-8 h-8 text-gray-500" />
-                    ) : stage.completed ? (
-                      <CheckCircle className={`w-8 h-8 text-${stage.color}-400`} />
-                    ) : (
-                      <Icon className={`w-8 h-8 text-${stage.color}-400`} />
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <h3 className="text-xl font-bold text-white">
-                        {stage.name}
-                      </h3>
-                      <span className={`
-                        text-sm font-medium px-2 py-0.5 rounded
+                  `}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-4 flex-1">
+                      {/* Icon */}
+                      <div className={`
+                        flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center
                         ${isLocked
-                          ? 'bg-gray-700 text-gray-400'
-                          : `bg-${stage.color}-500/20 text-${stage.color}-400`
+                          ? 'bg-gray-700'
+                          : `bg-${stage.color}-500/20`
                         }
                       `}>
-                        Level {stage.level}/5
-                      </span>
-                    </div>
-                    <p className="text-gray-400 mb-3">{stage.description}</p>
-
-                    {/* Progress Bar */}
-                    {!isLocked && (
-                      <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-                        <div
-                          className={`h-full bg-gradient-to-r from-${stage.color}-500 to-${stage.color}-400 transition-all duration-500`}
-                          style={{ width: `${stage.progress}%` }}
-                        />
+                        {isLocked ? (
+                          <Lock className="w-6 h-6 text-gray-500" />
+                        ) : stage.completed ? (
+                          <CheckCircle className={`w-6 h-6 text-${stage.color}-400`} />
+                        ) : (
+                          <Icon className={`w-6 h-6 text-${stage.color}-400`} />
+                        )}
                       </div>
-                    )}
 
-                    {isLocked && (
-                      <p className="text-gray-500 text-sm">
-                        Complete previous stage to unlock
-                      </p>
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <h3 className="text-lg font-bold text-white">
+                            {stage.name}
+                          </h3>
+                          <span className={`
+                            text-xs font-medium px-2 py-0.5 rounded
+                            ${isLocked
+                              ? 'bg-gray-700 text-gray-400'
+                              : `bg-${stage.color}-500/20 text-${stage.color}-400`
+                            }
+                          `}>
+                            Level {stage.level}/5
+                          </span>
+                          {!isLocked && (
+                            <div className="relative">
+                              <button
+                                onMouseEnter={() => setShowInfoTooltip(stage.id)}
+                                onMouseLeave={() => setShowInfoTooltip(null)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-gray-500 hover:text-gray-400 transition-colors"
+                              >
+                                <Info className="w-4 h-4" />
+                              </button>
+                              {showInfoTooltip === stage.id && (
+                                <div className="absolute left-0 top-full mt-2 bg-gray-800 border border-gray-600 rounded-lg p-3 text-sm text-gray-300 w-64 z-20 shadow-lg">
+                                  {stage.helpText}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-gray-400 text-sm mb-2">{stage.description}</p>
+
+                        {/* Progress Bar */}
+                        {!isLocked && (
+                          <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                            <div
+                              className={`h-full bg-gradient-to-r from-${stage.color}-500 to-${stage.color}-400 transition-all duration-500`}
+                              style={{ width: `${stage.progress}%` }}
+                            />
+                          </div>
+                        )}
+
+                        {isLocked && (
+                          <p className="text-gray-500 text-xs">
+                            Complete previous stage to unlock
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Arrow */}
+                    {!isLocked && (
+                      <ArrowRight className={`w-6 h-6 text-${stage.color}-400 flex-shrink-0 ml-4`} />
                     )}
                   </div>
-                </div>
-
-                {/* Arrow */}
-                {!isLocked && (
-                  <ArrowRight className={`w-6 h-6 text-${stage.color}-400 flex-shrink-0 ml-4`} />
-                )}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Info Text */}
-      <div className="text-center text-gray-400 text-sm max-w-2xl">
-        <p>
-          Complete at least Level 1 in each stage to reach Ready to Launch status.
-          Higher levels unlock more insights and capabilities!
-        </p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

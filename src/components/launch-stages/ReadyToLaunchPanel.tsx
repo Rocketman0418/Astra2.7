@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Rocket, Fuel, Zap, Compass, ArrowRight, Trophy, Star } from 'lucide-react';
 import { StageProgress } from '../../hooks/useLaunchPreparation';
 import { calculateStageProgress, formatPoints, getMinimumPointsToLaunch, getRecommendedPointsToLaunch } from '../../lib/launch-preparation-utils';
+import { LaunchPreparationHeader } from './LaunchPreparationHeader';
 
 interface ReadyToLaunchPanelProps {
   fuelProgress: StageProgress | null;
@@ -10,6 +11,7 @@ interface ReadyToLaunchPanelProps {
   totalPoints: number;
   onNavigateToStage: (stage: 'fuel' | 'boosters' | 'guidance') => void;
   onLaunch: () => void;
+  onExit?: () => void;
 }
 
 export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
@@ -18,9 +20,16 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
   guidanceProgress,
   totalPoints,
   onNavigateToStage,
-  onLaunch
+  onLaunch,
+  onExit
 }) => {
   const [launching, setLaunching] = useState(false);
+
+  const handleExit = () => {
+    if (onExit) {
+      onExit();
+    }
+  };
 
   const fuelLevel = fuelProgress?.level || 0;
   const boostersLevel = boostersProgress?.level || 0;
@@ -83,70 +92,74 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
   ];
 
   return (
-    <div className="min-h-screen p-4 md:p-8 flex flex-col items-center justify-center">
-      {/* Header */}
-      <div className="text-center mb-8 md:mb-12">
-        <div className="relative inline-block mb-6">
-          <div className={`
-            w-32 h-32 bg-gradient-to-br from-orange-500 via-green-500 to-blue-500 rounded-full
-            flex items-center justify-center
-            ${launching ? 'animate-bounce' : 'animate-pulse'}
-          `}>
-            <Rocket className="w-16 h-16 text-white" />
-          </div>
-          {launching && (
-            <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
-              <div className="text-4xl animate-bounce">🔥</div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <LaunchPreparationHeader onClose={handleExit} />
+
+      <div className="pt-20 px-4 pb-6 max-h-screen overflow-hidden flex flex-col">
+        <div className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <div className="relative inline-block mb-4">
+              <div className={`
+                w-24 h-24 bg-gradient-to-br from-orange-500 via-green-500 to-blue-500 rounded-full
+                flex items-center justify-center
+                ${launching ? 'animate-bounce' : 'animate-pulse'}
+              `}>
+                <Rocket className="w-12 h-12 text-white" />
+              </div>
+              {launching && (
+                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+                  <div className="text-3xl animate-bounce">🔥</div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
-          {canLaunch ? 'Ready to Launch!' : 'Almost Ready!'}
-        </h1>
-        <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-          {canLaunch
-            ? 'You\'ve completed the minimum requirements. Launch now or continue leveling up for even better results!'
-            : 'Complete Level 1 in all stages to unlock launch capability.'
-          }
-        </p>
-      </div>
-
-      {/* Overall Progress */}
-      <div className="w-full max-w-2xl mb-8">
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-white">Overall Progress</h2>
-            <span className="text-3xl font-bold text-yellow-400">{overallProgress}%</span>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+              {canLaunch ? 'Ready to Launch!' : 'Almost Ready!'}
+            </h1>
+            <p className="text-gray-400 text-sm max-w-2xl mx-auto">
+              {canLaunch
+                ? 'Launch now or continue leveling up for even better results!'
+                : 'Complete Level 1 in all stages to unlock launch.'
+              }
+            </p>
           </div>
 
-          <div className="w-full bg-gray-700 rounded-full h-4 overflow-hidden mb-4">
-            <div
-              className="h-full bg-gradient-to-r from-orange-500 via-cyan-500 to-green-500 transition-all duration-1000"
-              style={{ width: `${overallProgress}%` }}
-            />
+          {/* Overall Progress */}
+          <div className="w-full max-w-2xl mb-4">
+            <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-bold text-white">Overall Progress</h2>
+                <span className="text-2xl font-bold text-yellow-400">{overallProgress}%</span>
+              </div>
+
+              <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden mb-3">
+                <div
+                  className="h-full bg-gradient-to-r from-orange-500 via-cyan-500 to-green-500 transition-all duration-1000"
+                  style={{ width: `${overallProgress}%` }}
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center">
+                  <p className="text-gray-400 text-xs mb-1">Total Points</p>
+                  <p className="text-lg font-bold text-yellow-400">{formatPoints(totalPoints)}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-gray-400 text-xs mb-1">Minimum</p>
+                  <p className="text-sm text-gray-300">{formatPoints(minPoints)}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-gray-400 text-xs mb-1">Recommended</p>
+                  <p className="text-sm text-gray-300">{formatPoints(recommendedPoints)}</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <p className="text-gray-400 text-sm mb-1">Total Points</p>
-              <p className="text-2xl font-bold text-yellow-400">{formatPoints(totalPoints)}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-gray-400 text-sm mb-1">Minimum</p>
-              <p className="text-lg text-gray-300">{formatPoints(minPoints)}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-gray-400 text-sm mb-1">Recommended</p>
-              <p className="text-lg text-gray-300">{formatPoints(recommendedPoints)}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Stage Progress Cards */}
-      <div className="w-full max-w-4xl space-y-4 mb-8">
-        <h2 className="text-xl font-bold text-white mb-4">Stage Status</h2>
+          {/* Stage Progress Cards */}
+          <div className="w-full max-w-4xl space-y-3 mb-4">
+            <h2 className="text-lg font-bold text-white mb-2">Stage Status</h2>
         {stages.map((stage) => {
           const Icon = stage.icon;
 
@@ -154,7 +167,7 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
             <div
               key={stage.id}
               className={`
-                bg-gray-800/50 border-2 rounded-xl p-6
+                bg-gray-800/50 border-2 rounded-xl p-4
                 transition-all
                 border-${stage.color}-500/30
               `}
@@ -212,26 +225,26 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
         })}
       </div>
 
-      {/* Launch Button */}
-      <div className="w-full max-w-2xl space-y-4">
-        {canLaunch ? (
-          <>
-            <button
-              onClick={handleLaunch}
-              disabled={launching}
-              className={`
-                w-full text-white font-bold py-6 px-8 rounded-xl text-xl
-                transition-all transform
-                ${launching
-                  ? 'bg-gradient-to-r from-orange-600 to-orange-500 cursor-wait scale-95'
-                  : 'bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:scale-105 hover:shadow-2xl'
-                }
-                flex items-center justify-center space-x-3
-              `}
-            >
-              <Rocket className={`w-8 h-8 ${launching ? 'animate-bounce' : ''}`} />
-              <span>{launching ? 'Launching...' : '🚀 LAUNCH AI ROCKET'}</span>
-            </button>
+          {/* Launch Button */}
+          <div className="w-full max-w-2xl space-y-3">
+            {canLaunch ? (
+              <>
+                <button
+                  onClick={handleLaunch}
+                  disabled={launching}
+                  className={`
+                    w-full text-white font-bold py-4 px-6 rounded-xl text-lg
+                    transition-all transform
+                    ${launching
+                      ? 'bg-gradient-to-r from-orange-600 to-orange-500 cursor-wait scale-95'
+                      : 'bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:scale-105 hover:shadow-2xl'
+                    }
+                    flex items-center justify-center space-x-3
+                  `}
+                >
+                  <Rocket className={`w-6 h-6 ${launching ? 'animate-bounce' : ''}`} />
+                  <span>{launching ? 'Launching...' : '🚀 LAUNCH AI ROCKET'}</span>
+                </button>
 
             {!hasRecommendedLevel && (
               <p className="text-center text-gray-400 text-sm">
@@ -310,6 +323,8 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
           </ul>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 };
