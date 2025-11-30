@@ -8,8 +8,11 @@ import { BoostersStage } from './launch-stages/BoostersStage';
 import { GuidanceStage } from './launch-stages/GuidanceStage';
 import { ReadyToLaunchPanel } from './launch-stages/ReadyToLaunchPanel';
 import { StageSelector } from './launch-stages/StageSelector';
+import { LaunchOnboardingScreens } from './launch-stages/LaunchOnboardingScreens';
 import { LaunchToast, useLaunchToast } from './LaunchToast';
 import { isReadyToLaunch } from '../lib/launch-preparation-utils';
+import { supabase } from '../lib/supabase';
+import { useUserProfile } from '../hooks/useUserProfile';
 
 interface LaunchPreparationFlowProps {
   onLaunch: () => void;
@@ -17,6 +20,7 @@ interface LaunchPreparationFlowProps {
 
 export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ onLaunch }) => {
   const { user } = useAuth();
+  const { profile } = useUserProfile();
   const {
     launchStatus,
     stageProgress,
@@ -27,17 +31,52 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
   } = useLaunchPreparation();
 
   const [showStageSelector, setShowStageSelector] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
   const { notifications, dismissToast, showLaunch } = useLaunchToast();
 
   // Enable background activity tracking
   useLaunchActivity();
 
+  // Check if user has seen onboarding
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('user_launch_status')
+          .select('has_seen_onboarding')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error checking onboarding status:', error);
+          setCheckingOnboarding(false);
+          return;
+        }
+
+        // If user has no launch status or hasn't seen onboarding, show it
+        if (!data || !data.has_seen_onboarding) {
+          setShowOnboarding(true);
+        }
+
+        setCheckingOnboarding(false);
+      } catch (err) {
+        console.error('Error in checkOnboarding:', err);
+        setCheckingOnboarding(false);
+      }
+    };
+
+    checkOnboarding();
+  }, [user]);
+
   // Initialize launch status on mount
   useEffect(() => {
-    if (user && !launchStatus && !loading) {
+    if (user && !launchStatus && !loading && !checkingOnboarding) {
       initializeLaunchStatus();
     }
-  }, [user, launchStatus, loading, initializeLaunchStatus]);
+  }, [user, launchStatus, loading, checkingOnboarding, initializeLaunchStatus]);
 
   // Get progress for each stage
   const fuelProgress = stageProgress.find(p => p.stage === 'fuel') || null;
@@ -58,6 +97,31 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
     setShowStageSelector(true);
   };
 
+  // Handle onboarding completion
+  const handleOnboardingComplete = async () => {
+    try {
+      // Mark onboarding as seen
+      const { error } = await supabase
+        .from('user_launch_status')
+        .upsert({
+          user_id: user!.id,
+          has_seen_onboarding: true,
+          current_stage: 'fuel',
+          total_points: 0,
+          is_launched: false
+        });
+
+      if (error) {
+        console.error('Error updating onboarding status:', error);
+      }
+
+      setShowOnboarding(false);
+    } catch (err) {
+      console.error('Error in handleOnboardingComplete:', err);
+      setShowOnboarding(false);
+    }
+  };
+
   // Handle launch button click
   const handleLaunch = async () => {
     showLaunch();
@@ -67,7 +131,18 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
     }, 2000);
   };
 
-  if (loading) {
+  // Show onboarding screens if user hasn't seen them
+  if (showOnboarding && !checkingOnboarding) {
+    return (
+      <LaunchOnboardingScreens
+        onComplete={handleOnboardingComplete}
+        onClose={() => setShowOnboarding(false)}
+        userName={profile?.name || user?.email?.split('@')[0]}
+      />
+    );
+  }
+
+  if (loading || checkingOnboarding) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <div className="text-center">
