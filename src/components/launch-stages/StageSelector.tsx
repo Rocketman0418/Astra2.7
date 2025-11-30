@@ -87,10 +87,20 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <LaunchPreparationHeader onClose={handleExit} />
 
-      <div className="pt-20 px-4 pb-6 max-h-screen overflow-hidden flex flex-col">
-        <div className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full">
+      <div className="pt-16 px-4 pb-4 h-screen overflow-y-auto flex flex-col">
+        <div className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full py-4">
+          {/* Page Title */}
+          <div className="text-center mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-1">
+              Mission Control
+            </h2>
+            <p className="text-gray-400 text-base md:text-lg">
+              Launch Preparation
+            </p>
+          </div>
+
           {/* Points Display */}
-          <div className="bg-gray-800/50 border border-gray-700 rounded-lg px-6 py-2 mb-4 relative">
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg px-6 py-2 mb-6 relative">
             <div className="flex items-center space-x-2">
               <div>
                 <p className="text-gray-400 text-xs">Launch Points</p>
@@ -112,7 +122,7 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
           </div>
 
           {/* Stage Cards */}
-          <div className="w-full space-y-3 mb-4">
+          <div className="w-full space-y-4 mb-6">
             {stages.map((stage, index) => {
               const Icon = stage.icon;
               const isLocked = !stage.unlocked;
@@ -123,7 +133,7 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
                   onClick={() => !isLocked && onNavigateToStage(stage.id)}
                   disabled={isLocked}
                   className={`
-                    w-full bg-gray-800/50 border-2 rounded-xl p-4 text-left transition-all
+                    w-full bg-gray-800/50 border-2 rounded-xl p-5 text-left transition-all
                     ${isLocked
                       ? 'border-gray-700 opacity-50 cursor-not-allowed'
                       : `border-${stage.color}-500/30 hover:border-${stage.color}-500 hover:bg-gray-800/70 cursor-pointer`
@@ -134,29 +144,29 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
                     <div className="flex items-start space-x-4 flex-1">
                       {/* Icon */}
                       <div className={`
-                        flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center
+                        flex-shrink-0 w-14 h-14 rounded-lg flex items-center justify-center
                         ${isLocked
                           ? 'bg-gray-700'
                           : `bg-${stage.color}-500/20`
                         }
                       `}>
                         {isLocked ? (
-                          <Lock className="w-6 h-6 text-gray-500" />
+                          <Lock className="w-7 h-7 text-gray-500" />
                         ) : stage.completed ? (
-                          <CheckCircle className={`w-6 h-6 text-${stage.color}-400`} />
+                          <CheckCircle className={`w-7 h-7 text-${stage.color}-400`} />
                         ) : (
-                          <Icon className={`w-6 h-6 text-${stage.color}-400`} />
+                          <Icon className={`w-7 h-7 text-${stage.color}-400`} />
                         )}
                       </div>
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="text-lg font-bold text-white">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <h3 className="text-xl font-bold text-white">
                             {stage.name}
                           </h3>
                           <span className={`
-                            text-xs font-medium px-2 py-0.5 rounded
+                            text-sm font-medium px-2 py-1 rounded
                             ${isLocked
                               ? 'bg-gray-700 text-gray-400'
                               : `bg-${stage.color}-500/20 text-${stage.color}-400`
@@ -182,11 +192,11 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
                             </div>
                           )}
                         </div>
-                        <p className="text-gray-400 text-sm mb-2">{stage.description}</p>
+                        <p className="text-gray-400 text-base mb-3">{stage.description}</p>
 
                         {/* Progress Bar */}
                         {!isLocked && (
-                          <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                          <div className="w-full bg-gray-700 rounded-full h-2.5 overflow-hidden">
                             <div
                               className={`h-full bg-gradient-to-r from-${stage.color}-500 to-${stage.color}-400 transition-all duration-500`}
                               style={{ width: `${stage.progress}%` }}

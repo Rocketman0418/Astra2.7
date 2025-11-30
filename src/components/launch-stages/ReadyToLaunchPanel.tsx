@@ -95,31 +95,39 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <LaunchPreparationHeader onClose={handleExit} />
 
-      <div className="pt-20 px-4 pb-6 max-h-screen overflow-hidden flex flex-col">
-        <div className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full">
-          {/* Header */}
+      <div className="pt-16 px-4 pb-4 h-screen overflow-y-auto flex flex-col">
+        <div className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full py-4">
+          {/* Page Title */}
           <div className="text-center mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-1">
+              Mission Control
+            </h2>
+            <p className="text-gray-400 text-base md:text-lg mb-4">
+              Launch Preparation
+            </p>
+
+            {/* Rocket Animation */}
             <div className="relative inline-block mb-4">
               <div className={`
-                w-24 h-24 bg-gradient-to-br from-orange-500 via-green-500 to-blue-500 rounded-full
+                w-20 h-20 bg-gradient-to-br from-orange-500 via-green-500 to-blue-500 rounded-full
                 flex items-center justify-center
                 ${launching ? 'animate-bounce' : 'animate-pulse'}
               `}>
-                <Rocket className="w-12 h-12 text-white" />
+                <Rocket className="w-10 h-10 text-white" />
               </div>
               {launching && (
                 <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
-                  <div className="text-3xl animate-bounce">🔥</div>
+                  <div className="text-2xl animate-bounce">🔥</div>
                 </div>
               )}
             </div>
 
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
               {canLaunch ? 'Ready to Launch!' : 'Almost Ready!'}
             </h1>
             <p className="text-gray-400 text-sm max-w-2xl mx-auto">
               {canLaunch
-                ? 'Launch now or continue leveling up for even better results!'
+                ? 'Launch now or continue leveling up for better results!'
                 : 'Complete Level 1 in all stages to unlock launch.'
               }
             </p>
