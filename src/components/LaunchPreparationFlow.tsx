@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLaunchPreparation } from '../hooks/useLaunchPreparation';
+import { useLaunchActivity } from '../hooks/useLaunchActivity';
 import { useAuth } from '../contexts/AuthContext';
 import { Loader, Rocket } from 'lucide-react';
 import { FuelStage } from './launch-stages/FuelStage';
@@ -7,6 +8,7 @@ import { BoostersStage } from './launch-stages/BoostersStage';
 import { GuidanceStage } from './launch-stages/GuidanceStage';
 import { ReadyToLaunchPanel } from './launch-stages/ReadyToLaunchPanel';
 import { StageSelector } from './launch-stages/StageSelector';
+import { LaunchToast, useLaunchToast } from './LaunchToast';
 import { isReadyToLaunch } from '../lib/launch-preparation-utils';
 
 interface LaunchPreparationFlowProps {
@@ -25,6 +27,10 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
   } = useLaunchPreparation();
 
   const [showStageSelector, setShowStageSelector] = useState(true);
+  const { notifications, dismissToast, showLaunch } = useLaunchToast();
+
+  // Enable background activity tracking
+  useLaunchActivity();
 
   // Initialize launch status on mount
   useEffect(() => {
@@ -54,8 +60,11 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
 
   // Handle launch button click
   const handleLaunch = async () => {
+    showLaunch();
     await updateCurrentStage('launched');
-    onLaunch();
+    setTimeout(() => {
+      onLaunch();
+    }, 2000);
   };
 
   if (loading) {
@@ -119,6 +128,8 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
   // Show current stage
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <LaunchToast notifications={notifications} onDismiss={dismissToast} />
+
       {launchStatus.current_stage === 'fuel' && (
         <FuelStage
           progress={fuelProgress}

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, User } from 'lucide-react';
+import { Menu, User, Rocket } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { ChatMode } from '../types';
@@ -10,6 +10,8 @@ import { SupportMenu } from './SupportMenu';
 import { FeaturesMenu } from './FeaturesMenu';
 import { InstallAppButton } from './InstallAppButton';
 import { HelpCenterTab } from './HelpCenter';
+import { MissionControl } from './MissionControl';
+import { useLaunchPreparation } from '../hooks/useLaunchPreparation';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -32,7 +34,9 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { user } = useAuth();
   const { profile } = useUserProfile();
+  const { launchStatus } = useLaunchPreparation();
   const [showSettings, setShowSettings] = useState(false);
+  const [showMissionControl, setShowMissionControl] = useState(false);
   const [hasN8NAccess, setHasN8NAccess] = useState(false);
   const helpMenuRef = useRef<HTMLDivElement>(null);
   const [showHelpMenu, setShowHelpMenu] = useState(false);
@@ -153,6 +157,22 @@ export const Header: React.FC<HeaderProps> = ({
           <InstallAppButton />
           <NotificationBell onOpenSettings={() => setShowSettings(true)} />
 
+          {/* Mission Control - Show if user has launched */}
+          {launchStatus?.is_launched && (
+            <button
+              onClick={() => setShowMissionControl(true)}
+              className="p-2 hover:bg-slate-700 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation relative group"
+              title="Mission Control"
+            >
+              <Rocket className="w-5 h-5 text-orange-400" />
+              {launchStatus.total_points > 0 && (
+                <span className="absolute -top-1 -right-1 bg-yellow-500 text-xs text-gray-900 font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                  {launchStatus.total_points >= 1000 ? `${Math.floor(launchStatus.total_points / 1000)}k` : launchStatus.total_points}
+                </span>
+              )}
+            </button>
+          )}
+
           {/* Support Menu - HelpCircle icon with Bug/Support/Feature Request */}
           <SupportMenu />
 
@@ -190,6 +210,10 @@ export const Header: React.FC<HeaderProps> = ({
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
       />
+
+      {showMissionControl && (
+        <MissionControl onClose={() => setShowMissionControl(false)} />
+      )}
     </header>
   );
 };
