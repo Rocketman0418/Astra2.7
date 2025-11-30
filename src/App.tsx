@@ -20,9 +20,11 @@ import { ProtectedMetricsRoute } from './components/ProtectedMetricsRoute';
 import { PricingStrategyPage } from './components/PricingStrategyPage';
 import { MCPStrategyPage } from './components/MCPStrategyPage';
 import { PasswordResetPage } from './components/PasswordResetPage';
+import { LaunchPreparationFlow } from './components/LaunchPreparationFlow';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
 import { useFeedbackPrompt } from './hooks/useFeedbackPrompt';
 import { useActivityTracking } from './hooks/useActivityTracking';
+import { useLaunchPreparation } from './hooks/useLaunchPreparation';
 import { supabase } from './lib/supabase';
 import { FEATURES } from './config/features';
 
@@ -30,7 +32,11 @@ const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [checkingOnboarding, setCheckingOnboarding] = useState(true);
+  const [needsLaunchPreparation, setNeedsLaunchPreparation] = useState(false);
+  const [isEligibleForLaunchPrep, setIsEligibleForLaunchPrep] = useState(false);
+  const [checkingLaunchStatus, setCheckingLaunchStatus] = useState(true);
   const { shouldShowFeedback, questions, submitFeedback, skipFeedback } = useFeedbackPrompt();
+  const { checkEligibility, launchStatus } = useLaunchPreparation();
 
   // Automatically refresh Gmail tokens in the background (only if Gmail is enabled)
   useGmailTokenRefresh(FEATURES.GMAIL_ENABLED);
@@ -84,6 +90,46 @@ const AppContent: React.FC = () => {
     checkOnboardingStatus();
   }, [user]);
 
+  // Check launch preparation eligibility and status (after onboarding)
+  useEffect(() => {
+    const checkLaunchPreparation = async () => {
+      if (!user || needsOnboarding) {
+        setCheckingLaunchStatus(false);
+        return;
+      }
+
+      try {
+        // Check if user is eligible for launch preparation
+        const eligible = await checkEligibility(user.email || '');
+        setIsEligibleForLaunchPrep(eligible);
+
+        if (!eligible) {
+          // User not eligible, skip launch preparation
+          setNeedsLaunchPreparation(false);
+          setCheckingLaunchStatus(false);
+          return;
+        }
+
+        // User is eligible, check if they've launched
+        if (launchStatus?.is_launched) {
+          // User already launched, go to main app
+          setNeedsLaunchPreparation(false);
+        } else {
+          // User needs to go through launch preparation
+          setNeedsLaunchPreparation(true);
+        }
+      } catch (err) {
+        console.error('Error checking launch preparation status:', err);
+        // On error, default to not needing launch prep (fail open)
+        setNeedsLaunchPreparation(false);
+      } finally {
+        setCheckingLaunchStatus(false);
+      }
+    };
+
+    checkLaunchPreparation();
+  }, [user, needsOnboarding, checkEligibility, launchStatus]);
+
   const handleOnboardingComplete = async () => {
     const { data: { user: refreshedUser } } = await supabase.auth.getUser();
     if (refreshedUser) {
@@ -114,7 +160,13 @@ const AppContent: React.FC = () => {
     }
   };
 
-  if (loading || checkingOnboarding) {
+  const handleLaunchComplete = () => {
+    // User has launched, reload to main app
+    setNeedsLaunchPreparation(false);
+    window.location.href = '/';
+  };
+
+  if (loading || checkingOnboarding || checkingLaunchStatus) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -205,6 +257,8 @@ const AppContent: React.FC = () => {
             <AuthScreen />
           ) : needsOnboarding ? (
             <OnboardingScreen onComplete={handleOnboardingComplete} />
+          ) : needsLaunchPreparation ? (
+            <LaunchPreparationFlow onLaunch={handleLaunchComplete} />
           ) : (
             <>
               <VersionChecker />
