@@ -17,11 +17,13 @@ import { ChatMode } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useSavedVisualizations } from '../hooks/useSavedVisualizations';
 import { useOAuthReconnectPrompt } from '../hooks/useOAuthReconnectPrompt';
+import { useLaunchPreparation } from '../hooks/useLaunchPreparation';
 import { getTourStepsForRole } from '../data/tourSteps';
 import { supabase } from '../lib/supabase';
 
 export const MainContainer: React.FC = () => {
   const { user } = useAuth();
+  const { checkEligibility, launchStatus } = useLaunchPreparation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [chatMode, setChatMode] = useState<ChatMode>('reports');
   const [conversationToLoad, setConversationToLoad] = useState<string | null>(null);
@@ -101,14 +103,34 @@ export const MainContainer: React.FC = () => {
         console.error('❌ [MainContainer] No teamId found in user data');
       }
 
+      // CRITICAL: Check Launch Preparation eligibility BEFORE checking guided setup
+      const isEligibleForLaunchPrep = await checkEligibility(user.email || '');
+      console.log('🚀 [MainContainer] Launch Preparation check:', {
+        isEligible: isEligibleForLaunchPrep,
+        hasLaunched: launchStatus?.is_launched
+      });
+
+      // If user is eligible for Launch Preparation and hasn't launched yet,
+      // they should NOT see the old Guided Setup - they'll see Launch Prep from App.tsx
+      if (isEligibleForLaunchPrep && !launchStatus?.is_launched) {
+        console.log('🚀 [MainContainer] User eligible for Launch Prep - skipping old Guided Setup');
+        // Clear any openGuidedSetup param
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('openGuidedSetup') === 'true') {
+          window.history.replaceState({}, '', '/');
+        }
+        // Don't show any setup modals - Launch Prep handles this
+        return;
+      }
+
       // Check if we should open Guided Setup from URL parameter
-      // ONLY for team creators
+      // ONLY for team creators who are NOT in Launch Preparation
       const urlParams = new URLSearchParams(window.location.search);
       const hasGuidedSetupParam = urlParams.get('openGuidedSetup') === 'true';
 
       console.log('🔗 [MainContainer] URL check:', { hasGuidedSetupParam, isTeamCreator });
 
-      if (hasGuidedSetupParam && isTeamCreator) {
+      if (hasGuidedSetupParam && isTeamCreator && !isEligibleForLaunchPrep) {
         console.log('✅ [MainContainer] Opening Guided Setup for team creator');
         setShowSetupGuide(true);
         setShowWelcomeModal(false); // CRITICAL: Prevent Welcome Modal from showing
@@ -122,8 +144,8 @@ export const MainContainer: React.FC = () => {
       }
 
       // Check if user has incomplete guided setup progress
-      // ONLY for team creators
-      if (isTeamCreator) {
+      // ONLY for team creators who are NOT in Launch Preparation
+      if (isTeamCreator && !isEligibleForLaunchPrep) {
         const { data: setupProgress } = await supabase
           .from('setup_guide_progress')
           .select('is_completed, current_step')
