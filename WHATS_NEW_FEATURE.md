@@ -265,6 +265,124 @@ This guided experience helps teams understand the value of each data type and en
 
 ---
 
+## Recent Features to Add
+
+### November 2025 Updates
+
+The following features have been recently implemented and should be added to the What's New section:
+
+#### 1. Enhanced Error Handling (v1.1.1)
+**Type:** Improvement
+**Description:**
+Astra now provides clear, user-friendly error messages when unable to generate responses. Instead of technical errors, you'll see helpful suggestions:
+
+• What went wrong in plain English
+• Specific steps you can try to resolve the issue
+• When to contact support for help
+
+This applies to network errors, timeouts, empty responses, and server errors in both Private and Team Chat modes.
+
+**Display Order:** 1110
+
+#### 2. Balanced Data Category Usage in Guided Chat (v1.1.0)
+**Type:** Improvement
+**Description:**
+Astra Guided Chat now ensures balanced use of all your data types. When you have strategy documents, meeting notes, AND financial records, all three suggested prompts will reference multiple data categories:
+
+• Prompt 1: Strategy + Meetings alignment
+• Prompt 2: Financials + Strategy insights
+• Prompt 3: Cross-functional analysis (all 3 types)
+
+This ensures comprehensive insights across your entire business data.
+
+**Display Order:** 1105
+
+#### 3. Meetings Data Display Fix (v1.1.0)
+**Type:** Improvement
+**Description:**
+Fixed an issue where meeting documents weren't appearing during Astra Guided Chat prompt generation. Now all 123+ meeting documents are properly detected and used in personalized prompt suggestions.
+
+**Display Order:** 1100
+
+---
+
 ## Summary
 
 The "What's New" feature provides a professional, user-friendly way to keep the team informed about platform updates. It's easily accessible, well-organized, and designed to highlight the continuous improvement of Astra Intelligence.
+
+### Quick Add SQL Snippets
+
+**Enhanced Error Handling:**
+```sql
+INSERT INTO whats_new (
+  title,
+  description,
+  version,
+  feature_type,
+  date_added,
+  is_published,
+  display_order
+) VALUES (
+  'Enhanced Error Handling',
+  'Astra now provides clear, user-friendly error messages when unable to generate responses. Instead of technical errors, you''ll see helpful suggestions:
+
+• What went wrong in plain English
+• Specific steps you can try to resolve the issue
+• When to contact support for help
+
+This applies to network errors, timeouts, empty responses, and server errors in both Private and Team Chat modes.',
+  '1.1.1',
+  'improvement',
+  '2025-11-29',
+  true,
+  1110
+);
+```
+
+**Balanced Data Usage:**
+```sql
+INSERT INTO whats_new (
+  title,
+  description,
+  version,
+  feature_type,
+  date_added,
+  is_published,
+  display_order
+) VALUES (
+  'Balanced Data Category Usage in Guided Chat',
+  'Astra Guided Chat now ensures balanced use of all your data types. When you have strategy documents, meeting notes, AND financial records, all three suggested prompts will reference multiple data categories:
+
+• Prompt 1: Strategy + Meetings alignment
+• Prompt 2: Financials + Strategy insights
+• Prompt 3: Cross-functional analysis (all 3 types)
+
+This ensures comprehensive insights across your entire business data.',
+  '1.1.0',
+  'improvement',
+  '2025-11-29',
+  true,
+  1105
+);
+```
+
+**Meetings Data Fix:**
+```sql
+INSERT INTO whats_new (
+  title,
+  description,
+  version,
+  feature_type,
+  date_added,
+  is_published,
+  display_order
+) VALUES (
+  'Meetings Data Display Fix',
+  'Fixed an issue where meeting documents weren''t appearing during Astra Guided Chat prompt generation. Now all your meeting documents are properly detected and used in personalized prompt suggestions.',
+  '1.1.0',
+  'improvement',
+  '2025-11-29',
+  true,
+  1100
+);
+```
