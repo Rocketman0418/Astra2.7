@@ -6,14 +6,18 @@ import { GUIDANCE_LEVELS, formatPoints } from '../../lib/launch-preparation-util
 import { TeamSettingsModal } from '../TeamSettingsModal';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { LaunchPreparationHeader } from './LaunchPreparationHeader';
 
 interface GuidanceStageProps {
   progress: StageProgress | null;
+  fuelProgress: StageProgress | null;
+  boostersProgress: StageProgress | null;
+  guidanceProgress: StageProgress | null;
   onBack: () => void;
   onComplete: () => void;
 }
 
-export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, onBack, onComplete }) => {
+export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProgress, boostersProgress, guidanceProgress, onBack, onComplete }) => {
   const { user } = useAuth();
   const { updateStageLevel, completeAchievement } = useLaunchPreparation();
   const [showTeamSettings, setShowTeamSettings] = useState(false);
@@ -166,15 +170,23 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, onBack, 
   ];
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        <button
-          onClick={onBack}
-          className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors mb-6"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span>Back to Stages</span>
-        </button>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <LaunchPreparationHeader
+        onClose={onBack}
+        fuelProgress={fuelProgress}
+        boostersProgress={boostersProgress}
+        guidanceProgress={guidanceProgress}
+      />
+
+      <div className="pt-16 p-4 md:p-8">
+        <div className="max-w-4xl mx-auto">
+          <button
+            onClick={onBack}
+            className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors mb-6"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back to Stages</span>
+          </button>
 
         {/* Stage Title */}
         <div className="bg-gradient-to-r from-green-500/20 to-emerald-600/20 border border-green-500/30 rounded-xl p-6 mb-8">
@@ -400,6 +412,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, onBack, 
           onSaved={handleTeamSettingsSaved}
         />
       )}
+      </div>
     </div>
   );
 };

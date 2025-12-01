@@ -4,14 +4,18 @@ import { StageProgress } from '../../hooks/useLaunchPreparation';
 import { useLaunchPreparation } from '../../hooks/useLaunchPreparation';
 import { BOOSTERS_LEVELS, formatPoints } from '../../lib/launch-preparation-utils';
 import { AstraGuidedChatModal } from '../AstraGuidedChatModal';
+import { LaunchPreparationHeader } from './LaunchPreparationHeader';
 
 interface BoostersStageProps {
   progress: StageProgress | null;
+  fuelProgress: StageProgress | null;
+  boostersProgress: StageProgress | null;
+  guidanceProgress: StageProgress | null;
   onBack: () => void;
   onComplete: () => void;
 }
 
-export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, onBack, onComplete }) => {
+export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProgress, boostersProgress, guidanceProgress, onBack, onComplete }) => {
   const { updateStageLevel, completeAchievement } = useLaunchPreparation();
   const [showGuidedChat, setShowGuidedChat] = useState(false);
   const [checkingLevel, setCheckingLevel] = useState(false);
@@ -113,15 +117,23 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, onBack, 
   ];
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        <button
-          onClick={onBack}
-          className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors mb-6"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span>Back to Stages</span>
-        </button>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <LaunchPreparationHeader
+        onClose={onBack}
+        fuelProgress={fuelProgress}
+        boostersProgress={boostersProgress}
+        guidanceProgress={guidanceProgress}
+      />
+
+      <div className="pt-16 p-4 md:p-8">
+        <div className="max-w-4xl mx-auto">
+          <button
+            onClick={onBack}
+            className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors mb-6"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back to Stages</span>
+          </button>
 
         {/* Stage Title */}
         <div className="bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 rounded-xl p-6 mb-8">
@@ -347,6 +359,7 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, onBack, 
           onPromptSelected={handleGuidedChatComplete}
         />
       )}
+      </div>
     </div>
   );
 };
