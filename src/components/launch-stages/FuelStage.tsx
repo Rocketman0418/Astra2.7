@@ -318,17 +318,29 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
 
       {/* Google Drive Setup Flow Modal */}
       {showDriveFlow && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4"
+          onClick={(e) => {
+            // Allow closing by clicking backdrop
+            if (e.target === e.currentTarget) {
+              setShowDriveFlow(false);
+            }
+          }}
+        >
           <div className="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-gray-800 border-b border-gray-700 p-4 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">
                 {driveFlowStep === 'connect' ? 'Connect Google Drive' : 'Choose Your Folder'}
               </h2>
               <button
-                onClick={() => setShowDriveFlow(false)}
-                className="text-gray-400 hover:text-white text-2xl leading-none px-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDriveFlow(false);
+                }}
+                className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-700 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label="Close"
               >
-                ×
+                <span className="text-2xl leading-none">×</span>
               </button>
             </div>
             <div className="p-6">
