@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Fuel, CheckCircle, ArrowRight, Loader, FileText, Folder, Database, HardDrive, Rocket } from 'lucide-react';
+import { X, Fuel, CheckCircle, ArrowRight, Loader, FileText, Folder, Database, HardDrive, Rocket, Info } from 'lucide-react';
 import { StageProgress } from '../../hooks/useLaunchPreparation';
 import { useLaunchPreparation } from '../../hooks/useLaunchPreparation';
 import { useDocumentCounts } from '../../hooks/useDocumentCounts';
@@ -8,7 +8,7 @@ import { getGoogleDriveConnection } from '../../lib/google-drive-oauth';
 import { useAuth } from '../../contexts/AuthContext';
 import { ConnectDriveStep } from '../setup-steps/ConnectDriveStep';
 import { ChooseFolderStep } from '../setup-steps/ChooseFolderStep';
-import { LaunchPreparationHeader } from './LaunchPreparationHeader';
+import { StageProgressBar } from './StageProgressBar';
 
 interface FuelStageProps {
   progress: StageProgress | null;
@@ -115,25 +115,47 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
   const levelIcons = [FileText, Folder, Database, HardDrive, Rocket];
   const LevelIcon = levelIcons[currentLevel] || FileText;
 
+  const handleStageNavigation = (stage: 'fuel' | 'boosters' | 'guidance') => {
+    if (stage === 'fuel') return; // Already here
+    if (stage === 'boosters' && (fuelProgress?.level ?? 0) >= 1) {
+      onBack(); // Go to stage selector, user can pick boosters
+    }
+    if (stage === 'guidance' && (fuelProgress?.level ?? 0) >= 1 && (boostersProgress?.level ?? 0) >= 1) {
+      onBack(); // Go to stage selector, user can pick guidance
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <LaunchPreparationHeader
-        onClose={onBack}
+      {/* Compact Progress Bar at Top */}
+      <StageProgressBar
         fuelProgress={fuelProgress}
         boostersProgress={boostersProgress}
         guidanceProgress={guidanceProgress}
+        currentStage="fuel"
+        onStageClick={handleStageNavigation}
       />
 
-      <div className="pt-16 p-4 md:p-8">
-        {/* Header */}
-        <div className="max-w-4xl mx-auto">
+      <div className="p-4 max-w-5xl mx-auto">
+        {/* Compact Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
+              <Fuel className="w-6 h-6 text-orange-400" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-white">Fuel Stage</h1>
+              <p className="text-sm text-gray-400">Add data to power your AI</p>
+            </div>
+          </div>
           <button
             onClick={onBack}
-            className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors mb-6"
+            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+            title="Back to Mission Control"
           >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back to Stages</span>
+            <X className="w-5 h-5 text-gray-400" />
           </button>
+        </div>
 
         {/* Stage Title */}
         <div className="bg-gradient-to-r from-blue-500/20 to-purple-600/20 border border-blue-500/30 rounded-xl p-6 mb-8">
@@ -392,7 +414,6 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
           </div>
         </div>
       )}
-      </div>
     </div>
   );
 };
