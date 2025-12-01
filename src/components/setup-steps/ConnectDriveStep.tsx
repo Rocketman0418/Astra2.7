@@ -6,9 +6,10 @@ import { initiateGoogleDriveOAuth, getGoogleDriveConnection } from '../../lib/go
 interface ConnectDriveStepProps {
   onComplete: () => void;
   progress: SetupGuideProgress | null;
+  fromLaunchPrep?: boolean;
 }
 
-export const ConnectDriveStep: React.FC<ConnectDriveStepProps> = ({ onComplete }) => {
+export const ConnectDriveStep: React.FC<ConnectDriveStepProps> = ({ onComplete, fromLaunchPrep = false }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState('');
@@ -33,7 +34,7 @@ export const ConnectDriveStep: React.FC<ConnectDriveStepProps> = ({ onComplete }
     setError('');
 
     try {
-      initiateGoogleDriveOAuth(true);
+      initiateGoogleDriveOAuth(!fromLaunchPrep, fromLaunchPrep);
     } catch (err: any) {
       setError(err.message || 'Failed to connect to Google Drive');
       setIsConnecting(false);

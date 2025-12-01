@@ -4,9 +4,10 @@ import { StageProgress } from '../../hooks/useLaunchPreparation';
 import { useLaunchPreparation } from '../../hooks/useLaunchPreparation';
 import { useDocumentCounts } from '../../hooks/useDocumentCounts';
 import { FUEL_LEVELS, formatPoints } from '../../lib/launch-preparation-utils';
-import { GoogleDriveSettings } from '../GoogleDriveSettings';
 import { getGoogleDriveConnection } from '../../lib/google-drive-oauth';
 import { useAuth } from '../../contexts/AuthContext';
+import { ConnectDriveStep } from '../setup-steps/ConnectDriveStep';
+import { ChooseFolderStep } from '../setup-steps/ChooseFolderStep';
 
 interface FuelStageProps {
   progress: StageProgress | null;
@@ -18,7 +19,8 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
   const { user } = useAuth();
   const { updateStageLevel, completeAchievement, awardPoints } = useLaunchPreparation();
   const { counts, loading: countsLoading, calculateFuelLevel, meetsLevelRequirements } = useDocumentCounts();
-  const [showDriveSettings, setShowDriveSettings] = useState(false);
+  const [showDriveFlow, setShowDriveFlow] = useState(false);
+  const [driveFlowStep, setDriveFlowStep] = useState<'connect' | 'choose-folder'>('connect');
   const [checkingLevel, setCheckingLevel] = useState(false);
   const [hasGoogleDrive, setHasGoogleDrive] = useState(false);
   const [checkingDrive, setCheckingDrive] = useState(true);
@@ -36,12 +38,23 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
         setHasGoogleDrive(!!connection && connection.is_active);
         setCheckingDrive(false);
 
-        // Auto-open settings modal if they just connected (and it's not already open)
-        if (connection && connection.is_active && !showDriveSettings) {
-          // Only auto-open if they don't have folders configured yet
+        // Check if returning from OAuth (session storage flag)
+        const shouldReopenFuel = sessionStorage.getItem('reopen_fuel_stage');
+        if (shouldReopenFuel === 'true') {
+          sessionStorage.removeItem('reopen_fuel_stage');
+          console.log('🚀 [FuelStage] Reopening modal after OAuth return');
+          // Open modal and go to folder selection step
+          setDriveFlowStep('choose-folder');
+          setShowDriveFlow(true);
+          return;
+        }
+
+        // Auto-open folder selection if they connected but no folders configured
+        if (connection && connection.is_active && !showDriveFlow) {
           const hasAnyFolder = connection.strategy_folder_id || connection.meetings_folder_id || connection.financial_folder_id;
           if (!hasAnyFolder) {
-            setShowDriveSettings(true);
+            setDriveFlowStep('choose-folder');
+            setShowDriveFlow(true);
           }
         }
       } catch (error) {
@@ -53,7 +66,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
     if (user) {
       checkDriveConnection();
     }
-  }, [user, showDriveSettings]);
+  }, [user, showDriveFlow]);
 
   // Check if user meets requirements for next level
   useEffect(() => {
@@ -241,7 +254,10 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
         {/* Action Buttons */}
         <div className="space-y-4">
           <button
-            onClick={() => setShowDriveSettings(true)}
+            onClick={() => {
+              setDriveFlowStep(hasGoogleDrive ? 'choose-folder' : 'connect');
+              setShowDriveFlow(true);
+            }}
             disabled={checkingDrive}
             className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -300,21 +316,42 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
         </div>
       </div>
 
-      {/* Google Drive Settings Modal */}
-      {showDriveSettings && (
+      {/* Google Drive Setup Flow Modal */}
+      {showDriveFlow && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-gray-800 border-b border-gray-700 p-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">Connect Google Drive</h2>
+              <h2 className="text-xl font-bold text-white">
+                {driveFlowStep === 'connect' ? 'Connect Google Drive' : 'Choose Your Folder'}
+              </h2>
               <button
-                onClick={() => setShowDriveSettings(false)}
-                className="text-gray-400 hover:text-white"
+                onClick={() => setShowDriveFlow(false)}
+                className="text-gray-400 hover:text-white text-2xl leading-none px-2"
               >
                 ×
               </button>
             </div>
             <div className="p-6">
-              <GoogleDriveSettings fromLaunchPrep={true} />
+              {driveFlowStep === 'connect' ? (
+                <ConnectDriveStep
+                  onComplete={() => {
+                    setDriveFlowStep('choose-folder');
+                    setHasGoogleDrive(true);
+                  }}
+                  progress={null}
+                  fromLaunchPrep={true}
+                />
+              ) : (
+                <ChooseFolderStep
+                  onComplete={(folderData) => {
+                    console.log('Folder selected:', folderData);
+                    setShowDriveFlow(false);
+                    // Refresh data counts to update fuel level
+                    window.location.reload();
+                  }}
+                  progress={null}
+                />
+              )}
             </div>
           </div>
         </div>
