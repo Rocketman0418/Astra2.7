@@ -466,6 +466,9 @@ export const CustomAuth: React.FC = () => {
             <span className="text-white font-normal">+</span>
             <span className="text-emerald-400">Astra Intelligence</span>
           </h1>
+          <p className="text-base md:text-lg text-gray-400 mt-4 max-w-xl mx-auto">
+            Launching AI-Powered Businesses for Entrepreneurs and their Teams
+          </p>
         </div>
 
         <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-2xl p-6">
