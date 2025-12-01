@@ -17,9 +17,6 @@ export const AuthScreen: React.FC = () => {
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
               AI that Works for Work
             </h2>
-            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-              Built for Entrepreneurs and their Teams
-            </p>
           </div>
 
           {/* Features Grid */}
@@ -148,7 +145,7 @@ export const AuthScreen: React.FC = () => {
               </div>
               <div className="flex items-center gap-2 text-gray-400">
                 <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-                <span>Built for Entrepreneurs and their Teams</span>
+                <span>Launching AI-Powered Businesses for Entrepreneurs and their Teams</span>
               </div>
             </div>
           </div>
