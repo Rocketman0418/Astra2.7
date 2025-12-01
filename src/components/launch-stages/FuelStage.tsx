@@ -24,6 +24,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
   const [checkingLevel, setCheckingLevel] = useState(false);
   const [hasGoogleDrive, setHasGoogleDrive] = useState(false);
   const [checkingDrive, setCheckingDrive] = useState(true);
+  const [userClosedModal, setUserClosedModal] = useState(false);
 
   const currentLevel = progress?.level || 0;
   const targetLevel = currentLevel + 1;
@@ -50,7 +51,8 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
         }
 
         // Auto-open folder selection if they connected but no folders configured
-        if (connection && connection.is_active && !showDriveFlow) {
+        // BUT respect if user manually closed the modal
+        if (connection && connection.is_active && !showDriveFlow && !userClosedModal) {
           const hasAnyFolder = connection.strategy_folder_id || connection.meetings_folder_id || connection.financial_folder_id;
           if (!hasAnyFolder) {
             setDriveFlowStep('choose-folder');
@@ -66,7 +68,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
     if (user) {
       checkDriveConnection();
     }
-  }, [user, showDriveFlow]);
+  }, [user]);
 
   // Check if user meets requirements for next level
   useEffect(() => {
@@ -324,6 +326,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
             // Allow closing by clicking backdrop
             if (e.target === e.currentTarget) {
               setShowDriveFlow(false);
+              setUserClosedModal(true);
             }
           }}
         >
@@ -336,6 +339,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowDriveFlow(false);
+                  setUserClosedModal(true);
                 }}
                 className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-700 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
                 aria-label="Close"

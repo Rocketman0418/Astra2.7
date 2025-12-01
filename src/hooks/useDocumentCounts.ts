@@ -44,9 +44,9 @@ export function useDocumentCounts() {
         return;
       }
 
-      // Count strategy documents (from document_chunks table)
+      // Count strategy documents (from document_chunks_strategy table)
       const { count: strategyCount, error: strategyError } = await supabase
-        .from('document_chunks')
+        .from('document_chunks_strategy')
         .select('source_id', { count: 'exact', head: true })
         .eq('team_id', teamId);
 
@@ -70,7 +70,7 @@ export function useDocumentCounts() {
 
       // Count unique strategy documents
       const { data: strategyDocs, error: strategyDocsError } = await supabase
-        .from('document_chunks')
+        .from('document_chunks_strategy')
         .select('source_id')
         .eq('team_id', teamId);
 
@@ -234,7 +234,7 @@ export function useDocumentCounts() {
         {
           event: '*',
           schema: 'public',
-          table: 'document_chunks'
+          table: 'document_chunks_strategy'
         },
         () => {
           fetchCounts();
