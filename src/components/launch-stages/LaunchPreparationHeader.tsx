@@ -1,15 +1,26 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Fuel, Zap, Compass } from 'lucide-react';
 import { SupportMenu } from '../SupportMenu';
+import { StageProgress } from '../../hooks/useLaunchPreparation';
 
 interface LaunchPreparationHeaderProps {
   onClose: () => void;
+  fuelProgress?: StageProgress | null;
+  boostersProgress?: StageProgress | null;
+  guidanceProgress?: StageProgress | null;
 }
 
 export const LaunchPreparationHeader: React.FC<LaunchPreparationHeaderProps> = ({
-  onClose
+  onClose,
+  fuelProgress,
+  boostersProgress,
+  guidanceProgress
 }) => {
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+
+  const fuelLevel = fuelProgress?.level || 0;
+  const boostersLevel = boostersProgress?.level || 0;
+  const guidanceLevel = guidanceProgress?.level || 0;
 
   const handleClose = () => {
     setShowCloseConfirm(true);
@@ -47,6 +58,29 @@ export const LaunchPreparationHeader: React.FC<LaunchPreparationHeaderProps> = (
               <span className="hidden md:inline text-emerald-400">Astra Intelligence</span>
             </h1>
           </div>
+
+          {/* Progress Indicators - Hidden on mobile */}
+          {(fuelProgress || boostersProgress || guidanceProgress) && (
+            <div className="hidden md:flex items-center space-x-4 flex-1 justify-center px-8">
+              <div className="flex items-center space-x-2">
+                <Fuel className="w-4 h-4 text-orange-400" />
+                <span className="text-xs text-gray-400">Lvl</span>
+                <span className="text-sm font-bold text-orange-400">{fuelLevel}</span>
+              </div>
+              <div className="h-4 w-px bg-gray-600" />
+              <div className="flex items-center space-x-2">
+                <Zap className="w-4 h-4 text-cyan-400" />
+                <span className="text-xs text-gray-400">Lvl</span>
+                <span className="text-sm font-bold text-cyan-400">{boostersLevel}</span>
+              </div>
+              <div className="h-4 w-px bg-gray-600" />
+              <div className="flex items-center space-x-2">
+                <Compass className="w-4 h-4 text-green-400" />
+                <span className="text-xs text-gray-400">Lvl</span>
+                <span className="text-sm font-bold text-green-400">{guidanceLevel}</span>
+              </div>
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex items-center space-x-2">

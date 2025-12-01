@@ -227,6 +227,9 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
       {launchStatus.current_stage === 'fuel' && (
         <FuelStage
           progress={fuelProgress}
+          fuelProgress={fuelProgress}
+          boostersProgress={boostersProgress}
+          guidanceProgress={guidanceProgress}
           onBack={backToStageSelector}
           onComplete={() => {
             if (boostersProgress && boostersProgress.level > 0) {
@@ -241,6 +244,9 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
       {launchStatus.current_stage === 'boosters' && (
         <BoostersStage
           progress={boostersProgress}
+          fuelProgress={fuelProgress}
+          boostersProgress={boostersProgress}
+          guidanceProgress={guidanceProgress}
           onBack={backToStageSelector}
           onComplete={() => {
             if (guidanceProgress && guidanceProgress.level > 0) {
@@ -255,6 +261,9 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
       {launchStatus.current_stage === 'guidance' && (
         <GuidanceStage
           progress={guidanceProgress}
+          fuelProgress={fuelProgress}
+          boostersProgress={boostersProgress}
+          guidanceProgress={guidanceProgress}
           onBack={backToStageSelector}
           onComplete={() => {
             if (readyToLaunch) {

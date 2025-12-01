@@ -85,7 +85,12 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <LaunchPreparationHeader onClose={handleExit} />
+      <LaunchPreparationHeader
+        onClose={handleExit}
+        fuelProgress={fuelProgress}
+        boostersProgress={boostersProgress}
+        guidanceProgress={guidanceProgress}
+      />
 
       <div className="pt-16 px-4 pb-4 h-screen overflow-y-auto flex flex-col">
         <div className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full py-4">

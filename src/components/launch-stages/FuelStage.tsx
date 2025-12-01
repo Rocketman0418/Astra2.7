@@ -8,14 +8,18 @@ import { getGoogleDriveConnection } from '../../lib/google-drive-oauth';
 import { useAuth } from '../../contexts/AuthContext';
 import { ConnectDriveStep } from '../setup-steps/ConnectDriveStep';
 import { ChooseFolderStep } from '../setup-steps/ChooseFolderStep';
+import { LaunchPreparationHeader } from './LaunchPreparationHeader';
 
 interface FuelStageProps {
   progress: StageProgress | null;
+  fuelProgress: StageProgress | null;
+  boostersProgress: StageProgress | null;
+  guidanceProgress: StageProgress | null;
   onBack: () => void;
   onComplete: () => void;
 }
 
-export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComplete }) => {
+export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, boostersProgress, guidanceProgress, onBack, onComplete }) => {
   const { user } = useAuth();
   const { updateStageLevel, completeAchievement, awardPoints } = useLaunchPreparation();
   const { counts, loading: countsLoading, calculateFuelLevel, meetsLevelRequirements, refresh: refreshCounts } = useDocumentCounts();
@@ -25,7 +29,6 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
   const [hasGoogleDrive, setHasGoogleDrive] = useState(false);
   const [checkingDrive, setCheckingDrive] = useState(true);
   const [userClosedModal, setUserClosedModal] = useState(false);
-  const [showLevelUpCelebration, setShowLevelUpCelebration] = useState(false);
 
   const currentLevel = progress?.level || 0;
   const targetLevel = currentLevel + 1;
@@ -91,12 +94,8 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
 
         setCheckingLevel(false);
 
-        // Show completion celebration if reached level 1
-        if (actualLevel >= 1 && currentLevel < 1) {
-          setTimeout(() => {
-            setShowLevelUpCelebration(true);
-          }, 500);
-        }
+        // Refresh counts to show updated data
+        await refreshCounts();
       }
     };
 
@@ -107,16 +106,24 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
   const LevelIcon = levelIcons[currentLevel] || FileText;
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      {/* Header */}
-      <div className="max-w-4xl mx-auto">
-        <button
-          onClick={onBack}
-          className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors mb-6"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span>Back to Stages</span>
-        </button>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <LaunchPreparationHeader
+        onClose={onBack}
+        fuelProgress={fuelProgress}
+        boostersProgress={boostersProgress}
+        guidanceProgress={guidanceProgress}
+      />
+
+      <div className="pt-16 p-4 md:p-8">
+        {/* Header */}
+        <div className="max-w-4xl mx-auto">
+          <button
+            onClick={onBack}
+            className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors mb-6"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back to Stages</span>
+          </button>
 
         {/* Stage Title */}
         <div className="bg-gradient-to-r from-blue-500/20 to-purple-600/20 border border-blue-500/30 rounded-xl p-6 mb-8">
@@ -375,55 +382,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
           </div>
         </div>
       )}
-
-      {/* Level 1 Completion Celebration Modal */}
-      {showLevelUpCelebration && (
-        <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowLevelUpCelebration(false);
-            }
-          }}
-        >
-          <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border-2 border-emerald-500/50 max-w-md w-full p-8 text-center shadow-2xl">
-            <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 rounded-full bg-emerald-500/20 border-2 border-emerald-500">
-              <span className="text-6xl">🎉</span>
-            </div>
-
-            <h2 className="text-3xl font-bold text-white mb-3">
-              Congratulations!
-            </h2>
-
-            <p className="text-xl text-emerald-400 font-semibold mb-4">
-              You've completed Fuel Level 1!
-            </p>
-
-            <p className="text-gray-300 mb-8">
-              Your data is connected and ready. Continue adding more data to fuel your AI, or move on to boost your launch preparation.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={() => setShowLevelUpCelebration(false)}
-                className="flex-1 py-3 px-6 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors"
-              >
-                Continue Here
-              </button>
-              <button
-                onClick={() => {
-                  setShowLevelUpCelebration(false);
-                  onComplete();
-                }}
-                className="flex-1 py-3 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                <span>Next: Boosters</span>
-                <ArrowRight className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
