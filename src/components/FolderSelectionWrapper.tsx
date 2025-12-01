@@ -17,9 +17,8 @@ interface FolderSelectionWrapperProps {
 }
 
 /**
- * Wrapper component that shows either:
- * - Google Picker (for beta users)
- * - Legacy dropdown (for regular users)
+ * Wrapper component that shows Google Picker for OAuth compliance.
+ * Legacy dropdown code kept for reference but no longer used.
  */
 export const FolderSelectionWrapper = ({
   accessToken,
@@ -32,7 +31,8 @@ export const FolderSelectionWrapper = ({
   onCreateNew,
   allowCreateNew = false
 }: FolderSelectionWrapperProps) => {
-  const useGooglePicker = useFeatureFlag('google_picker_folder_selection');
+  // Always use Google Picker for OAuth compliance
+  const useGooglePicker = true;
 
   // Google Picker Mode
   if (useGooglePicker) {

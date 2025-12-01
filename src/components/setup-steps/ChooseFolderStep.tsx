@@ -29,7 +29,8 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }
   const [hasExistingFolders, setHasExistingFolders] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [accessToken, setAccessToken] = useState<string>('');
-  const useGooglePicker = useFeatureFlag('google_picker_folder_selection');
+  // Always use Google Picker for OAuth compliance
+  const useGooglePicker = true;
 
   useEffect(() => {
     checkExistingSetup();
@@ -340,9 +341,12 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-600/20 mb-4">
               <Folder className="w-8 h-8 text-purple-400" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-3">Select a Folder</h2>
-            <p className="text-gray-300">
-              Choose a folder from your Google Drive for strategy documents
+            <h2 className="text-2xl font-bold text-white mb-3">Choose Your Strategy Folder</h2>
+            <p className="text-gray-300 mb-2">
+              Select a folder from your Google Drive containing strategy documents
+            </p>
+            <p className="text-sm text-gray-400">
+              This includes mission statements, goals, strategic plans, and business objectives
             </p>
           </div>
 

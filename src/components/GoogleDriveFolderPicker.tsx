@@ -194,8 +194,9 @@ export const GoogleDriveFolderPicker = ({
         </div>
       )}
 
-      <p className="text-xs text-gray-500">
-        Opens Google Drive to select a folder from your account
+      <p className="text-xs text-gray-400 bg-gray-800/50 border border-gray-700/50 rounded p-2">
+        <span className="font-medium text-gray-300">How it works:</span> Click the button above to open Google's secure folder picker.
+        Select a folder from your Drive and it will be connected to Astra for document analysis.
       </p>
     </div>
   );
