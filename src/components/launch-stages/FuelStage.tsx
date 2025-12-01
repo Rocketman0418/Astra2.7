@@ -85,22 +85,32 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
       if (actualLevel > currentLevel) {
         setCheckingLevel(true);
 
-        // Complete achievements for all levels up to actual level
-        for (let level = currentLevel + 1; level <= actualLevel; level++) {
-          const achievementKey = `fuel_level_${level}`;
-          await completeAchievement(achievementKey, 'fuel');
-          await updateStageLevel('fuel', level);
+        try {
+          // Complete achievements for all levels up to actual level
+          for (let level = currentLevel + 1; level <= actualLevel; level++) {
+            const achievementKey = `fuel_level_${level}`;
+            const achievementSuccess = await completeAchievement(achievementKey, 'fuel');
+            if (!achievementSuccess) {
+              console.error('Failed to complete achievement:', achievementKey);
+            }
+            const levelSuccess = await updateStageLevel('fuel', level);
+            if (!levelSuccess) {
+              console.error('Failed to update stage level:', level);
+            }
+          }
+
+          // Refresh counts to show updated data
+          await refreshCounts();
+        } catch (error) {
+          console.error('Error updating fuel level:', error);
+        } finally {
+          setCheckingLevel(false);
         }
-
-        setCheckingLevel(false);
-
-        // Refresh counts to show updated data
-        await refreshCounts();
       }
     };
 
     checkAndUpdateLevel();
-  }, [counts, currentLevel, calculateFuelLevel, countsLoading, checkingLevel, completeAchievement, updateStageLevel, onComplete]);
+  }, [counts, currentLevel, calculateFuelLevel, countsLoading, checkingLevel, completeAchievement, updateStageLevel, refreshCounts]);
 
   const levelIcons = [FileText, Folder, Database, HardDrive, Rocket];
   const LevelIcon = levelIcons[currentLevel] || FileText;

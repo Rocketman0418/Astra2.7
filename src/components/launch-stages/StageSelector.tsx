@@ -126,11 +126,14 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
             )}
           </div>
 
-          {/* Stage Cards */}
-          <div className="w-full space-y-4 mb-6">
+          {/* Stage Cards with Circular Progress */}
+          <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {stages.map((stage, index) => {
               const Icon = stage.icon;
               const isLocked = !stage.unlocked;
+              const radius = 45;
+              const circumference = 2 * Math.PI * radius;
+              const strokeDashoffset = circumference - (stage.progress / 100) * circumference;
 
               return (
                 <button
@@ -138,90 +141,113 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
                   onClick={() => !isLocked && onNavigateToStage(stage.id)}
                   disabled={isLocked}
                   className={`
-                    w-full bg-gray-800/50 border-2 rounded-xl p-5 text-left transition-all
+                    relative bg-gray-800/50 border-2 rounded-2xl p-6 text-center transition-all
                     ${isLocked
                       ? 'border-gray-700 opacity-50 cursor-not-allowed'
-                      : `border-${stage.color}-500/30 hover:border-${stage.color}-500 hover:bg-gray-800/70 cursor-pointer`
+                      : stage.color === 'blue'
+                        ? 'border-orange-500/30 hover:border-orange-500 hover:bg-gray-800/70 cursor-pointer hover:scale-105'
+                        : stage.color === 'cyan'
+                          ? 'border-cyan-500/30 hover:border-cyan-500 hover:bg-gray-800/70 cursor-pointer hover:scale-105'
+                          : 'border-green-500/30 hover:border-green-500 hover:bg-gray-800/70 cursor-pointer hover:scale-105'
                     }
                   `}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4 flex-1">
-                      {/* Icon */}
-                      <div className={`
-                        flex-shrink-0 w-14 h-14 rounded-lg flex items-center justify-center
-                        ${isLocked
-                          ? 'bg-gray-700'
-                          : `bg-${stage.color}-500/20`
-                        }
-                      `}>
-                        {isLocked ? (
-                          <Lock className="w-7 h-7 text-gray-500" />
-                        ) : stage.completed ? (
-                          <CheckCircle className={`w-7 h-7 text-${stage.color}-400`} />
-                        ) : (
-                          <Icon className={`w-7 h-7 text-${stage.color}-400`} />
-                        )}
-                      </div>
+                  {/* Circular Progress */}
+                  <div className="relative w-32 h-32 mx-auto mb-4">
+                    <svg className="w-32 h-32 transform -rotate-90">
+                      {/* Background circle */}
+                      <circle
+                        cx="64"
+                        cy="64"
+                        r={radius}
+                        stroke="currentColor"
+                        strokeWidth="8"
+                        fill="none"
+                        className="text-gray-700"
+                      />
+                      {/* Progress circle */}
+                      {!isLocked && (
+                        <circle
+                          cx="64"
+                          cy="64"
+                          r={radius}
+                          stroke="currentColor"
+                          strokeWidth="8"
+                          fill="none"
+                          strokeDasharray={circumference}
+                          strokeDashoffset={strokeDashoffset}
+                          className={
+                            stage.color === 'blue'
+                              ? 'text-orange-500'
+                              : stage.color === 'cyan'
+                                ? 'text-cyan-500'
+                                : 'text-green-500'
+                          }
+                          style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+                        />
+                      )}
+                    </svg>
 
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <h3 className="text-xl font-bold text-white">
-                            {stage.name}
-                          </h3>
-                          <span className={`
-                            text-sm font-medium px-2 py-1 rounded
-                            ${isLocked
-                              ? 'bg-gray-700 text-gray-400'
-                              : `bg-${stage.color}-500/20 text-${stage.color}-400`
-                            }
-                          `}>
-                            Level {stage.level}/5
-                          </span>
-                          {!isLocked && (
-                            <div className="relative">
-                              <button
-                                onMouseEnter={() => setShowInfoTooltip(stage.id)}
-                                onMouseLeave={() => setShowInfoTooltip(null)}
-                                onClick={(e) => e.stopPropagation()}
-                                className="text-gray-500 hover:text-gray-400 transition-colors"
-                              >
-                                <Info className="w-4 h-4" />
-                              </button>
-                              {showInfoTooltip === stage.id && (
-                                <div className="absolute left-0 top-full mt-2 bg-gray-800 border border-gray-600 rounded-lg p-3 text-sm text-gray-300 w-64 z-20 shadow-lg">
-                                  {stage.helpText}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        <p className="text-gray-400 text-base mb-3">{stage.description}</p>
-
-                        {/* Progress Bar */}
-                        {!isLocked && (
-                          <div className="w-full bg-gray-700 rounded-full h-2.5 overflow-hidden">
-                            <div
-                              className={`h-full bg-gradient-to-r from-${stage.color}-500 to-${stage.color}-400 transition-all duration-500`}
-                              style={{ width: `${stage.progress}%` }}
-                            />
-                          </div>
-                        )}
-
-                        {isLocked && (
-                          <p className="text-gray-500 text-xs">
-                            Complete previous stage to unlock
-                          </p>
-                        )}
-                      </div>
+                    {/* Icon in center */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      {isLocked ? (
+                        <Lock className="w-12 h-12 text-gray-500" />
+                      ) : stage.completed ? (
+                        <CheckCircle className={
+                          stage.color === 'blue'
+                            ? 'w-12 h-12 text-orange-400'
+                            : stage.color === 'cyan'
+                              ? 'w-12 h-12 text-cyan-400'
+                              : 'w-12 h-12 text-green-400'
+                        } />
+                      ) : (
+                        <Icon className={
+                          stage.color === 'blue'
+                            ? 'w-12 h-12 text-orange-400'
+                            : stage.color === 'cyan'
+                              ? 'w-12 h-12 text-cyan-400'
+                              : 'w-12 h-12 text-green-400'
+                        } />
+                      )}
                     </div>
+                  </div>
 
-                    {/* Arrow */}
+                  {/* Stage Info */}
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    {stage.name}
+                  </h3>
+                  <p className="text-gray-400 text-sm mb-3">{stage.description}</p>
+
+                  {/* Level Badge */}
+                  <div className={`
+                    inline-flex items-center space-x-1 text-sm font-medium px-3 py-1.5 rounded-full
+                    ${isLocked
+                      ? 'bg-gray-700 text-gray-400'
+                      : stage.color === 'blue'
+                        ? 'bg-orange-500/20 text-orange-400'
+                        : stage.color === 'cyan'
+                          ? 'bg-cyan-500/20 text-cyan-400'
+                          : 'bg-green-500/20 text-green-400'
+                    }
+                  `}>
+                    <span>Level {stage.level}/5</span>
                     {!isLocked && (
-                      <ArrowRight className={`w-6 h-6 text-${stage.color}-400 flex-shrink-0 ml-4`} />
+                      <span className="text-xs opacity-75">• {Math.round(stage.progress)}%</span>
                     )}
                   </div>
+
+                  {isLocked && (
+                    <p className="text-gray-500 text-xs mt-3">
+                      Complete previous stage Level 1 to unlock
+                    </p>
+                  )}
+
+                  {!isLocked && (
+                    <div className="mt-3 text-xs text-gray-400 flex items-center justify-center gap-1">
+                      <span>Tap to enter</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </div>
+                  )}
                 </button>
               );
             })}
