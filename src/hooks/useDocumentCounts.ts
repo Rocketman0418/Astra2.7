@@ -98,16 +98,8 @@ export function useDocumentCounts() {
 
       const uniqueFinancial = new Set(financialDocs?.map(d => d.source_id) || []).size;
 
-      // Projects folder check (from user_drive_connections)
-      const { data: driveConnections, error: driveError } = await supabase
-        .from('user_drive_connections')
-        .select('projects_folder_id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (driveError) throw driveError;
-
-      const hasProjects = !!driveConnections?.projects_folder_id;
+      // Projects folder check - not implemented yet
+      const hasProjects = false;
 
       const newCounts = {
         strategy: uniqueStrategy,

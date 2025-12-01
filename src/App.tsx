@@ -99,6 +99,16 @@ const AppContent: React.FC = () => {
       }
 
       try {
+        // Check if returning from OAuth callback - force show Launch Prep
+        const shouldReturnToLaunchPrep = sessionStorage.getItem('return_to_launch_prep');
+        if (shouldReturnToLaunchPrep === 'true') {
+          sessionStorage.removeItem('return_to_launch_prep');
+          console.log('🚀 [App] Returning to Launch Prep after OAuth');
+          setNeedsLaunchPreparation(true);
+          setCheckingLaunchStatus(false);
+          return;
+        }
+
         // Check if user is eligible for launch preparation
         const eligible = await checkEligibility(user.email || '');
         setIsEligibleForLaunchPrep(eligible);

@@ -41,8 +41,9 @@ export const GoogleDriveCallback: React.FC = () => {
         }
         if (fromLaunchPrep) {
           sessionStorage.removeItem('google_drive_from_launch_prep');
-          // Set a new flag to reopen the Fuel stage modal
+          // Set flags to reopen Launch Prep and go directly to Fuel stage
           sessionStorage.setItem('reopen_fuel_stage', 'true');
+          sessionStorage.setItem('return_to_launch_prep', 'true');
         }
 
         // Redirect back to main app after 2 seconds
@@ -51,7 +52,7 @@ export const GoogleDriveCallback: React.FC = () => {
             // Redirect to main app with flag to reopen Guided Setup
             window.location.href = '/?openGuidedSetup=true';
           } else {
-            // Just go back to main app - session storage flag will handle reopening
+            // Just go back to main app - session storage flags will handle reopening
             window.location.href = '/';
           }
         }, 2000);
