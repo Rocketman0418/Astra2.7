@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Zap, CheckCircle, ArrowRight, MessageCircle, BarChart, FileBarChart, CalendarClock, Bot, Sparkles } from 'lucide-react';
+import { X, Zap, CheckCircle, ArrowRight, MessageCircle, BarChart, FileBarChart, CalendarClock, Bot, Sparkles, Info } from 'lucide-react';
 import { StageProgress } from '../../hooks/useLaunchPreparation';
 import { useLaunchPreparation } from '../../hooks/useLaunchPreparation';
 import { BOOSTERS_LEVELS, formatPoints } from '../../lib/launch-preparation-utils';
 import { AstraGuidedChatModal } from '../AstraGuidedChatModal';
-import { LaunchPreparationHeader } from './LaunchPreparationHeader';
+import { StageProgressBar } from './StageProgressBar';
 
 interface BoostersStageProps {
   progress: StageProgress | null;
@@ -116,117 +116,102 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
     }
   ];
 
+  const handleStageNavigation = (stage: 'fuel' | 'boosters' | 'guidance') => {
+    if (stage === 'boosters') return; // Already here
+    onBack(); // Go back to stage selector
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <LaunchPreparationHeader
-        onClose={onBack}
+      {/* Compact Progress Bar at Top */}
+      <StageProgressBar
         fuelProgress={fuelProgress}
         boostersProgress={boostersProgress}
         guidanceProgress={guidanceProgress}
+        currentStage="boosters"
+        onStageClick={handleStageNavigation}
       />
 
-      <div className="pt-16 p-4 md:p-8">
-        <div className="max-w-4xl mx-auto">
-          <button
-            onClick={onBack}
-            className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors mb-6"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back to Stages</span>
-          </button>
-
-        {/* Stage Title */}
-        <div className="bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 rounded-xl p-6 mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-cyan-500/20 rounded-xl flex items-center justify-center">
-                <Zap className="w-8 h-8 text-cyan-400" />
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
-                  Boosters Stage
-                </h1>
-                <p className="text-gray-300">
-                  Power up with features
-                </p>
-              </div>
+      <div className="p-4 max-w-5xl mx-auto">
+        {/* Compact Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+              <Zap className="w-6 h-6 text-cyan-400" />
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-400">Current Level</p>
-              <p className="text-3xl font-bold text-cyan-400">{currentLevel}/5</p>
+            <div>
+              <h1 className="text-xl font-bold text-white">Boosters Stage</h1>
+              <p className="text-sm text-gray-400">Power up with AI features</p>
             </div>
           </div>
+          <button
+            onClick={onBack}
+            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+            title="Back to Mission Control"
+          >
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
         </div>
 
-        {/* Level Progress */}
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 mb-6">
-          <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-            <LevelIcon className="w-6 h-6 mr-2 text-cyan-400" />
-            {currentLevel === 0 ? 'Get Started' : `Level ${currentLevel}: ${currentLevelInfo.name}`}
-          </h2>
+        {/* Compact Level Progress */}
+        <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-bold text-white flex items-center">
+              <LevelIcon className="w-5 h-5 mr-2 text-cyan-400" />
+              {currentLevel === 0 ? 'Get Started' : `Level ${currentLevel}: ${currentLevelInfo.name}`}
+            </h2>
+            <button className="text-gray-400 hover:text-white transition-colors">
+              <Info className="w-5 h-5" />
+            </button>
+          </div>
 
           {currentLevel === 0 ? (
-            <div className="space-y-4">
-              <p className="text-gray-300">
-                Welcome to the Boosters Stage! Now that you have data, let's learn how to use Astra's powerful features.
-              </p>
-              <p className="text-gray-300">
-                Your first step: <strong>Try Astra Guided Chat</strong> or send 5 prompts to Astra to reach Level 1.
-              </p>
-            </div>
+            <p className="text-sm text-gray-300 mb-3">
+              <strong>Try Astra Guided Chat</strong> or send 5 prompts to reach Level 1.
+            </p>
           ) : (
-            <p className="text-gray-300 mb-4">
+            <p className="text-sm text-gray-300 mb-3">
               {currentLevelInfo.description}
             </p>
           )}
 
           {/* Next Level */}
           {currentLevel < 5 && targetLevelInfo && (
-            <div className="mt-6 border-t border-gray-700 pt-6">
-              <h3 className="text-lg font-semibold text-white mb-3">
-                Next: Level {targetLevel} - {targetLevelInfo.name}
-              </h3>
-              <p className="text-gray-400 mb-4">{targetLevelInfo.description}</p>
-
-              <div className="bg-gray-900/50 rounded-lg p-4">
-                <p className="text-sm font-medium text-gray-400 mb-2">Requirements:</p>
-                <ul className="space-y-2">
-                  {targetLevelInfo.requirements.map((req, index) => (
-                    <li key={index} className="flex items-center space-x-2">
-                      <div className="w-5 h-5 border-2 border-gray-600 rounded-full flex-shrink-0" />
-                      <span className="text-gray-300">{req}</span>
-                    </li>
-                  ))}
-                </ul>
+            <div className="border-t border-gray-700 pt-3">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-white">
+                  Next: Level {targetLevel} - {targetLevelInfo.name}
+                </h3>
+                <span className="text-xs text-yellow-400 font-medium">
+                  +{formatPoints(targetLevelInfo.points)}
+                </span>
               </div>
 
-              <div className="mt-4">
-                <p className="text-sm text-gray-400">
-                  Reward: <span className="text-yellow-400 font-semibold">{formatPoints(targetLevelInfo.points)} points</span>
-                </p>
-              </div>
+              <ul className="space-y-1.5">
+                {targetLevelInfo.requirements.map((req, index) => (
+                  <li key={index} className="flex items-center space-x-2 text-sm">
+                    <div className="w-4 h-4 border-2 border-gray-600 rounded-full flex-shrink-0" />
+                    <span className="text-gray-400">{req}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
           {currentLevel === 5 && (
-            <div className="mt-6 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-lg p-6">
-              <div className="flex items-center space-x-3 mb-2">
-                <Bot className="w-8 h-8 text-cyan-400" />
-                <h3 className="text-xl font-bold text-white">Maximum Power!</h3>
+            <div className="mt-3 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-lg p-3 flex items-center gap-3">
+              <Bot className="w-6 h-6 text-cyan-400 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-bold text-white">Maximum Power!</p>
+                <p className="text-xs text-gray-300">Ready for Guidance stage</p>
               </div>
-              <p className="text-gray-300 mb-4">
-                Amazing! You've mastered all the Booster features. Your AI Rocket is fully powered!
-              </p>
-              <p className="text-gray-400 text-sm">
-                Continue to the Guidance stage to complete your preparation!
-              </p>
             </div>
           )}
         </div>
 
-        {/* Feature Cards */}
-        <div className="space-y-4 mb-6">
-          <h3 className="text-lg font-semibold text-white mb-3">Available Features</h3>
+        {/* Compact Feature Cards */}
+        <div className="space-y-3 mb-4">
+          <h3 className="text-sm font-semibold text-white">Available Features</h3>
           {featureCards.map((feature) => {
             const FeatureIcon = feature.icon;
             const isLocked = feature.level > currentLevel + 1;
@@ -236,120 +221,71 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
               <div
                 key={feature.id}
                 className={`
-                  bg-gray-800/50 border rounded-xl p-6
-                  ${isLocked || isDisabled
-                    ? 'border-gray-700 opacity-50'
-                    : `border-${feature.color}-500/30`
-                  }
+                  bg-gray-800/50 border rounded-lg p-3 flex items-center justify-between
+                  ${isLocked || isDisabled ? 'border-gray-700 opacity-60' : 'border-gray-700'}
                 `}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-4 flex-1">
-                    <div className={`
-                      flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center
-                      ${isLocked || isDisabled
-                        ? 'bg-gray-700'
-                        : `bg-${feature.color}-500/20`
-                      }
-                    `}>
-                      {feature.completed ? (
-                        <CheckCircle className={`w-6 h-6 text-${feature.color}-400`} />
-                      ) : (
-                        <FeatureIcon className={`w-6 h-6 ${isLocked || isDisabled ? 'text-gray-500' : `text-${feature.color}-400`}`} />
-                      )}
-                    </div>
-
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <h4 className="text-lg font-semibold text-white">{feature.name}</h4>
-                        {feature.completed && (
-                          <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded">
-                            Completed
-                          </span>
-                        )}
-                        {isDisabled && (
-                          <span className="text-xs bg-gray-600 text-gray-400 px-2 py-0.5 rounded">
-                            Coming Soon
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-gray-400 text-sm mb-3">{feature.description}</p>
-
-                      {!isLocked && !isDisabled && !feature.completed && (
-                        <button
-                          onClick={feature.action}
-                          className={`
-                            bg-${feature.color}-500 hover:bg-${feature.color}-600
-                            text-white text-sm font-medium px-4 py-2 rounded-lg
-                            transition-colors
-                          `}
-                        >
-                          {feature.actionText}
-                        </button>
-                      )}
-
-                      {isLocked && (
-                        <p className="text-gray-500 text-sm">
-                          Complete Level {feature.level - 1} to unlock
-                        </p>
-                      )}
-                    </div>
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="flex-shrink-0">
+                    {feature.completed ? (
+                      <CheckCircle className="w-5 h-5 text-green-400" />
+                    ) : isLocked || isDisabled ? (
+                      <FeatureIcon className="w-5 h-5 text-gray-500" />
+                    ) : (
+                      <FeatureIcon className="w-5 h-5 text-cyan-400" />
+                    )}
                   </div>
 
-                  <div className="text-right ml-4">
-                    <span className={`
-                      text-xs font-medium px-2 py-1 rounded
-                      ${isLocked || isDisabled
-                        ? 'bg-gray-700 text-gray-400'
-                        : `bg-${feature.color}-500/20 text-${feature.color}-400`
-                      }
-                    `}>
-                      Level {feature.level}
-                    </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-semibold text-white truncate">{feature.name}</h4>
+                      {feature.completed && (
+                        <span className="text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded flex-shrink-0">
+                          Done
+                        </span>
+                      )}
+                      {isDisabled && (
+                        <span className="text-xs bg-gray-600 text-gray-400 px-1.5 py-0.5 rounded flex-shrink-0">
+                          Soon
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400 truncate">{feature.description}</p>
                   </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="text-xs text-gray-500">Lvl {feature.level}</span>
+                  {!isLocked && !isDisabled && !feature.completed && (
+                    <button
+                      onClick={feature.action}
+                      className="bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-medium px-3 py-1.5 rounded transition-colors"
+                    >
+                      Try
+                    </button>
+                  )}
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* Action Buttons */}
-        <div className="space-y-4">
-          {currentLevel >= 1 && (
-            <button
-              onClick={onComplete}
-              className="w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
-            >
-              <span>Continue to Guidance Stage</span>
-              <ArrowRight className="w-5 h-5" />
-            </button>
-          )}
+        {/* Action Button */}
+        {currentLevel >= 1 && (
+          <button
+            onClick={onComplete}
+            className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-semibold py-3 px-6 rounded-lg transition-all flex items-center justify-center space-x-2 shadow-lg"
+          >
+            <span>Continue to Guidance</span>
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        )}
 
-          {currentLevel < 1 && (
-            <p className="text-center text-gray-400 text-sm">
-              Complete Level 1 to unlock the next stage
-            </p>
-          )}
-        </div>
-
-        {/* Why This Matters */}
-        <div className="mt-8 bg-gray-800/30 border border-gray-700 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-white mb-3">Why Features Matter</h3>
-          <div className="space-y-3 text-gray-300 text-sm">
-            <p>
-              <strong>Guided Chat:</strong> Get AI-powered prompt suggestions tailored to your specific data.
-            </p>
-            <p>
-              <strong>Visualizations:</strong> See patterns and trends in your data that aren't obvious in text.
-            </p>
-            <p>
-              <strong>Reports:</strong> Get regular insights delivered automatically or generate them on demand.
-            </p>
-            <p className="text-cyan-400">
-              The more features you use, the more value you get from Astra!
-            </p>
-          </div>
-        </div>
+        {currentLevel < 1 && (
+          <p className="text-center text-gray-400 text-xs">
+            Complete Level 1 to unlock Guidance
+          </p>
+        )}
       </div>
 
       {/* Guided Chat Modal */}
@@ -359,7 +295,6 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
           onPromptSelected={handleGuidedChatComplete}
         />
       )}
-      </div>
     </div>
   );
 };

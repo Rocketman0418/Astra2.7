@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Compass, CheckCircle, ArrowRight, Settings, Newspaper, UserPlus, Briefcase, BookOpen } from 'lucide-react';
+import { X, Compass, CheckCircle, ArrowRight, Settings, Newspaper, UserPlus, Briefcase, BookOpen, Info } from 'lucide-react';
 import { StageProgress } from '../../hooks/useLaunchPreparation';
 import { useLaunchPreparation } from '../../hooks/useLaunchPreparation';
 import { GUIDANCE_LEVELS, formatPoints } from '../../lib/launch-preparation-utils';
 import { TeamSettingsModal } from '../TeamSettingsModal';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { LaunchPreparationHeader } from './LaunchPreparationHeader';
+import { StageProgressBar } from './StageProgressBar';
 
 interface GuidanceStageProps {
   progress: StageProgress | null;
@@ -169,54 +169,54 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
     }
   ];
 
+  const handleStageNavigation = (stage: 'fuel' | 'boosters' | 'guidance') => {
+    if (stage === 'guidance') return; // Already here
+    onBack(); // Go back to stage selector
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <LaunchPreparationHeader
-        onClose={onBack}
+      {/* Compact Progress Bar at Top */}
+      <StageProgressBar
         fuelProgress={fuelProgress}
         boostersProgress={boostersProgress}
         guidanceProgress={guidanceProgress}
+        currentStage="guidance"
+        onStageClick={handleStageNavigation}
       />
 
-      <div className="pt-16 p-4 md:p-8">
-        <div className="max-w-4xl mx-auto">
-          <button
-            onClick={onBack}
-            className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors mb-6"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back to Stages</span>
-          </button>
-
-        {/* Stage Title */}
-        <div className="bg-gradient-to-r from-green-500/20 to-emerald-600/20 border border-green-500/30 rounded-xl p-6 mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-purple-500/20 rounded-xl flex items-center justify-center">
-                <Compass className="w-8 h-8 text-purple-400" />
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
-                  Guidance Stage
-                </h1>
-                <p className="text-gray-300">
-                  Set your mission parameters
-                </p>
-              </div>
+      <div className="p-4 max-w-5xl mx-auto">
+        {/* Compact Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+              <Compass className="w-6 h-6 text-green-400" />
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-400">Current Level</p>
-              <p className="text-3xl font-bold text-purple-400">{currentLevel}/5</p>
+            <div>
+              <h1 className="text-xl font-bold text-white">Guidance Stage</h1>
+              <p className="text-sm text-gray-400">Set your mission parameters</p>
             </div>
           </div>
+          <button
+            onClick={onBack}
+            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+            title="Back to Mission Control"
+          >
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
         </div>
 
-        {/* Level Progress */}
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 mb-6">
-          <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-            <LevelIcon className="w-6 h-6 mr-2 text-purple-400" />
-            {currentLevel === 0 ? 'Get Started' : `Level ${currentLevel}: ${currentLevelInfo.name}`}
-          </h2>
+        {/* Compact Level Progress */}
+        <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-bold text-white flex items-center">
+              <LevelIcon className="w-5 h-5 mr-2 text-green-400" />
+              {currentLevel === 0 ? 'Get Started' : `Level ${currentLevel}: ${currentLevelInfo.name}`}
+            </h2>
+            <button className="text-gray-400 hover:text-white transition-colors">
+              <Info className="w-5 h-5" />
+            </button>
+          </div>
 
           {currentLevel === 0 ? (
             <div className="space-y-4">
@@ -412,7 +412,6 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
           onSaved={handleTeamSettingsSaved}
         />
       )}
-      </div>
     </div>
   );
 };
