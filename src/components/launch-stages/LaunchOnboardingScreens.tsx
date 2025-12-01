@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronRight, Rocket, MessageSquare, BarChart3, Calendar, FileText, Users, Sparkles, Mail, Building2, Zap, Settings, BookOpen, TrendingUp, Globe, Bell } from 'lucide-react';
+import { ChevronRight, Rocket, MessageSquare, BarChart3, Calendar, FileText, Users, Sparkles, Mail, Building2, Zap, Settings, BookOpen, TrendingUp, Globe, Bell, Brain, RefreshCw, Lock, Bot, UserCircle } from 'lucide-react';
 import { LaunchPreparationHeader } from './LaunchPreparationHeader';
 
 interface LaunchOnboardingScreensProps {
@@ -11,16 +11,35 @@ interface LaunchOnboardingScreensProps {
 const onboardingScreens = [
   {
     id: 'welcome',
-    title: 'Welcome to AI Rocket + Astra Intelligence!',
-    subtitle: 'Your AI-powered command center for business intelligence',
+    title: 'Welcome to',
+    subtitle: 'AI that Works for Work',
     icon: Rocket,
     content: (
-      <div className="space-y-4 text-center">
-        <div className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg border border-blue-500/30">
-          <p className="text-lg text-white">
-            <span className="font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Astra</span> is here to help you unlock the full potential of your data
-          </p>
+      <div className="space-y-6 text-center">
+        {/* Logo and Title - Matching header style */}
+        <div className="flex items-center justify-center space-x-3 mb-4">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-blue-400 shadow-lg">
+            <span className="text-3xl">🚀</span>
+          </div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
+            <span className="text-blue-400">AI Rocket</span>
+            <span className="text-white font-normal">+</span>
+            <span className="text-emerald-400">Astra Intelligence</span>
+          </h1>
         </div>
+
+        {/* Tagline */}
+        <div className="space-y-3">
+          <h2 className="text-xl md:text-2xl font-bold text-white">
+            AI that Works for Work
+          </h2>
+          <div className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg border border-blue-500/30">
+            <p className="text-lg text-white">
+              <span className="font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Astra</span> is your Guide to an AI-Powered Business
+            </p>
+          </div>
+        </div>
+
         <p className="text-gray-300 text-base max-w-2xl mx-auto">
           Let's take a quick tour of what you can do once you launch your AI Rocket
         </p>
@@ -29,44 +48,44 @@ const onboardingScreens = [
   },
   {
     id: 'features-1',
-    title: 'AI-Powered Intelligence & Analytics',
-    subtitle: 'Ask questions, get insights instantly',
-    icon: MessageSquare,
+    title: 'Core Features',
+    subtitle: 'Everything you need to work smarter',
+    icon: Brain,
     content: (
       <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 hover:border-orange-500/50 transition-all">
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
-              <MessageSquare className="w-6 h-6 text-blue-400" />
+            <div className="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center">
+              <RefreshCw className="w-6 h-6 text-orange-400" />
             </div>
-            <h3 className="text-lg font-bold text-white">AI Chat</h3>
+            <h3 className="text-lg font-bold text-white">All Your Data Connected</h3>
           </div>
           <p className="text-gray-300 text-sm">
-            Private and team conversations with Astra to analyze your data in natural language
+            Connect Documents, Financials, and more. AI analyzes all your data for comprehensive insights.
           </p>
         </div>
 
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 hover:border-purple-500/50 transition-all">
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center">
               <BarChart3 className="w-6 h-6 text-purple-400" />
             </div>
-            <h3 className="text-lg font-bold text-white">Visual Reports</h3>
+            <h3 className="text-lg font-bold text-white">Smart Visualizations</h3>
           </div>
           <p className="text-gray-300 text-sm">
-            AI-generated visualizations and interactive dashboards from your data
+            Turn conversations into actionable insights with AI-generated charts, graphs, and visual reports.
           </p>
         </div>
 
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 hover:border-blue-500/50 transition-all">
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-indigo-400" />
+            <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center">
+              <Brain className="w-6 h-6 text-blue-400" />
             </div>
-            <h3 className="text-lg font-bold text-white">Smart Insights</h3>
+            <h3 className="text-lg font-bold text-white">Private AI Assistant</h3>
           </div>
           <p className="text-gray-300 text-sm">
-            Guided prompts and intelligent suggestions based on your data patterns
+            Have confidential conversations with AI that understands your business context and provides personalized insights.
           </p>
         </div>
       </div>
@@ -74,44 +93,44 @@ const onboardingScreens = [
   },
   {
     id: 'features-2',
-    title: 'Team Collaboration & Data Integration',
-    subtitle: 'Connect everything, work together',
+    title: 'Collaboration & Security',
+    subtitle: 'Work together, stay secure',
     icon: Users,
     content: (
       <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 hover:border-emerald-500/50 transition-all">
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-blue-400" />
+            <div className="w-12 h-12 bg-emerald-500/10 rounded-lg flex items-center justify-center">
+              <Users className="w-6 h-6 text-emerald-400" />
             </div>
-            <h3 className="text-lg font-bold text-white">Team Chat</h3>
+            <h3 className="text-lg font-bold text-white">Team Collaboration</h3>
           </div>
           <p className="text-gray-300 text-sm">
-            Collaborate with @mentions, share insights, and work together with AI assistance
+            Work together with your team and AI in shared conversations. @mention team members and AI for instant insights.
           </p>
         </div>
 
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 hover:border-yellow-500/50 transition-all">
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-              <FileText className="w-6 h-6 text-purple-400" />
+            <div className="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center">
+              <FileText className="w-6 h-6 text-yellow-400" />
             </div>
-            <h3 className="text-lg font-bold text-white">Google Drive Sync</h3>
+            <h3 className="text-lg font-bold text-white">Automated Reports</h3>
           </div>
           <p className="text-gray-300 text-sm">
-            Connect strategy docs, meeting notes, and financial data automatically
+            Schedule automated reports delivered to your inbox. Stay informed with daily, weekly, or monthly insights.
           </p>
         </div>
 
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 hover:border-cyan-500/50 transition-all">
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center">
-              <Mail className="w-6 h-6 text-indigo-400" />
+            <div className="w-12 h-12 bg-cyan-500/10 rounded-lg flex items-center justify-center">
+              <Lock className="w-6 h-6 text-cyan-400" />
             </div>
-            <h3 className="text-lg font-bold text-white">Gmail Integration</h3>
+            <h3 className="text-lg font-bold text-white">Secure & Private</h3>
           </div>
           <p className="text-gray-300 text-sm">
-            Search and analyze your email conversations with AI-powered insights
+            Your data is encrypted and secure. Control who sees what with team-based permissions and private conversations.
           </p>
         </div>
       </div>
@@ -119,98 +138,53 @@ const onboardingScreens = [
   },
   {
     id: 'features-3',
-    title: 'Automation & Advanced Features',
-    subtitle: 'Work smarter, not harder',
-    icon: Zap,
+    title: 'Coming Soon - Advanced AI',
+    subtitle: 'Powerful capabilities on the horizon',
+    icon: Bot,
     content: (
       <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 hover:border-pink-500/50 transition-all relative">
+          <div className="absolute top-3 right-3 px-2 py-1 bg-blue-500/20 border border-blue-500/50 rounded text-xs font-semibold text-blue-400">
+            Coming Soon
+          </div>
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-blue-400" />
+            <div className="w-12 h-12 bg-pink-500/10 rounded-lg flex items-center justify-center">
+              <Bot className="w-6 h-6 text-pink-400" />
             </div>
-            <h3 className="text-lg font-bold text-white">Scheduled Reports</h3>
+            <h3 className="text-lg font-bold text-white">Agent Builder</h3>
           </div>
           <p className="text-gray-300 text-sm">
-            Automated daily, weekly, or monthly reports delivered right to your inbox
+            Design and deploy custom AI Agents to complete tasks autonomously.
           </p>
         </div>
 
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 hover:border-indigo-500/50 transition-all relative">
+          <div className="absolute top-3 right-3 px-2 py-1 bg-blue-500/20 border border-blue-500/50 rounded text-xs font-semibold text-blue-400">
+            Coming Soon
+          </div>
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-              <Zap className="w-6 h-6 text-purple-400" />
+            <div className="w-12 h-12 bg-indigo-500/10 rounded-lg flex items-center justify-center">
+              <Mail className="w-6 h-6 text-indigo-400" />
             </div>
-            <h3 className="text-lg font-bold text-white">AI Workflows</h3>
+            <h3 className="text-lg font-bold text-white">Email Control</h3>
           </div>
           <p className="text-gray-300 text-sm">
-            Build custom automation workflows with our no-code AI agent builder
+            Allow Astra to understand, analyze and manage your incoming and outgoing emails.
           </p>
         </div>
 
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 hover:border-teal-500/50 transition-all relative">
+          <div className="absolute top-3 right-3 px-2 py-1 bg-blue-500/20 border border-blue-500/50 rounded text-xs font-semibold text-blue-400">
+            Coming Soon
+          </div>
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center">
-              <Bell className="w-6 h-6 text-indigo-400" />
+            <div className="w-12 h-12 bg-teal-500/10 rounded-lg flex items-center justify-center">
+              <UserCircle className="w-6 h-6 text-teal-400" />
             </div>
-            <h3 className="text-lg font-bold text-white">Smart Notifications</h3>
+            <h3 className="text-lg font-bold text-white">AI Job Roles</h3>
           </div>
           <p className="text-gray-300 text-sm">
-            Stay updated with intelligent alerts for mentions, reports, and key insights
-          </p>
-        </div>
-      </div>
-    )
-  },
-  {
-    id: 'features-4',
-    title: 'Coming Soon - Strategic Intelligence',
-    subtitle: 'Advanced capabilities on the horizon',
-    icon: Globe,
-    content: (
-      <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 opacity-75">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
-              <Globe className="w-6 h-6 text-blue-400" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-white">Industry News</h3>
-              <span className="text-xs text-blue-400 font-medium">Coming Soon</span>
-            </div>
-          </div>
-          <p className="text-gray-300 text-sm">
-            Personalized industry news and competitive intelligence delivered daily
-          </p>
-        </div>
-
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 opacity-75">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-purple-400" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-white">CRM Integration</h3>
-              <span className="text-xs text-purple-400 font-medium">Coming Soon</span>
-            </div>
-          </div>
-          <p className="text-gray-300 text-sm">
-            Connect your customer data and get AI-powered relationship insights
-          </p>
-        </div>
-
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 opacity-75">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center">
-              <BookOpen className="w-6 h-6 text-indigo-400" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-white">Knowledge Base</h3>
-              <span className="text-xs text-indigo-400 font-medium">Coming Soon</span>
-            </div>
-          </div>
-          <p className="text-gray-300 text-sm">
-            Centralized documentation and wiki powered by AI search and retrieval
+            Create roles such as Business Coach, Finance Director, Marketing Manager and more.
           </p>
         </div>
       </div>
@@ -321,22 +295,26 @@ export const LaunchOnboardingScreens: React.FC<LaunchOnboardingScreensProps> = (
             </div>
           )}
 
-          {/* Screen Icon */}
-          <div className="mb-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center animate-pulse">
-              <ScreenIcon className="w-10 h-10 text-white" />
+          {/* Screen Icon - Skip on welcome screen */}
+          {currentScreen !== 0 && (
+            <div className="mb-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center animate-pulse">
+                <ScreenIcon className="w-10 h-10 text-white" />
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Screen Title */}
-          <div className="text-center mb-8 max-w-3xl">
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
-              {screen.title}
-            </h1>
-            <p className="text-gray-400 text-base md:text-lg">
-              {screen.subtitle}
-            </p>
-          </div>
+          {/* Screen Title - Skip on welcome screen */}
+          {currentScreen !== 0 && (
+            <div className="text-center mb-8 max-w-3xl">
+              <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                {screen.title}
+              </h1>
+              <p className="text-gray-400 text-base md:text-lg">
+                {screen.subtitle}
+              </p>
+            </div>
+          )}
 
           {/* Screen Content */}
           <div className="w-full mb-8">
