@@ -18,7 +18,7 @@ interface FuelStageProps {
 export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComplete }) => {
   const { user } = useAuth();
   const { updateStageLevel, completeAchievement, awardPoints } = useLaunchPreparation();
-  const { counts, loading: countsLoading, calculateFuelLevel, meetsLevelRequirements } = useDocumentCounts();
+  const { counts, loading: countsLoading, calculateFuelLevel, meetsLevelRequirements, refresh: refreshCounts } = useDocumentCounts();
   const [showDriveFlow, setShowDriveFlow] = useState(false);
   const [driveFlowStep, setDriveFlowStep] = useState<'connect' | 'choose-folder'>('connect');
   const [checkingLevel, setCheckingLevel] = useState(false);
@@ -359,11 +359,15 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
                 />
               ) : (
                 <ChooseFolderStep
-                  onComplete={(folderData) => {
+                  onComplete={async (folderData) => {
                     console.log('Folder selected:', folderData);
+                    // Don't close modal - let ChooseFolderStep show success screen
+                    // Just refresh the counts in background
+                    await refreshCounts();
+                  }}
+                  onProceed={() => {
+                    // User clicked "Next: Place Your Files" button
                     setShowDriveFlow(false);
-                    // Refresh data counts to update fuel level
-                    window.location.reload();
                   }}
                   progress={null}
                 />

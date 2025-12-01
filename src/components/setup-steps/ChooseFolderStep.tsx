@@ -9,6 +9,7 @@ import { GoogleDriveFolderPicker } from '../GoogleDriveFolderPicker';
 interface ChooseFolderStepProps {
   onComplete: (folderData: any) => void;
   progress: SetupGuideProgress | null;
+  onProceed?: () => void; // Optional callback when user clicks "Next" from success screen
 }
 
 interface GoogleDriveFolder {
@@ -19,7 +20,7 @@ interface GoogleDriveFolder {
 
 type ViewMode = 'initial' | 'select-existing' | 'creating-new';
 
-export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }) => {
+export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete, onProceed }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('initial');
   const [loading, setLoading] = useState(true);
   const [folders, setFolders] = useState<GoogleDriveFolder[]>([]);
@@ -203,7 +204,11 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }
         throw new Error('Failed to save folder selection');
       }
 
-      // Proceed to next step
+      // Mark as having existing folders and show success screen
+      setSelectedFolder(folder);
+      setHasExistingFolders(true);
+
+      // Call onComplete but let the component show success screen first
       onComplete({
         selectedFolder: folder,
         folderType: 'strategy',
@@ -253,7 +258,13 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete }
 
         <div className="flex justify-center pt-4">
           <button
-            onClick={() => onComplete({ existingFolder: true })}
+            onClick={() => {
+              if (onProceed) {
+                onProceed();
+              } else {
+                onComplete({ existingFolder: true });
+              }
+            }}
             className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all min-h-[44px]"
           >
             Next: Place Your Files →
