@@ -83,7 +83,7 @@ export const LaunchPreparationHeader: React.FC<LaunchPreparationHeaderProps> = (
               </button>
               <button
                 onClick={confirmClose}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-orange-500 via-green-500 to-blue-500 text-white rounded-lg hover:opacity-90 transition-opacity font-medium"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:opacity-90 transition-opacity font-medium"
               >
                 Exit
               </button>

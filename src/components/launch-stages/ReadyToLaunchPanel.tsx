@@ -109,7 +109,7 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
             {/* Rocket Animation */}
             <div className="relative inline-block mb-4">
               <div className={`
-                w-20 h-20 bg-gradient-to-br from-orange-500 via-green-500 to-blue-500 rounded-full
+                w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full
                 flex items-center justify-center
                 ${launching ? 'animate-bounce' : 'animate-pulse'}
               `}>
@@ -143,7 +143,7 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
 
               <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden mb-3">
                 <div
-                  className="h-full bg-gradient-to-r from-orange-500 via-cyan-500 to-green-500 transition-all duration-1000"
+                  className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 transition-all duration-1000"
                   style={{ width: `${overallProgress}%` }}
                 />
               </div>
@@ -244,8 +244,8 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
                     w-full text-white font-bold py-4 px-6 rounded-xl text-lg
                     transition-all transform
                     ${launching
-                      ? 'bg-gradient-to-r from-orange-600 to-orange-500 cursor-wait scale-95'
-                      : 'bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:scale-105 hover:shadow-2xl'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 cursor-wait scale-95'
+                      : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:scale-105 hover:shadow-2xl'
                     }
                     flex items-center justify-center space-x-3
                   `}
@@ -261,9 +261,9 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
             )}
 
             {hasRecommendedLevel && (
-              <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4 text-center">
-                <Trophy className="w-8 h-8 text-green-400 mx-auto mb-2" />
-                <p className="text-green-400 font-semibold">
+              <div className="bg-purple-500/20 border border-purple-500/30 rounded-lg p-4 text-center">
+                <Trophy className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+                <p className="text-purple-400 font-semibold">
                   Excellent Preparation! You're ready for optimal performance! 🎉
                 </p>
               </div>
@@ -278,7 +278,7 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
               {fuelLevel < 1 && (
                 <button
                   onClick={() => onNavigateToStage('fuel')}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
                 >
                   Complete Fuel Stage
                 </button>
@@ -294,7 +294,7 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
               {guidanceLevel < 1 && (
                 <button
                   onClick={() => onNavigateToStage('guidance')}
-                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                  className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
                 >
                   Complete Guidance Stage
                 </button>

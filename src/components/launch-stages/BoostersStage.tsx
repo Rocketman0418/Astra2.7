@@ -251,7 +251,7 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, onBack, 
                       <div className="flex items-center space-x-2 mb-1">
                         <h4 className="text-lg font-semibold text-white">{feature.name}</h4>
                         {feature.completed && (
-                          <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded">
+                          <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded">
                             Completed
                           </span>
                         )}

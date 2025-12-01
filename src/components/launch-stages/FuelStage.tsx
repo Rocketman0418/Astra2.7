@@ -73,11 +73,11 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
         </button>
 
         {/* Stage Title */}
-        <div className="bg-gradient-to-r from-orange-500/20 to-orange-600/20 border border-orange-500/30 rounded-xl p-6 mb-8">
+        <div className="bg-gradient-to-r from-blue-500/20 to-purple-600/20 border border-blue-500/30 rounded-xl p-6 mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-orange-500/20 rounded-xl flex items-center justify-center">
-                <Fuel className="w-8 h-8 text-orange-400" />
+              <div className="w-16 h-16 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                <Fuel className="w-8 h-8 text-blue-400" />
               </div>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
@@ -90,7 +90,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-400">Current Level</p>
-              <p className="text-3xl font-bold text-orange-400">{currentLevel}/5</p>
+              <p className="text-3xl font-bold text-blue-400">{currentLevel}/5</p>
             </div>
           </div>
         </div>
@@ -114,7 +114,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
         {/* Level Progress */}
         <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 mb-6">
           <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-            <LevelIcon className="w-6 h-6 mr-2 text-orange-400" />
+            <LevelIcon className="w-6 h-6 mr-2 text-blue-400" />
             {currentLevel === 0 ? 'Get Started' : `Level ${currentLevel}: ${currentLevelInfo.name}`}
           </h2>
 
@@ -163,11 +163,11 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
                     return (
                       <li key={index} className="flex items-center space-x-2">
                         {isMet ? (
-                          <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+                          <CheckCircle className="w-5 h-5 text-purple-400 flex-shrink-0" />
                         ) : (
                           <div className="w-5 h-5 border-2 border-gray-600 rounded-full flex-shrink-0" />
                         )}
-                        <span className={isMet ? 'text-green-400' : 'text-gray-300'}>
+                        <span className={isMet ? 'text-purple-400' : 'text-gray-300'}>
                           {req}
                         </span>
                       </li>
@@ -181,7 +181,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
                   Reward: <span className="text-yellow-400 font-semibold">{formatPoints(targetLevelInfo.points)} points</span>
                 </p>
                 {meetsLevelRequirements(targetLevel) && !checkingLevel && (
-                  <span className="text-green-400 text-sm font-medium flex items-center">
+                  <span className="text-purple-400 text-sm font-medium flex items-center">
                     <CheckCircle className="w-4 h-4 mr-1" />
                     Requirements met! Updating...
                   </span>
@@ -191,9 +191,9 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
           )}
 
           {currentLevel === 5 && (
-            <div className="mt-6 bg-gradient-to-r from-orange-500/20 to-yellow-500/20 border border-orange-500/30 rounded-lg p-6">
+            <div className="mt-6 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 border border-blue-500/30 rounded-lg p-6">
               <div className="flex items-center space-x-3 mb-2">
-                <Rocket className="w-8 h-8 text-orange-400" />
+                <Rocket className="w-8 h-8 text-blue-400" />
                 <h3 className="text-xl font-bold text-white">Maximum Fuel Achieved!</h3>
               </div>
               <p className="text-gray-300 mb-4">
@@ -210,7 +210,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
         <div className="space-y-4">
           <button
             onClick={() => setShowDriveSettings(true)}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
           >
             <Folder className="w-5 h-5" />
             <span>Connect Google Drive & Add Documents</span>
@@ -246,7 +246,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
             <p>
               <strong>Financial Records:</strong> Budgets, P&L statements, and financial data enable Astra to provide insights about business performance.
             </p>
-            <p className="text-orange-400">
+            <p className="text-blue-400">
               More data = More accurate insights = Better decisions!
             </p>
           </div>

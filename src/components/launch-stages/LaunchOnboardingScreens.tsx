@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronRight, Rocket, MessageSquare, BarChart3, Calendar, FileText, Users, Sparkles } from 'lucide-react';
+import { ChevronRight, Rocket, MessageSquare, BarChart3, Calendar, FileText, Users, Sparkles, Mail, Building2, Zap, Settings, BookOpen, TrendingUp, Globe, Bell } from 'lucide-react';
 import { LaunchPreparationHeader } from './LaunchPreparationHeader';
 
 interface LaunchOnboardingScreensProps {
@@ -16,9 +16,9 @@ const onboardingScreens = [
     icon: Rocket,
     content: (
       <div className="space-y-4 text-center">
-        <div className="inline-block px-6 py-3 bg-gradient-to-r from-orange-500/20 via-green-500/20 to-blue-500/20 rounded-lg border border-orange-500/30">
+        <div className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg border border-blue-500/30">
           <p className="text-lg text-white">
-            <span className="font-bold text-emerald-400">Astra</span> is here to help you unlock the full potential of your data
+            <span className="font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Astra</span> is here to help you unlock the full potential of your data
           </p>
         </div>
         <p className="text-gray-300 text-base max-w-2xl mx-auto">
@@ -29,32 +29,44 @@ const onboardingScreens = [
   },
   {
     id: 'features-1',
-    title: 'Intelligent Conversations & Analytics',
-    subtitle: 'Ask questions, get insights',
+    title: 'AI-Powered Intelligence & Analytics',
+    subtitle: 'Ask questions, get insights instantly',
     icon: MessageSquare,
     content: (
-      <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
+      <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
           <div className="flex items-center space-x-3 mb-3">
             <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
               <MessageSquare className="w-6 h-6 text-blue-400" />
             </div>
-            <h3 className="text-xl font-bold text-white">AI Chat</h3>
+            <h3 className="text-lg font-bold text-white">AI Chat</h3>
           </div>
-          <p className="text-gray-300">
-            Chat with Astra to analyze your data, get insights, and make informed decisions - all in natural language
+          <p className="text-gray-300 text-sm">
+            Private and team conversations with Astra to analyze your data in natural language
           </p>
         </div>
 
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-              <BarChart3 className="w-6 h-6 text-emerald-400" />
+            <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+              <BarChart3 className="w-6 h-6 text-purple-400" />
             </div>
-            <h3 className="text-xl font-bold text-white">Visual Reports</h3>
+            <h3 className="text-lg font-bold text-white">Visual Reports</h3>
           </div>
-          <p className="text-gray-300">
-            Generate beautiful visualizations and reports from your data automatically with AI
+          <p className="text-gray-300 text-sm">
+            AI-generated visualizations and interactive dashboards from your data
+          </p>
+        </div>
+
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-indigo-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white">Smart Insights</h3>
+          </div>
+          <p className="text-gray-300 text-sm">
+            Guided prompts and intelligent suggestions based on your data patterns
           </p>
         </div>
       </div>
@@ -62,32 +74,143 @@ const onboardingScreens = [
   },
   {
     id: 'features-2',
-    title: 'Collaboration & Automation',
-    subtitle: 'Work smarter together',
+    title: 'Team Collaboration & Data Integration',
+    subtitle: 'Connect everything, work together',
     icon: Users,
     content: (
-      <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
+      <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-purple-400" />
+            <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+              <Users className="w-6 h-6 text-blue-400" />
             </div>
-            <h3 className="text-xl font-bold text-white">Team Collaboration</h3>
+            <h3 className="text-lg font-bold text-white">Team Chat</h3>
           </div>
-          <p className="text-gray-300">
-            Work with your team, share insights, and collaborate on decisions with AI assistance
+          <p className="text-gray-300 text-sm">
+            Collaborate with @mentions, share insights, and work together with AI assistance
           </p>
         </div>
 
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-orange-400" />
+            <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+              <FileText className="w-6 h-6 text-purple-400" />
             </div>
-            <h3 className="text-xl font-bold text-white">Scheduled Reports</h3>
+            <h3 className="text-lg font-bold text-white">Google Drive Sync</h3>
           </div>
-          <p className="text-gray-300">
-            Set up automated reports delivered to your inbox on your schedule
+          <p className="text-gray-300 text-sm">
+            Connect strategy docs, meeting notes, and financial data automatically
+          </p>
+        </div>
+
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+              <Mail className="w-6 h-6 text-indigo-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white">Gmail Integration</h3>
+          </div>
+          <p className="text-gray-300 text-sm">
+            Search and analyze your email conversations with AI-powered insights
+          </p>
+        </div>
+      </div>
+    )
+  },
+  {
+    id: 'features-3',
+    title: 'Automation & Advanced Features',
+    subtitle: 'Work smarter, not harder',
+    icon: Zap,
+    content: (
+      <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+              <Calendar className="w-6 h-6 text-blue-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white">Scheduled Reports</h3>
+          </div>
+          <p className="text-gray-300 text-sm">
+            Automated daily, weekly, or monthly reports delivered right to your inbox
+          </p>
+        </div>
+
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+              <Zap className="w-6 h-6 text-purple-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white">AI Workflows</h3>
+          </div>
+          <p className="text-gray-300 text-sm">
+            Build custom automation workflows with our no-code AI agent builder
+          </p>
+        </div>
+
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+              <Bell className="w-6 h-6 text-indigo-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white">Smart Notifications</h3>
+          </div>
+          <p className="text-gray-300 text-sm">
+            Stay updated with intelligent alerts for mentions, reports, and key insights
+          </p>
+        </div>
+      </div>
+    )
+  },
+  {
+    id: 'features-4',
+    title: 'Coming Soon - Strategic Intelligence',
+    subtitle: 'Advanced capabilities on the horizon',
+    icon: Globe,
+    content: (
+      <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 opacity-75">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+              <Globe className="w-6 h-6 text-blue-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">Industry News</h3>
+              <span className="text-xs text-blue-400 font-medium">Coming Soon</span>
+            </div>
+          </div>
+          <p className="text-gray-300 text-sm">
+            Personalized industry news and competitive intelligence delivered daily
+          </p>
+        </div>
+
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 opacity-75">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+              <Building2 className="w-6 h-6 text-purple-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">CRM Integration</h3>
+              <span className="text-xs text-purple-400 font-medium">Coming Soon</span>
+            </div>
+          </div>
+          <p className="text-gray-300 text-sm">
+            Connect your customer data and get AI-powered relationship insights
+          </p>
+        </div>
+
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 opacity-75">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+              <BookOpen className="w-6 h-6 text-indigo-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">Knowledge Base</h3>
+              <span className="text-xs text-indigo-400 font-medium">Coming Soon</span>
+            </div>
+          </div>
+          <p className="text-gray-300 text-sm">
+            Centralized documentation and wiki powered by AI search and retrieval
           </p>
         </div>
       </div>
@@ -100,7 +223,7 @@ const onboardingScreens = [
     icon: Sparkles,
     content: (
       <div className="space-y-6 max-w-2xl mx-auto">
-        <div className="bg-gradient-to-r from-orange-500/10 via-green-500/10 to-blue-500/10 border border-orange-500/30 rounded-xl p-6">
+        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-xl p-6">
           <h3 className="text-2xl font-bold text-white mb-4 text-center">
             Launch Preparation System
           </h3>
@@ -110,8 +233,8 @@ const onboardingScreens = [
 
           <div className="space-y-4">
             <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                <FileText className="w-5 h-5 text-orange-400" />
+              <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                <FileText className="w-5 h-5 text-blue-400" />
               </div>
               <div>
                 <h4 className="font-semibold text-white mb-1">Fuel - Connect Your Data</h4>
@@ -122,8 +245,8 @@ const onboardingScreens = [
             </div>
 
             <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                <Sparkles className="w-5 h-5 text-green-400" />
+              <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                <Sparkles className="w-5 h-5 text-purple-400" />
               </div>
               <div>
                 <h4 className="font-semibold text-white mb-1">Boosters - Enable Features</h4>
@@ -134,8 +257,8 @@ const onboardingScreens = [
             </div>
 
             <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                <Rocket className="w-5 h-5 text-blue-400" />
+              <div className="w-8 h-8 bg-indigo-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                <Rocket className="w-5 h-5 text-indigo-400" />
               </div>
               <div>
                 <h4 className="font-semibold text-white mb-1">Guidance - Set Mission Parameters</h4>
@@ -185,7 +308,7 @@ export const LaunchOnboardingScreens: React.FC<LaunchOnboardingScreensProps> = (
       <LaunchPreparationHeader onClose={onClose} />
 
       <div className="pt-16 px-4 pb-4 h-screen overflow-y-auto flex flex-col">
-        <div className="flex-1 flex flex-col items-center justify-center max-w-5xl mx-auto w-full py-8">
+        <div className="flex-1 flex flex-col items-center justify-center max-w-6xl mx-auto w-full py-8">
           {/* Page Title - Only on first screen */}
           {currentScreen === 0 && (
             <div className="text-center mb-6">
@@ -200,7 +323,7 @@ export const LaunchOnboardingScreens: React.FC<LaunchOnboardingScreensProps> = (
 
           {/* Screen Icon */}
           <div className="mb-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-orange-500 via-green-500 to-blue-500 rounded-full flex items-center justify-center animate-pulse">
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center animate-pulse">
               <ScreenIcon className="w-10 h-10 text-white" />
             </div>
           </div>
@@ -230,7 +353,7 @@ export const LaunchOnboardingScreens: React.FC<LaunchOnboardingScreensProps> = (
                   onClick={() => setCurrentScreen(index)}
                   className={`h-2 rounded-full transition-all ${
                     index === currentScreen
-                      ? 'w-8 bg-gradient-to-r from-orange-500 via-green-500 to-blue-500'
+                      ? 'w-8 bg-gradient-to-r from-blue-500 to-purple-600'
                       : 'w-2 bg-gray-600 hover:bg-gray-500'
                   }`}
                 />
@@ -249,7 +372,7 @@ export const LaunchOnboardingScreens: React.FC<LaunchOnboardingScreensProps> = (
               )}
               <button
                 onClick={handleNext}
-                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-orange-500 via-green-500 to-blue-500 text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
+                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
               >
                 <span>{screen.ctaText || 'Continue'}</span>
                 <ChevronRight className="w-5 h-5" />

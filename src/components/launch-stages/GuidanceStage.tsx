@@ -180,8 +180,8 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, onBack, 
         <div className="bg-gradient-to-r from-green-500/20 to-emerald-600/20 border border-green-500/30 rounded-xl p-6 mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-green-500/20 rounded-xl flex items-center justify-center">
-                <Compass className="w-8 h-8 text-green-400" />
+              <div className="w-16 h-16 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                <Compass className="w-8 h-8 text-purple-400" />
               </div>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
@@ -194,7 +194,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, onBack, 
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-400">Current Level</p>
-              <p className="text-3xl font-bold text-green-400">{currentLevel}/5</p>
+              <p className="text-3xl font-bold text-purple-400">{currentLevel}/5</p>
             </div>
           </div>
         </div>
@@ -202,7 +202,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, onBack, 
         {/* Level Progress */}
         <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 mb-6">
           <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-            <LevelIcon className="w-6 h-6 mr-2 text-green-400" />
+            <LevelIcon className="w-6 h-6 mr-2 text-purple-400" />
             {currentLevel === 0 ? 'Get Started' : `Level ${currentLevel}: ${currentLevelInfo.name}`}
           </h2>
 
@@ -252,7 +252,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, onBack, 
           {currentLevel === 5 && (
             <div className="mt-6 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-lg p-6">
               <div className="flex items-center space-x-3 mb-2">
-                <BookOpen className="w-8 h-8 text-green-400" />
+                <BookOpen className="w-8 h-8 text-purple-400" />
                 <h3 className="text-xl font-bold text-white">Guidance Complete!</h3>
               </div>
               <p className="text-gray-300 mb-4">
@@ -304,7 +304,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, onBack, 
                       <div className="flex items-center space-x-2 mb-1">
                         <h4 className="text-lg font-semibold text-white">{feature.name}</h4>
                         {feature.completed && (
-                          <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded">
+                          <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded">
                             Completed
                           </span>
                         )}
@@ -359,7 +359,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, onBack, 
           {currentLevel >= 1 && (
             <button
               onClick={onComplete}
-              className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
+              className="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
             >
               <span>Ready to Launch!</span>
               <ArrowRight className="w-5 h-5" />
@@ -386,7 +386,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, onBack, 
             <p>
               <strong>Team Members:</strong> Collaborate with your team for better insights and shared knowledge.
             </p>
-            <p className="text-green-400">
+            <p className="text-purple-400">
               A well-configured team gets the most value from Astra!
             </p>
           </div>
