@@ -110,14 +110,21 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete, 
   };
 
   const handleCreateNewFolder = async () => {
+    // Prevent double-clicks
+    if (creatingFolder) return;
+
     setCreatingFolder(true);
     setError('');
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         setError('Not authenticated');
+        setCreatingFolder(false);
         return;
       }
+
+      console.log('🚀 Creating Astra Strategy folder...');
 
       // Create the "Astra Strategy" folder
       const createResponse = await fetch(
@@ -133,10 +140,12 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete, 
       );
 
       if (!createResponse.ok) {
-        throw new Error('Failed to create folder');
+        const errorData = await createResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to create folder');
       }
 
       const { folder } = await createResponse.json();
+      console.log('✅ Folder created:', folder);
 
       // Save folder selection
       const saveResponse = await fetch(
@@ -156,19 +165,24 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete, 
       );
 
       if (!saveResponse.ok) {
-        throw new Error('Failed to save folder selection');
+        const errorData = await saveResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to save folder selection');
       }
 
+      console.log('✅ Folder selection saved');
+
+      // Keep loading state while completing
       // Proceed to next step with folder info
       onComplete({
         selectedFolder: folder,
         folderType: 'strategy',
         isNewFolder: true,
       });
+
+      // Don't set creatingFolder to false here - let the parent handle navigation
     } catch (err: any) {
-      console.error('Error creating folder:', err);
+      console.error('❌ Error creating folder:', err);
       setError(err.message || 'Failed to create folder');
-    } finally {
       setCreatingFolder(false);
     }
   };

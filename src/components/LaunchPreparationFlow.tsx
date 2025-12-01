@@ -71,12 +71,25 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
     checkOnboarding();
   }, [user]);
 
-  // Check for URL parameter to redirect to specific stage (e.g., from OAuth callback)
+  // Check for URL parameter or sessionStorage flag to redirect to specific stage (e.g., from OAuth callback)
   useEffect(() => {
+    if (!launchStatus) return;
+
+    // Check sessionStorage first (for OAuth callbacks)
+    const shouldReopenFuel = sessionStorage.getItem('reopen_fuel_stage');
+    if (shouldReopenFuel === 'true') {
+      console.log('🚀 [LaunchPreparationFlow] Detected reopen_fuel_stage flag - navigating to Fuel');
+      // Don't remove the flag here - let FuelStage handle it to open the modal
+      setShowStageSelector(false);
+      updateCurrentStage('fuel');
+      return;
+    }
+
+    // Check URL parameter
     const params = new URLSearchParams(window.location.search);
     const openStage = params.get('openLaunchPrep');
 
-    if (openStage && launchStatus) {
+    if (openStage) {
       // Clear the URL parameter
       window.history.replaceState({}, '', window.location.pathname);
 
