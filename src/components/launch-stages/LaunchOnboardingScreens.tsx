@@ -340,14 +340,6 @@ export const LaunchOnboardingScreens: React.FC<LaunchOnboardingScreensProps> = (
 
             {/* Action Buttons */}
             <div className="flex items-center space-x-3">
-              {!isLastScreen && (
-                <button
-                  onClick={handleSkip}
-                  className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
-                >
-                  Skip Tour
-                </button>
-              )}
               <button
                 onClick={handleNext}
                 className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-medium hover:opacity-90 transition-opacity"

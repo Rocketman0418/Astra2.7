@@ -13,7 +13,11 @@ import { supabase } from '../lib/supabase';
 import { AstraGuidedSetupModal } from './AstraGuidedSetupModal';
 import { FolderSelectionWrapper } from './FolderSelectionWrapper';
 
-export const GoogleDriveSettings: React.FC = () => {
+interface GoogleDriveSettingsProps {
+  fromLaunchPrep?: boolean;
+}
+
+export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLaunchPrep = false }) => {
   const [connection, setConnection] = useState<GoogleDriveConnection | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
@@ -213,7 +217,7 @@ export const GoogleDriveSettings: React.FC = () => {
         setError('Google Drive integration is not configured. Please contact support.');
         return;
       }
-      initiateGoogleDriveOAuth();
+      initiateGoogleDriveOAuth(false, fromLaunchPrep);
     } catch (err: any) {
       setError(err.message);
     }
@@ -472,7 +476,7 @@ export const GoogleDriveSettings: React.FC = () => {
               <button
                 onClick={() => {
                   console.log('🔄 Initiating OAuth reconnection for scope upgrade');
-                  initiateGoogleDriveOAuth();
+                  initiateGoogleDriveOAuth(false, fromLaunchPrep);
                 }}
                 className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold rounded-lg transition-colors flex items-center space-x-2"
               >

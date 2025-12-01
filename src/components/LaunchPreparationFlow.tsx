@@ -71,6 +71,23 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
     checkOnboarding();
   }, [user]);
 
+  // Check for URL parameter to redirect to specific stage (e.g., from OAuth callback)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const openStage = params.get('openLaunchPrep');
+
+    if (openStage && launchStatus) {
+      // Clear the URL parameter
+      window.history.replaceState({}, '', window.location.pathname);
+
+      // Navigate to the specified stage
+      if (openStage === 'fuel') {
+        setShowStageSelector(false);
+        updateCurrentStage('fuel');
+      }
+    }
+  }, [launchStatus, updateCurrentStage]);
+
   // Initialize launch status on mount
   useEffect(() => {
     if (user && !launchStatus && !loading && !checkingOnboarding) {

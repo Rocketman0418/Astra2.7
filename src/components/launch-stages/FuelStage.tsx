@@ -5,6 +5,8 @@ import { useLaunchPreparation } from '../../hooks/useLaunchPreparation';
 import { useDocumentCounts } from '../../hooks/useDocumentCounts';
 import { FUEL_LEVELS, formatPoints } from '../../lib/launch-preparation-utils';
 import { GoogleDriveSettings } from '../GoogleDriveSettings';
+import { getGoogleDriveConnection } from '../../lib/google-drive-oauth';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface FuelStageProps {
   progress: StageProgress | null;
@@ -13,15 +15,45 @@ interface FuelStageProps {
 }
 
 export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComplete }) => {
+  const { user } = useAuth();
   const { updateStageLevel, completeAchievement, awardPoints } = useLaunchPreparation();
   const { counts, loading: countsLoading, calculateFuelLevel, meetsLevelRequirements } = useDocumentCounts();
   const [showDriveSettings, setShowDriveSettings] = useState(false);
   const [checkingLevel, setCheckingLevel] = useState(false);
+  const [hasGoogleDrive, setHasGoogleDrive] = useState(false);
+  const [checkingDrive, setCheckingDrive] = useState(true);
 
   const currentLevel = progress?.level || 0;
   const targetLevel = currentLevel + 1;
   const currentLevelInfo = FUEL_LEVELS[currentLevel] || FUEL_LEVELS[0];
   const targetLevelInfo = FUEL_LEVELS[targetLevel - 1];
+
+  // Check if user has Google Drive connected
+  useEffect(() => {
+    const checkDriveConnection = async () => {
+      try {
+        const connection = await getGoogleDriveConnection();
+        setHasGoogleDrive(!!connection && connection.is_active);
+        setCheckingDrive(false);
+
+        // Auto-open settings modal if they just connected (and it's not already open)
+        if (connection && connection.is_active && !showDriveSettings) {
+          // Only auto-open if they don't have folders configured yet
+          const hasAnyFolder = connection.strategy_folder_id || connection.meetings_folder_id || connection.financial_folder_id;
+          if (!hasAnyFolder) {
+            setShowDriveSettings(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking drive connection:', error);
+        setCheckingDrive(false);
+      }
+    };
+
+    if (user) {
+      checkDriveConnection();
+    }
+  }, [user, showDriveSettings]);
 
   // Check if user meets requirements for next level
   useEffect(() => {
@@ -210,10 +242,25 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
         <div className="space-y-4">
           <button
             onClick={() => setShowDriveSettings(true)}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
+            disabled={checkingDrive}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Folder className="w-5 h-5" />
-            <span>Connect Google Drive & Add Documents</span>
+            {checkingDrive ? (
+              <>
+                <Loader className="w-5 h-5 animate-spin" />
+                <span>Checking connection...</span>
+              </>
+            ) : hasGoogleDrive ? (
+              <>
+                <Folder className="w-5 h-5" />
+                <span>Manage Folders & Add Documents</span>
+              </>
+            ) : (
+              <>
+                <Folder className="w-5 h-5" />
+                <span>Connect Google Drive & Add Documents</span>
+              </>
+            )}
           </button>
 
           {currentLevel >= 1 && (
@@ -267,7 +314,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, onBack, onComple
               </button>
             </div>
             <div className="p-6">
-              <GoogleDriveSettings />
+              <GoogleDriveSettings fromLaunchPrep={true} />
             </div>
           </div>
         </div>
