@@ -13,6 +13,7 @@ import { HelpCenter, HelpCenterTab } from './HelpCenter';
 import { AstraGuidedSetup } from './AstraGuidedSetup';
 import { ExpiredTokenBanner } from './ExpiredTokenBanner';
 import { OAuthReconnectModal } from './OAuthReconnectModal';
+import { ChooseFolderStep } from './setup-steps/ChooseFolderStep';
 import { ChatMode } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useSavedVisualizations } from '../hooks/useSavedVisualizations';
@@ -42,6 +43,7 @@ export const MainContainer: React.FC = () => {
   const [showSetupGuide, setShowSetupGuide] = useState(false);
   const [hasExpiredToken, setHasExpiredToken] = useState(false);
   const [tokenBannerDismissed, setTokenBannerDismissed] = useState(false);
+  const [showDriveFolderSelection, setShowDriveFolderSelection] = useState(false);
 
   // OAuth Reconnect Prompt Hook
   const {
@@ -208,6 +210,16 @@ export const MainContainer: React.FC = () => {
       setSidebarOpen(false);
     }
   }, [chatMode]);
+
+  // Check if returning from Google Drive OAuth (for users not in Launch Prep)
+  React.useEffect(() => {
+    const shouldReopenFuel = sessionStorage.getItem('reopen_fuel_stage');
+    if (shouldReopenFuel === 'true') {
+      sessionStorage.removeItem('reopen_fuel_stage');
+      console.log('🚀 [MainContainer] Reopening Drive folder selection after OAuth return');
+      setShowDriveFolderSelection(true);
+    }
+  }, []);
 
   const handleLoadConversation = (conversationId: string) => {
     console.log('MainContainer: handleLoadConversation called with:', conversationId);
@@ -446,6 +458,34 @@ export const MainContainer: React.FC = () => {
           onClose={dismissOAuthReconnectModal}
           onReconnect={handleOAuthReconnect}
         />
+      )}
+
+      {/* Google Drive Folder Selection - After OAuth return */}
+      {showDriveFolderSelection && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-gray-800 border-b border-gray-700 p-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white">Choose Your Folder</h2>
+              <button
+                onClick={() => setShowDriveFolderSelection(false)}
+                className="text-gray-400 hover:text-white text-2xl leading-none px-2"
+              >
+                ×
+              </button>
+            </div>
+            <div className="p-6">
+              <ChooseFolderStep
+                onComplete={(folderData) => {
+                  console.log('Folder selected:', folderData);
+                  setShowDriveFolderSelection(false);
+                  // Refresh the page to update data counts
+                  window.location.reload();
+                }}
+                progress={null}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
