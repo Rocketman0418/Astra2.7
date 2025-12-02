@@ -10,6 +10,7 @@ import { ConnectDriveStep } from '../setup-steps/ConnectDriveStep';
 import { ChooseFolderStep } from '../setup-steps/ChooseFolderStep';
 import { PlaceFilesStep } from '../setup-steps/PlaceFilesStep';
 import { SyncDataStep } from '../setup-steps/SyncDataStep';
+import { AddMoreFoldersStep } from '../setup-steps/AddMoreFoldersStep';
 import { ConnectedFoldersStatus } from '../ConnectedFoldersStatus';
 import { StageProgressBar } from './StageProgressBar';
 import { supabase } from '../../lib/supabase';
@@ -29,7 +30,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
   const { updateStageLevel, completeAchievement, awardPoints } = useLaunchPreparation();
   const { counts, loading: countsLoading, calculateFuelLevel, meetsLevelRequirements, refresh: refreshCounts } = useDocumentCounts();
   const [showDriveFlow, setShowDriveFlow] = useState(false);
-  const [driveFlowStep, setDriveFlowStep] = useState<'status' | 'connect' | 'choose-folder' | 'place-files' | 'sync-data'>('status');
+  const [driveFlowStep, setDriveFlowStep] = useState<'status' | 'connect' | 'choose-folder' | 'add-more-folders' | 'place-files' | 'sync-data'>('status');
   const [folderData, setFolderData] = useState<any>(null);
   const [checkingLevel, setCheckingLevel] = useState(false);
   const [hasGoogleDrive, setHasGoogleDrive] = useState(false);
@@ -439,6 +440,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
                 {driveFlowStep === 'status' && 'Your Fuel Status'}
                 {driveFlowStep === 'connect' && 'Connect Google Drive'}
                 {driveFlowStep === 'choose-folder' && 'Choose Your Folder'}
+                {driveFlowStep === 'add-more-folders' && 'Connect More Folders'}
                 {driveFlowStep === 'place-files' && 'Place Your Files'}
                 {driveFlowStep === 'sync-data' && 'Sync Your Data'}
               </h2>
@@ -459,7 +461,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
               {driveFlowStep === 'status' && (
                 <ConnectedFoldersStatus
                   onConnectMore={() => {
-                    setDriveFlowStep('choose-folder');
+                    setDriveFlowStep('add-more-folders');
                   }}
                   onClose={async () => {
                     await clearFlowState();
@@ -498,6 +500,18 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
                     await persistFlowState('place-files');
                   }}
                   progress={null}
+                />
+              )}
+              {driveFlowStep === 'add-more-folders' && (
+                <AddMoreFoldersStep
+                  onComplete={async () => {
+                    // Move to sync step after selecting folders
+                    setDriveFlowStep('sync-data');
+                    await persistFlowState('sync-data');
+                  }}
+                  onBack={() => {
+                    setDriveFlowStep('status');
+                  }}
                 />
               )}
               {driveFlowStep === 'place-files' && (
