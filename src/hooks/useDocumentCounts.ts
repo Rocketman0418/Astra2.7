@@ -44,69 +44,26 @@ export function useDocumentCounts() {
         return;
       }
 
-      // Count strategy documents (from document_chunks_strategy table)
-      const { count: strategyCount, error: strategyError } = await supabase
-        .from('document_chunks_strategy')
-        .select('source_id', { count: 'exact', head: true })
+      // Use the documents table which has one row per unique document (much simpler!)
+      const { data: allDocs, error: docsError } = await supabase
+        .from('documents')
+        .select('source_id, folder_type')
         .eq('team_id', teamId);
 
-      if (strategyError) throw strategyError;
+      if (docsError) throw docsError;
 
-      // Count meeting documents (from document_chunks_meetings table)
-      const { count: meetingsCount, error: meetingsError } = await supabase
-        .from('document_chunks_meetings')
-        .select('source_id', { count: 'exact', head: true })
-        .eq('team_id', teamId);
-
-      if (meetingsError) throw meetingsError;
-
-      // Count financial documents (from document_chunks_financial table)
-      const { count: financialCount, error: financialError } = await supabase
-        .from('document_chunks_financial')
-        .select('source_id', { count: 'exact', head: true })
-        .eq('team_id', teamId);
-
-      if (financialError) throw financialError;
-
-      // Count unique strategy documents
-      const { data: strategyDocs, error: strategyDocsError } = await supabase
-        .from('document_chunks_strategy')
-        .select('source_id')
-        .eq('team_id', teamId);
-
-      if (strategyDocsError) throw strategyDocsError;
-
-      const uniqueStrategy = new Set(strategyDocs?.map(d => d.source_id) || []).size;
-
-      // Count unique meeting documents
-      const { data: meetingDocs, error: meetingDocsError } = await supabase
-        .from('document_chunks_meetings')
-        .select('source_id')
-        .eq('team_id', teamId);
-
-      if (meetingDocsError) throw meetingDocsError;
-
-      const uniqueMeetings = new Set(meetingDocs?.map(d => d.source_id) || []).size;
-
-      // Count unique financial documents
-      const { data: financialDocs, error: financialDocsError } = await supabase
-        .from('document_chunks_financial')
-        .select('source_id')
-        .eq('team_id', teamId);
-
-      if (financialDocsError) throw financialDocsError;
-
-      const uniqueFinancial = new Set(financialDocs?.map(d => d.source_id) || []).size;
-
-      // Projects folder check - not implemented yet
-      const hasProjects = false;
+      // Count documents by folder type
+      const uniqueStrategy = allDocs?.filter(d => d.folder_type === 'strategy').length || 0;
+      const uniqueMeetings = allDocs?.filter(d => d.folder_type === 'meetings').length || 0;
+      const uniqueFinancial = allDocs?.filter(d => d.folder_type === 'financial').length || 0;
+      const uniqueProjects = allDocs?.filter(d => d.folder_type === 'projects').length || 0;
 
       const newCounts = {
         strategy: uniqueStrategy,
         meetings: uniqueMeetings,
         financial: uniqueFinancial,
-        projects: hasProjects ? 1 : 0,
-        total: uniqueStrategy + uniqueMeetings + uniqueFinancial
+        projects: uniqueProjects,
+        total: uniqueStrategy + uniqueMeetings + uniqueFinancial + uniqueProjects
       };
 
       setCounts(newCounts);
@@ -219,6 +176,7 @@ export function useDocumentCounts() {
   useEffect(() => {
     if (!user) return;
 
+    // Subscribe to changes in the documents table (much simpler - one table!)
     const subscription = supabase
       .channel('document_count_changes')
       .on(
@@ -226,29 +184,7 @@ export function useDocumentCounts() {
         {
           event: '*',
           schema: 'public',
-          table: 'document_chunks_strategy'
-        },
-        () => {
-          fetchCounts();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'document_chunks_meetings'
-        },
-        () => {
-          fetchCounts();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'document_chunks_financial'
+          table: 'documents'
         },
         () => {
           fetchCounts();

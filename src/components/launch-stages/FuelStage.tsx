@@ -259,7 +259,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
         </div>
 
         {/* Compact Data Status */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="grid grid-cols-4 gap-3 mb-4">
           <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-center">
             <p className="text-xs text-gray-400 mb-1">Strategy</p>
             <p className="text-xl font-bold text-white">{counts.strategy}</p>
@@ -271,6 +271,10 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
           <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-center">
             <p className="text-xs text-gray-400 mb-1">Financial</p>
             <p className="text-xl font-bold text-white">{counts.financial}</p>
+          </div>
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-center">
+            <p className="text-xs text-gray-400 mb-1">Projects</p>
+            <p className="text-xl font-bold text-white">{counts.projects}</p>
           </div>
         </div>
 
@@ -415,9 +419,9 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
         {currentLevel >= 1 && (
           <button
             onClick={onComplete}
-            className="w-full mt-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
+            className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
           >
-            <span>Continue to Boosters</span>
+            <span>Launch Boosters Preparation</span>
             <ArrowRight className="w-5 h-5" />
           </button>
         )}

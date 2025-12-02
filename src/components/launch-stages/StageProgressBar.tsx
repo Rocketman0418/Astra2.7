@@ -31,7 +31,7 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
       name: 'Boosters',
       icon: Zap,
       progress: boostersProgress,
-      color: 'cyan',
+      color: 'blue',
       unlocked: (fuelProgress?.level ?? 0) >= 1
     },
     {
@@ -39,7 +39,7 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
       name: 'Guidance',
       icon: Compass,
       progress: guidanceProgress,
-      color: 'green',
+      color: 'purple',
       unlocked: (fuelProgress?.level ?? 0) >= 1 && (boostersProgress?.level ?? 0) >= 1
     }
   ];
@@ -65,9 +65,9 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
                     ${isActive
                       ? stage.color === 'orange'
                         ? 'bg-orange-500/20 border-2 border-orange-500'
-                        : stage.color === 'cyan'
-                          ? 'bg-cyan-500/20 border-2 border-cyan-500'
-                          : 'bg-green-500/20 border-2 border-green-500'
+                        : stage.color === 'blue'
+                          ? 'bg-blue-500/20 border-2 border-blue-500'
+                          : 'bg-purple-500/20 border-2 border-purple-500'
                       : stage.unlocked
                         ? 'bg-gray-700/50 border-2 border-gray-600 hover:border-gray-500'
                         : 'bg-gray-800/30 border-2 border-gray-700/50 opacity-50'
@@ -102,9 +102,9 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
                           className={
                             stage.color === 'orange'
                               ? 'text-orange-500'
-                              : stage.color === 'cyan'
-                                ? 'text-cyan-500'
-                                : 'text-green-500'
+                              : stage.color === 'blue'
+                                ? 'text-blue-500'
+                                : 'text-purple-500'
                           }
                           style={{ transition: 'stroke-dashoffset 0.5s ease' }}
                         />
@@ -117,17 +117,17 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
                         <CheckCircle className={
                           stage.color === 'orange'
                             ? 'w-5 h-5 text-orange-400'
-                            : stage.color === 'cyan'
-                              ? 'w-5 h-5 text-cyan-400'
-                              : 'w-5 h-5 text-green-400'
+                            : stage.color === 'blue'
+                              ? 'w-5 h-5 text-blue-400'
+                              : 'w-5 h-5 text-purple-400'
                         } />
                       ) : (
                         <Icon className={
                           stage.color === 'orange'
                             ? 'w-5 h-5 text-orange-400'
-                            : stage.color === 'cyan'
-                              ? 'w-5 h-5 text-cyan-400'
-                              : 'w-5 h-5 text-green-400'
+                            : stage.color === 'blue'
+                              ? 'w-5 h-5 text-blue-400'
+                              : 'w-5 h-5 text-purple-400'
                         } />
                       )}
                     </div>
