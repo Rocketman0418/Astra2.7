@@ -146,56 +146,44 @@ export const AddMoreFoldersStep: React.FC<AddMoreFoldersStepProps> = ({ onComple
       setSaving(true);
       setError('');
 
-      // Get user's team_id
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('team_id')
-        .eq('id', user.id)
-        .single();
-
-      if (userError) throw userError;
-
-      const teamId = userData?.team_id;
-      if (!teamId) {
-        setError('No team found');
+      // Get user's session token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError('Not authenticated');
         return;
       }
 
-      // Prepare update object with only new folders
-      const updateData: any = {};
-      folders.forEach(folder => {
-        if (folder.id && !folder.alreadyConnected) {
-          updateData[`${folder.type}_folder_id`] = folder.id;
-          updateData[`${folder.type}_folder_name`] = folder.name;
-        }
-      });
+      // Get newly selected folders
+      const newFolders = folders.filter(f => f.id && !f.alreadyConnected);
 
-      // Only update if there are new folders
-      if (Object.keys(updateData).length === 0) {
+      if (newFolders.length === 0) {
         setError('No new folders selected');
         setSaving(false);
         return;
       }
 
-      // Call the save-folder-selection edge function
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/save-folder-selection`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            teamId,
-            folderSelections: updateData
-          }),
-        }
-      );
+      // Call the edge function for each new folder
+      for (const folder of newFolders) {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/save-folder-selection`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              folderIds: [folder.id],
+              folderType: folder.type,
+              folderName: folder.name
+            }),
+          }
+        );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save folder selections');
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `Failed to save ${folder.label} folder`);
+        }
       }
 
       // Success - proceed to next step
