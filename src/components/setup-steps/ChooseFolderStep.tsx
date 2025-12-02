@@ -28,6 +28,7 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete, 
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [error, setError] = useState('');
   const [hasExistingFolders, setHasExistingFolders] = useState(false);
+  const [isNewlyCreated, setIsNewlyCreated] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [accessToken, setAccessToken] = useState<string>('');
   // Always use Google Picker for OAuth compliance
@@ -171,15 +172,18 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete, 
 
       console.log('✅ Folder selection saved');
 
-      // Keep loading state while completing
-      // Proceed to next step with folder info
+      // Reset loading state and show success screen
+      setCreatingFolder(false);
+      setSelectedFolder(folder);
+      setHasExistingFolders(true);
+      setIsNewlyCreated(true); // Mark as newly created
+
+      // Call onComplete to notify parent (parent should NOT close modal yet)
       onComplete({
         selectedFolder: folder,
         folderType: 'strategy',
         isNewFolder: true,
       });
-
-      // Don't set creatingFolder to false here - let the parent handle navigation
     } catch (err: any) {
       console.error('❌ Error creating folder:', err);
       setError(err.message || 'Failed to create folder');
@@ -255,18 +259,27 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete, 
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-600/20 mb-4">
-            <CheckCircle className="w-8 h-8 text-purple-400" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-600/20 mb-4">
+            <CheckCircle className="w-8 h-8 text-green-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-3">Strategy Folder Already Connected!</h2>
+          <h2 className="text-2xl font-bold text-white mb-3">
+            {isNewlyCreated ? 'Folder Created Successfully!' : 'Strategy Folder Connected!'}
+          </h2>
           <p className="text-gray-300">
-            You've already set up a strategy folder. Let's continue with the setup.
+            {isNewlyCreated
+              ? `Your "Astra Strategy" folder has been created in Google Drive.`
+              : "You've already set up a strategy folder. Let's continue with the setup."}
           </p>
+          {selectedFolder && (
+            <p className="text-sm text-gray-400 mt-2">
+              📁 {selectedFolder.name}
+            </p>
+          )}
         </div>
 
         <div className="bg-green-900/20 border border-green-700 rounded-lg p-4">
           <p className="text-sm text-green-300">
-            <span className="font-medium">✅ All set!</span> Your strategy folder is connected and ready to use.
+            <span className="font-medium">✅ All set!</span> {isNewlyCreated ? 'Now add your strategy documents to this folder.' : 'Your strategy folder is connected and ready to use.'}
           </p>
         </div>
 
