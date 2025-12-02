@@ -45,13 +45,14 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
 
     try {
       const { error } = await supabase
-        .from('setup_guide_progress')
+        .from('launch_preparation_progress')
         .upsert({
           user_id: user.id,
-          launch_prep_drive_flow_step: step,
-          launch_prep_folder_data: folderDataToPersist || folderData
+          stage: 'fuel',
+          drive_flow_step: step,
+          drive_flow_folder_data: folderDataToPersist || folderData
         }, {
-          onConflict: 'user_id'
+          onConflict: 'user_id,stage'
         });
 
       if (error) {
@@ -70,12 +71,13 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
 
     try {
       const { error } = await supabase
-        .from('setup_guide_progress')
+        .from('launch_preparation_progress')
         .update({
-          launch_prep_drive_flow_step: null,
-          launch_prep_folder_data: null
+          drive_flow_step: null,
+          drive_flow_folder_data: null
         })
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .eq('stage', 'fuel');
 
       if (error) {
         console.error('Error clearing flow state:', error);
@@ -94,9 +96,10 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
 
       try {
         const { data, error } = await supabase
-          .from('setup_guide_progress')
-          .select('launch_prep_drive_flow_step, launch_prep_folder_data')
+          .from('launch_preparation_progress')
+          .select('drive_flow_step, drive_flow_folder_data')
           .eq('user_id', user.id)
+          .eq('stage', 'fuel')
           .maybeSingle();
 
         if (error) {
@@ -104,11 +107,11 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
           return;
         }
 
-        if (data?.launch_prep_drive_flow_step) {
-          console.log('🔄 Restoring flow state:', data.launch_prep_drive_flow_step);
-          setDriveFlowStep(data.launch_prep_drive_flow_step as typeof driveFlowStep);
-          if (data.launch_prep_folder_data) {
-            setFolderData(data.launch_prep_folder_data);
+        if (data?.drive_flow_step) {
+          console.log('🔄 Restoring flow state:', data.drive_flow_step);
+          setDriveFlowStep(data.drive_flow_step as typeof driveFlowStep);
+          if (data.drive_flow_folder_data) {
+            setFolderData(data.drive_flow_folder_data);
           }
           setShowDriveFlow(true);
         }
@@ -350,14 +353,15 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
             // Check if there's persisted state first
             if (user) {
               const { data } = await supabase
-                .from('setup_guide_progress')
-                .select('launch_prep_drive_flow_step')
+                .from('launch_preparation_progress')
+                .select('drive_flow_step')
                 .eq('user_id', user.id)
+                .eq('stage', 'fuel')
                 .maybeSingle();
 
-              if (data?.launch_prep_drive_flow_step) {
+              if (data?.drive_flow_step) {
                 // Restore to saved step
-                setDriveFlowStep(data.launch_prep_drive_flow_step as typeof driveFlowStep);
+                setDriveFlowStep(data.drive_flow_step as typeof driveFlowStep);
               } else {
                 // Start fresh
                 const startStep = hasGoogleDrive ? 'choose-folder' : 'connect';
