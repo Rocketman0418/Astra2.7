@@ -10,6 +10,7 @@ import { ConnectDriveStep } from '../setup-steps/ConnectDriveStep';
 import { ChooseFolderStep } from '../setup-steps/ChooseFolderStep';
 import { PlaceFilesStep } from '../setup-steps/PlaceFilesStep';
 import { SyncDataStep } from '../setup-steps/SyncDataStep';
+import { ConnectedFoldersStatus } from '../ConnectedFoldersStatus';
 import { StageProgressBar } from './StageProgressBar';
 import { supabase } from '../../lib/supabase';
 
@@ -28,7 +29,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
   const { updateStageLevel, completeAchievement, awardPoints } = useLaunchPreparation();
   const { counts, loading: countsLoading, calculateFuelLevel, meetsLevelRequirements, refresh: refreshCounts } = useDocumentCounts();
   const [showDriveFlow, setShowDriveFlow] = useState(false);
-  const [driveFlowStep, setDriveFlowStep] = useState<'connect' | 'choose-folder' | 'place-files' | 'sync-data'>('connect');
+  const [driveFlowStep, setDriveFlowStep] = useState<'status' | 'connect' | 'choose-folder' | 'place-files' | 'sync-data'>('status');
   const [folderData, setFolderData] = useState<any>(null);
   const [checkingLevel, setCheckingLevel] = useState(false);
   const [hasGoogleDrive, setHasGoogleDrive] = useState(false);
@@ -416,7 +417,20 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
           )}
         </button>
 
-        {currentLevel >= 1 && (
+        {currentLevel >= 1 && currentLevel < 4 && (
+          <button
+            onClick={() => {
+              setShowDriveFlow(true);
+              setDriveFlowStep('status');
+            }}
+            className="w-full mt-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
+          >
+            <Fuel className="w-5 h-5" />
+            <span>Add More Fuel</span>
+          </button>
+        )}
+
+        {currentLevel >= 4 && (
           <button
             onClick={onComplete}
             className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
@@ -449,6 +463,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
           <div className="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-gray-800 border-b border-gray-700 p-4 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">
+                {driveFlowStep === 'status' && 'Your Fuel Status'}
                 {driveFlowStep === 'connect' && 'Connect Google Drive'}
                 {driveFlowStep === 'choose-folder' && 'Choose Your Folder'}
                 {driveFlowStep === 'place-files' && 'Place Your Files'}
@@ -468,6 +483,21 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
               </button>
             </div>
             <div className="p-6">
+              {driveFlowStep === 'status' && (
+                <ConnectedFoldersStatus
+                  onConnectMore={() => {
+                    setDriveFlowStep('choose-folder');
+                  }}
+                  onClose={async () => {
+                    await clearFlowState();
+                    setShowDriveFlow(false);
+                    await refreshCounts();
+                    if (onRefresh) {
+                      await onRefresh();
+                    }
+                  }}
+                />
+              )}
               {driveFlowStep === 'connect' && (
                 <ConnectDriveStep
                   onComplete={async () => {
