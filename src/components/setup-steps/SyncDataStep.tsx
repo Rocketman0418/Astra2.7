@@ -4,6 +4,7 @@ import { SetupGuideProgress } from '../../lib/setup-guide-utils';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingCarousel } from './LoadingCarousel';
+import { FUEL_LEVELS } from '../../lib/launch-preparation-utils';
 
 interface SyncDataStepProps {
   onComplete: () => void;
@@ -21,6 +22,9 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack
   const [documentCounts, setDocumentCounts] = useState<{ meetings: number; strategy: number; financial: number; projects: number }>({ meetings: 0, strategy: 0, financial: 0, projects: 0 });
   const [checkAttempts, setCheckAttempts] = useState(0);
   const [showNoDocumentModal, setShowNoDocumentModal] = useState(false);
+  const [currentLevel, setCurrentLevel] = useState(0);
+  const [newLevel, setNewLevel] = useState(0);
+  const [leveledUp, setLeveledUp] = useState(false);
   const maxCheckAttempts = 90; // Check for up to 3 minutes (90 * 2s intervals)
   const isAddingNewFolders = newFolderTypes.length > 0;
 
@@ -78,6 +82,88 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack
     checkSyncedData();
   };
 
+  const calculateFuelLevel = (counts: { meetings: number; strategy: number; financial: number; projects: number }) => {
+    // Level 5: 10 strategy, 100 meetings, 10 financial, projects folder
+    if (counts.strategy >= 10 && counts.meetings >= 100 && counts.financial >= 10 && counts.projects > 0) {
+      return 5;
+    }
+    // Level 4: 10 strategy, 50 meetings, 10 financial
+    if (counts.strategy >= 10 && counts.meetings >= 50 && counts.financial >= 10) {
+      return 4;
+    }
+    // Level 3: 3 strategy, 10 meetings, 3 financial
+    if (counts.strategy >= 3 && counts.meetings >= 10 && counts.financial >= 3) {
+      return 3;
+    }
+    // Level 2: 1 strategy, 1 meeting, 1 financial
+    if (counts.strategy >= 1 && counts.meetings >= 1 && counts.financial >= 1) {
+      return 2;
+    }
+    // Level 1: Any 1 document
+    if (counts.strategy > 0 || counts.meetings > 0 || counts.financial > 0 || counts.projects > 0) {
+      return 1;
+    }
+    return 0;
+  };
+
+  const checkAndUpdateLevel = async (counts: { meetings: number; strategy: number; financial: number; projects: number }) => {
+    if (!user || !fromLaunchPrep) return;
+
+    try {
+      const teamId = user.user_metadata?.team_id;
+      if (!teamId) return;
+
+      // Get current fuel stage progress
+      const { data: fuelProgress } = await supabase
+        .from('launch_preparation_progress')
+        .select('level')
+        .eq('team_id', teamId)
+        .eq('stage', 'fuel')
+        .single();
+
+      const oldLevel = fuelProgress?.level || 0;
+      const calculatedLevel = calculateFuelLevel(counts);
+
+      setCurrentLevel(oldLevel);
+      setNewLevel(calculatedLevel);
+
+      // If level increased, update database and award points
+      if (calculatedLevel > oldLevel) {
+        setLeveledUp(true);
+
+        // Calculate points to award (sum of all levels achieved)
+        let pointsToAward = 0;
+        for (let i = oldLevel + 1; i <= calculatedLevel; i++) {
+          pointsToAward += FUEL_LEVELS[i - 1]?.points || 0;
+        }
+
+        // Update fuel stage level
+        await supabase
+          .from('launch_preparation_progress')
+          .update({ level: calculatedLevel })
+          .eq('team_id', teamId)
+          .eq('stage', 'fuel');
+
+        // Get current total points and award new points
+        const { data: status } = await supabase
+          .from('launch_preparation_status')
+          .select('total_points')
+          .eq('team_id', teamId)
+          .single();
+
+        const currentPoints = status?.total_points || 0;
+        await supabase
+          .from('launch_preparation_status')
+          .update({ total_points: currentPoints + pointsToAward })
+          .eq('team_id', teamId);
+
+        console.log(`Level up! ${oldLevel} → ${calculatedLevel}, awarded ${pointsToAward} points (${currentPoints} → ${currentPoints + pointsToAward})`);
+      }
+    } catch (error) {
+      console.error('Error checking/updating level:', error);
+    }
+  };
+
   const checkSyncedData = async () => {
     if (!user || syncComplete) return;
 
@@ -108,6 +194,8 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack
         if (hasNewFolderDocs) {
           setSyncing(false);
           setSyncComplete(true);
+          // Check for level progression
+          await checkAndUpdateLevel(counts);
         } else {
           // Increment check attempts
           setCheckAttempts(prev => {
@@ -127,6 +215,8 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack
         if (counts.meetings > 0 || counts.strategy > 0 || counts.financial > 0 || counts.projects > 0) {
           setSyncing(false);
           setSyncComplete(true);
+          // Check for level progression
+          await checkAndUpdateLevel(counts);
         } else {
           // Increment check attempts
           setCheckAttempts(prev => {
@@ -277,9 +367,24 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack
             <div className="bg-gradient-to-br from-orange-900/20 to-blue-900/20 border border-orange-500/30 rounded-lg p-4">
               <div className="flex items-center justify-center gap-2 mb-3">
                 <Sparkles className="w-5 h-5 text-orange-400" />
-                <h4 className="text-white text-lg font-bold">Fuel Level 1 Achieved!</h4>
+                <h4 className="text-white text-lg font-bold">
+                  {leveledUp && newLevel > currentLevel
+                    ? `Fuel Level ${newLevel} Achieved!`
+                    : `Fuel Level ${newLevel || 1} Achieved!`
+                  }
+                </h4>
                 <Sparkles className="w-5 h-5 text-orange-400" />
               </div>
+              {leveledUp && newLevel > currentLevel && (
+                <div className="text-center mb-3">
+                  <p className="text-sm text-green-300 font-medium">
+                    🎉 Level Up! {currentLevel} → {newLevel}
+                  </p>
+                  <p className="text-xs text-orange-300">
+                    +{FUEL_LEVELS[newLevel - 1]?.points || 0} Launch Points
+                  </p>
+                </div>
+              )}
               <p className="text-center text-gray-300 text-sm mb-3">
                 {isAddingNewFolders
                   ? `You've added new data sources! Astra can now provide insights from ${newFolderNames} documents`
