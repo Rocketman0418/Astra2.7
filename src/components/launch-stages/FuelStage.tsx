@@ -421,7 +421,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
             onClick={onComplete}
             className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
           >
-            <span>Launch Boosters Preparation</span>
+            <span>Launch Boosters Stage</span>
             <ArrowRight className="w-5 h-5" />
           </button>
         )}
