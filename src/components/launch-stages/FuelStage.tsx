@@ -40,6 +40,18 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
   const currentLevelInfo = FUEL_LEVELS[currentLevel] || FUEL_LEVELS[0];
   const targetLevelInfo = FUEL_LEVELS[targetLevel - 1];
 
+  // Refresh data when component mounts to ensure we have latest progress
+  useEffect(() => {
+    const refreshData = async () => {
+      if (onRefresh) {
+        await onRefresh();
+      }
+      await refreshCounts();
+    };
+    refreshData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount - onRefresh and refreshCounts are stable refs
+
   // Helper function to persist flow state to database
   const persistFlowState = async (step: typeof driveFlowStep | null, folderDataToPersist?: any) => {
     if (!user) return;
