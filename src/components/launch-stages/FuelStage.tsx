@@ -8,6 +8,8 @@ import { getGoogleDriveConnection } from '../../lib/google-drive-oauth';
 import { useAuth } from '../../contexts/AuthContext';
 import { ConnectDriveStep } from '../setup-steps/ConnectDriveStep';
 import { ChooseFolderStep } from '../setup-steps/ChooseFolderStep';
+import { PlaceFilesStep } from '../setup-steps/PlaceFilesStep';
+import { SyncDataStep } from '../setup-steps/SyncDataStep';
 import { StageProgressBar } from './StageProgressBar';
 
 interface FuelStageProps {
@@ -24,7 +26,8 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
   const { updateStageLevel, completeAchievement, awardPoints } = useLaunchPreparation();
   const { counts, loading: countsLoading, calculateFuelLevel, meetsLevelRequirements, refresh: refreshCounts } = useDocumentCounts();
   const [showDriveFlow, setShowDriveFlow] = useState(false);
-  const [driveFlowStep, setDriveFlowStep] = useState<'connect' | 'choose-folder'>('connect');
+  const [driveFlowStep, setDriveFlowStep] = useState<'connect' | 'choose-folder' | 'place-files' | 'sync-data'>('connect');
+  const [folderData, setFolderData] = useState<any>(null);
   const [checkingLevel, setCheckingLevel] = useState(false);
   const [hasGoogleDrive, setHasGoogleDrive] = useState(false);
   const [checkingDrive, setCheckingDrive] = useState(true);
@@ -318,7 +321,10 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
           <div className="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-gray-800 border-b border-gray-700 p-4 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">
-                {driveFlowStep === 'connect' ? 'Connect Google Drive' : 'Choose Your Folder'}
+                {driveFlowStep === 'connect' && 'Connect Google Drive'}
+                {driveFlowStep === 'choose-folder' && 'Choose Your Folder'}
+                {driveFlowStep === 'place-files' && 'Place Your Files'}
+                {driveFlowStep === 'sync-data' && 'Sync Your Data'}
               </h2>
               <button
                 onClick={(e) => {
@@ -333,7 +339,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
               </button>
             </div>
             <div className="p-6">
-              {driveFlowStep === 'connect' ? (
+              {driveFlowStep === 'connect' && (
                 <ConnectDriveStep
                   onComplete={() => {
                     setDriveFlowStep('choose-folder');
@@ -342,17 +348,42 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
                   progress={null}
                   fromLaunchPrep={true}
                 />
-              ) : (
+              )}
+              {driveFlowStep === 'choose-folder' && (
                 <ChooseFolderStep
-                  onComplete={async (folderData) => {
-                    console.log('Folder selected:', folderData);
-                    // Don't close modal - let ChooseFolderStep show success screen
-                    // Just refresh the counts in background
+                  onComplete={async (data) => {
+                    console.log('Folder selected:', data);
+                    // Store folder data for next steps
+                    setFolderData(data);
+                    // Refresh counts in background
                     await refreshCounts();
                   }}
                   onProceed={() => {
                     // User clicked "Next: Place Your Files" button
+                    setDriveFlowStep('place-files');
+                  }}
+                  progress={null}
+                />
+              )}
+              {driveFlowStep === 'place-files' && (
+                <PlaceFilesStep
+                  onComplete={() => {
+                    // Move to sync step
+                    setDriveFlowStep('sync-data');
+                  }}
+                  progress={null}
+                  folderData={folderData}
+                />
+              )}
+              {driveFlowStep === 'sync-data' && (
+                <SyncDataStep
+                  onComplete={async () => {
+                    // Sync complete - refresh counts and close modal
+                    await refreshCounts();
                     setShowDriveFlow(false);
+                  }}
+                  onGoBack={() => {
+                    setDriveFlowStep('place-files');
                   }}
                   progress={null}
                 />
