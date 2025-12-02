@@ -27,7 +27,8 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
     loading,
     error,
     initializeLaunchStatus,
-    updateCurrentStage
+    updateCurrentStage,
+    refresh
   } = useLaunchPreparation();
 
   const [showStageSelector, setShowStageSelector] = useState(true);
@@ -244,6 +245,7 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
           boostersProgress={boostersProgress}
           guidanceProgress={guidanceProgress}
           onBack={backToStageSelector}
+          onRefresh={refresh}
           onComplete={() => {
             if (boostersProgress && boostersProgress.level > 0) {
               backToStageSelector();

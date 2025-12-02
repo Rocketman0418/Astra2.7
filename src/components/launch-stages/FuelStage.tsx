@@ -20,9 +20,10 @@ interface FuelStageProps {
   guidanceProgress: StageProgress | null;
   onBack: () => void;
   onComplete: () => void;
+  onRefresh?: () => Promise<void>;
 }
 
-export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, boostersProgress, guidanceProgress, onBack, onComplete }) => {
+export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, boostersProgress, guidanceProgress, onBack, onComplete, onRefresh }) => {
   const { user } = useAuth();
   const { updateStageLevel, completeAchievement, awardPoints } = useLaunchPreparation();
   const { counts, loading: countsLoading, calculateFuelLevel, meetsLevelRequirements, refresh: refreshCounts } = useDocumentCounts();
@@ -381,6 +382,11 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
               <Loader className="w-5 h-5 animate-spin" />
               <span>Checking...</span>
             </>
+          ) : hasGoogleDrive && currentLevel >= 1 ? (
+            <>
+              <Fuel className="w-5 h-5" />
+              <span>Add More Fuel to Your AI Rocket</span>
+            </>
           ) : hasGoogleDrive ? (
             <>
               <Folder className="w-5 h-5" />
@@ -489,8 +495,11 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
               {driveFlowStep === 'sync-data' && (
                 <SyncDataStep
                   onComplete={async () => {
-                    // Sync complete - refresh counts, clear state, and close modal
+                    // Sync complete - refresh all data
                     await refreshCounts();
+                    if (onRefresh) {
+                      await onRefresh();
+                    }
                     await clearFlowState();
                     setShowDriveFlow(false);
                   }}
