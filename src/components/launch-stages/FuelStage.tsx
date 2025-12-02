@@ -365,57 +365,29 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
           )}
         </div>
 
-        {/* Action Button */}
-        <button
-          onClick={async () => {
-            // Check if there's persisted state first
-            if (user) {
-              const { data } = await supabase
-                .from('launch_preparation_progress')
-                .select('drive_flow_step')
-                .eq('user_id', user.id)
-                .eq('stage', 'fuel')
-                .maybeSingle();
-
-              if (data?.drive_flow_step) {
-                // Restore to saved step
-                setDriveFlowStep(data.drive_flow_step as typeof driveFlowStep);
-              } else {
-                // Start fresh
-                const startStep = hasGoogleDrive ? 'choose-folder' : 'connect';
-                setDriveFlowStep(startStep);
-                await persistFlowState(startStep);
-              }
-            } else {
-              setDriveFlowStep(hasGoogleDrive ? 'choose-folder' : 'connect');
-            }
-            setShowDriveFlow(true);
-          }}
-          disabled={checkingDrive}
-          className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3 px-6 rounded-lg transition-all flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-        >
-          {checkingDrive ? (
-            <>
-              <Loader className="w-5 h-5 animate-spin" />
-              <span>Checking...</span>
-            </>
-          ) : hasGoogleDrive && currentLevel >= 1 ? (
-            <>
-              <Fuel className="w-5 h-5" />
-              <span>Add More Fuel to Your AI Rocket</span>
-            </>
-          ) : hasGoogleDrive ? (
-            <>
-              <Folder className="w-5 h-5" />
-              <span>Manage Folders & Add Documents</span>
-            </>
-          ) : (
-            <>
-              <Folder className="w-5 h-5" />
-              <span>Connect Google Drive</span>
-            </>
-          )}
-        </button>
+        {/* Connect Google Drive - Only show if level 0 */}
+        {currentLevel === 0 && (
+          <button
+            onClick={async () => {
+              setDriveFlowStep('connect');
+              setShowDriveFlow(true);
+            }}
+            disabled={checkingDrive}
+            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3 px-6 rounded-lg transition-all flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+          >
+            {checkingDrive ? (
+              <>
+                <Loader className="w-5 h-5 animate-spin" />
+                <span>Checking...</span>
+              </>
+            ) : (
+              <>
+                <Folder className="w-5 h-5" />
+                <span>Connect Google Drive</span>
+              </>
+            )}
+          </button>
+        )}
 
         {currentLevel >= 1 && currentLevel < 4 && (
           <button
@@ -430,7 +402,8 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
           </button>
         )}
 
-        {currentLevel >= 4 && (
+        {/* Launch Boosters Stage - Show for level 1+ */}
+        {currentLevel >= 1 && (
           <button
             onClick={onComplete}
             className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
