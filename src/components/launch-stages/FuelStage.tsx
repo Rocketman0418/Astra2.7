@@ -386,6 +386,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
                     setDriveFlowStep('place-files');
                   }}
                   progress={null}
+                  fromLaunchPrep={true}
                 />
               )}
             </div>

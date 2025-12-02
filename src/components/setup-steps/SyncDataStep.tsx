@@ -9,10 +9,11 @@ interface SyncDataStepProps {
   onComplete: () => void;
   onGoBack?: () => void;
   progress: SetupGuideProgress | null;
+  fromLaunchPrep?: boolean; // Flag to customize messaging for Launch Prep flow
 }
 
 
-export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack }) => {
+export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack, fromLaunchPrep = false }) => {
   const { user } = useAuth();
   const [syncing, setSyncing] = useState(true);
   const [syncComplete, setSyncComplete] = useState(false);
@@ -214,39 +215,91 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack
           </div>
         </div>
 
-        <div className="bg-green-900/20 border border-green-700 rounded-lg p-3">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Sparkles className="w-4 h-4 text-green-400" />
-            <h4 className="text-white text-sm font-medium">Astra Can Now:</h4>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="flex items-center gap-1 text-xs text-green-300">
-              <span className="text-green-400">✓</span>
-              <span>Answer questions</span>
+        {fromLaunchPrep && totalDocs > 0 ? (
+          // Launch Prep: Celebrate Fuel Level 1 Achievement
+          <>
+            <div className="bg-gradient-to-br from-orange-900/20 to-blue-900/20 border border-orange-500/30 rounded-lg p-4">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Sparkles className="w-5 h-5 text-orange-400" />
+                <h4 className="text-white text-lg font-bold">Fuel Level 1 Achieved!</h4>
+                <Sparkles className="w-5 h-5 text-orange-400" />
+              </div>
+              <p className="text-center text-gray-300 text-sm mb-3">
+                You've unlocked AI-powered insights and the next stage: Boosters
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex items-center gap-1 text-xs text-green-300">
+                  <span className="text-green-400">✓</span>
+                  <span>Answer questions</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-green-300">
+                  <span className="text-green-400">✓</span>
+                  <span>Track progress</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-green-300">
+                  <span className="text-green-400">✓</span>
+                  <span>Analyze alignment</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-green-300">
+                  <span className="text-green-400">✓</span>
+                  <span>Create visuals</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-1 text-xs text-green-300">
-              <span className="text-green-400">✓</span>
-              <span>Track progress</span>
-            </div>
-            <div className="flex items-center gap-1 text-xs text-green-300">
-              <span className="text-green-400">✓</span>
-              <span>Analyze alignment</span>
-            </div>
-            <div className="flex items-center gap-1 text-xs text-green-300">
-              <span className="text-green-400">✓</span>
-              <span>Create visuals</span>
-            </div>
-          </div>
-        </div>
 
-        <div className="flex justify-center pt-2">
-          <button
-            onClick={onComplete}
-            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl min-h-[44px]"
-          >
-            Next: Configure Team Settings →
-          </button>
-        </div>
+            <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-3">
+              <p className="text-sm text-blue-300 text-center">
+                <span className="font-medium">Next Steps:</span> Add more documents to reach higher Fuel Levels (2-5) or explore the Boosters stage
+              </p>
+            </div>
+
+            <div className="flex justify-center pt-2">
+              <button
+                onClick={onComplete}
+                className="px-8 py-3 bg-gradient-to-r from-orange-600 to-blue-600 hover:from-orange-700 hover:to-blue-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl min-h-[44px]"
+              >
+                Return to Fuel Stage →
+              </button>
+            </div>
+          </>
+        ) : (
+          // Regular Guided Setup: Continue to Team Settings
+          <>
+            <div className="bg-green-900/20 border border-green-700 rounded-lg p-3">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Sparkles className="w-4 h-4 text-green-400" />
+                <h4 className="text-white text-sm font-medium">Astra Can Now:</h4>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex items-center gap-1 text-xs text-green-300">
+                  <span className="text-green-400">✓</span>
+                  <span>Answer questions</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-green-300">
+                  <span className="text-green-400">✓</span>
+                  <span>Track progress</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-green-300">
+                  <span className="text-green-400">✓</span>
+                  <span>Analyze alignment</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-green-300">
+                  <span className="text-green-400">✓</span>
+                  <span>Create visuals</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-center pt-2">
+              <button
+                onClick={onComplete}
+                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl min-h-[44px]"
+              >
+                Next: Configure Team Settings →
+              </button>
+            </div>
+          </>
+        )}
       </div>
     );
   }
