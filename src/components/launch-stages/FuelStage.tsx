@@ -11,6 +11,7 @@ import { ChooseFolderStep } from '../setup-steps/ChooseFolderStep';
 import { PlaceFilesStep } from '../setup-steps/PlaceFilesStep';
 import { SyncDataStep } from '../setup-steps/SyncDataStep';
 import { StageProgressBar } from './StageProgressBar';
+import { supabase } from '../../lib/supabase';
 
 interface FuelStageProps {
   progress: StageProgress | null;
@@ -37,6 +38,87 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
   const targetLevel = currentLevel + 1;
   const currentLevelInfo = FUEL_LEVELS[currentLevel] || FUEL_LEVELS[0];
   const targetLevelInfo = FUEL_LEVELS[targetLevel - 1];
+
+  // Helper function to persist flow state to database
+  const persistFlowState = async (step: typeof driveFlowStep | null, folderDataToPersist?: any) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('setup_guide_progress')
+        .upsert({
+          user_id: user.id,
+          launch_prep_drive_flow_step: step,
+          launch_prep_folder_data: folderDataToPersist || folderData
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (error) {
+        console.error('Error persisting flow state:', error);
+      } else {
+        console.log('✅ Persisted flow state:', step);
+      }
+    } catch (error) {
+      console.error('Error persisting flow state:', error);
+    }
+  };
+
+  // Helper function to clear flow state from database
+  const clearFlowState = async () => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('setup_guide_progress')
+        .update({
+          launch_prep_drive_flow_step: null,
+          launch_prep_folder_data: null
+        })
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error clearing flow state:', error);
+      } else {
+        console.log('🧹 Cleared flow state');
+      }
+    } catch (error) {
+      console.error('Error clearing flow state:', error);
+    }
+  };
+
+  // Load persisted flow state on mount
+  useEffect(() => {
+    const loadPersistedState = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('setup_guide_progress')
+          .select('launch_prep_drive_flow_step, launch_prep_folder_data')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error loading persisted state:', error);
+          return;
+        }
+
+        if (data?.launch_prep_drive_flow_step) {
+          console.log('🔄 Restoring flow state:', data.launch_prep_drive_flow_step);
+          setDriveFlowStep(data.launch_prep_drive_flow_step as typeof driveFlowStep);
+          if (data.launch_prep_folder_data) {
+            setFolderData(data.launch_prep_folder_data);
+          }
+          setShowDriveFlow(true);
+        }
+      } catch (error) {
+        console.error('Error loading persisted state:', error);
+      }
+    };
+
+    loadPersistedState();
+  }, [user]);
 
   // Check if user has Google Drive connected
   useEffect(() => {
@@ -264,8 +346,27 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
 
         {/* Action Button */}
         <button
-          onClick={() => {
-            setDriveFlowStep(hasGoogleDrive ? 'choose-folder' : 'connect');
+          onClick={async () => {
+            // Check if there's persisted state first
+            if (user) {
+              const { data } = await supabase
+                .from('setup_guide_progress')
+                .select('launch_prep_drive_flow_step')
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+              if (data?.launch_prep_drive_flow_step) {
+                // Restore to saved step
+                setDriveFlowStep(data.launch_prep_drive_flow_step as typeof driveFlowStep);
+              } else {
+                // Start fresh
+                const startStep = hasGoogleDrive ? 'choose-folder' : 'connect';
+                setDriveFlowStep(startStep);
+                await persistFlowState(startStep);
+              }
+            } else {
+              setDriveFlowStep(hasGoogleDrive ? 'choose-folder' : 'connect');
+            }
             setShowDriveFlow(true);
           }}
           disabled={checkingDrive}
@@ -310,9 +411,10 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
       {showDriveFlow && (
         <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4"
-          onClick={(e) => {
+          onClick={async (e) => {
             // Allow closing by clicking backdrop
             if (e.target === e.currentTarget) {
+              await clearFlowState();
               setShowDriveFlow(false);
               setUserClosedModal(true);
             }
@@ -327,8 +429,9 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
                 {driveFlowStep === 'sync-data' && 'Sync Your Data'}
               </h2>
               <button
-                onClick={(e) => {
+                onClick={async (e) => {
                   e.stopPropagation();
+                  await clearFlowState();
                   setShowDriveFlow(false);
                   setUserClosedModal(true);
                 }}
@@ -341,9 +444,10 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
             <div className="p-6">
               {driveFlowStep === 'connect' && (
                 <ConnectDriveStep
-                  onComplete={() => {
+                  onComplete={async () => {
                     setDriveFlowStep('choose-folder');
                     setHasGoogleDrive(true);
+                    await persistFlowState('choose-folder');
                   }}
                   progress={null}
                   fromLaunchPrep={true}
@@ -355,21 +459,24 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
                     console.log('Folder selected:', data);
                     // Store folder data for next steps
                     setFolderData(data);
+                    await persistFlowState('choose-folder', data);
                     // Refresh counts in background
                     await refreshCounts();
                   }}
-                  onProceed={() => {
+                  onProceed={async () => {
                     // User clicked "Next: Place Your Files" button
                     setDriveFlowStep('place-files');
+                    await persistFlowState('place-files');
                   }}
                   progress={null}
                 />
               )}
               {driveFlowStep === 'place-files' && (
                 <PlaceFilesStep
-                  onComplete={() => {
+                  onComplete={async () => {
                     // Move to sync step
                     setDriveFlowStep('sync-data');
+                    await persistFlowState('sync-data');
                   }}
                   progress={null}
                   folderData={folderData}
@@ -378,12 +485,14 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
               {driveFlowStep === 'sync-data' && (
                 <SyncDataStep
                   onComplete={async () => {
-                    // Sync complete - refresh counts and close modal
+                    // Sync complete - refresh counts, clear state, and close modal
                     await refreshCounts();
+                    await clearFlowState();
                     setShowDriveFlow(false);
                   }}
-                  onGoBack={() => {
+                  onGoBack={async () => {
                     setDriveFlowStep('place-files');
+                    await persistFlowState('place-files');
                   }}
                   progress={null}
                   fromLaunchPrep={true}
