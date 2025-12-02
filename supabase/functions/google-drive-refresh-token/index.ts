@@ -139,17 +139,21 @@ Deno.serve(async (req: Request) => {
 
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000);
 
+    // Clean tokens to remove any newlines or whitespace that could break HTTP headers
+    const cleanAccessToken = tokens.access_token?.replace?.(/[\r\n]/g, '') || tokens.access_token;
+    const cleanRefreshToken = tokens.refresh_token?.replace?.(/[\r\n]/g, '') || tokens.refresh_token;
+
     // Update the access token (and refresh token if a new one was provided)
     const updateData: any = {
-      access_token: tokens.access_token,
+      access_token: cleanAccessToken,
       token_expires_at: expiresAt.toISOString(),
       is_active: true,
       connection_status: 'connected'
     };
 
     // Google sometimes issues a new refresh token
-    if (tokens.refresh_token) {
-      updateData.refresh_token = tokens.refresh_token;
+    if (cleanRefreshToken) {
+      updateData.refresh_token = cleanRefreshToken;
     }
 
     const { error: updateError } = await supabase

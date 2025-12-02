@@ -171,14 +171,18 @@ Deno.serve(async (req: Request) => {
     console.log('💾 Team ID:', teamId);
     console.log('💾 Expires at:', expiresAt.toISOString());
 
+    // Clean tokens to remove any newlines or whitespace that could break HTTP headers
+    const cleanAccessToken = tokens.access_token?.replace?.(/[\r\n]/g, '') || tokens.access_token;
+    const cleanRefreshToken = tokens.refresh_token?.replace?.(/[\r\n]/g, '') || tokens.refresh_token;
+
     // Store in user_drive_connections table
     const { data, error: dbError } = await supabase
       .from('user_drive_connections')
       .upsert({
         user_id: user.id,
         team_id: teamId || null,
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
+        access_token: cleanAccessToken,
+        refresh_token: cleanRefreshToken,
         token_expires_at: expiresAt.toISOString(),
         google_account_email: profile.email,
         is_active: true,
