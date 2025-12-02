@@ -37,6 +37,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
   const [hasGoogleDrive, setHasGoogleDrive] = useState(false);
   const [checkingDrive, setCheckingDrive] = useState(true);
   const [userClosedModal, setUserClosedModal] = useState(false);
+  const [showLevelInfoModal, setShowLevelInfoModal] = useState(false);
 
   const currentLevel = progress?.level || 0;
   const targetLevel = currentLevel + 1;
@@ -288,7 +289,10 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
               <LevelIcon className="w-5 h-5 mr-2 text-orange-400" />
               {currentLevel === 0 ? 'Get Started' : `Level ${currentLevel}: ${currentLevelInfo.name}`}
             </h2>
-            <button className="text-gray-400 hover:text-white transition-colors">
+            <button
+              onClick={() => setShowLevelInfoModal(true)}
+              className="text-gray-400 hover:text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            >
               <Info className="w-5 h-5" />
             </button>
           </div>
@@ -550,6 +554,140 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
                   newFolderTypes={newFolderTypes}
                 />
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Level Info Modal */}
+      {showLevelInfoModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 rounded-lg border border-gray-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="bg-gradient-to-r from-orange-900/30 to-blue-900/30 border-b border-gray-700 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-orange-600/20 flex items-center justify-center">
+                    <Fuel className="w-6 h-6 text-orange-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Fuel Stage Levels</h3>
+                </div>
+                <button
+                  onClick={() => setShowLevelInfoModal(false)}
+                  className="text-gray-400 hover:text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-300 mb-4">
+                Progress through 5 Fuel Levels by adding more documents to your Google Drive folders. Each level unlocks more Launch Points and enhances Astra's capabilities.
+              </p>
+
+              {FUEL_LEVELS.map((level, index) => {
+                const isCurrentLevel = currentLevel === level.level;
+                const isCompleted = currentLevel > level.level;
+                const LevelIcon = levelIcons[index];
+
+                return (
+                  <div
+                    key={level.level}
+                    className={`border rounded-lg p-4 ${
+                      isCurrentLevel
+                        ? 'border-orange-500 bg-orange-900/10'
+                        : isCompleted
+                        ? 'border-green-700 bg-green-900/10'
+                        : 'border-gray-700 bg-gray-800/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                            isCurrentLevel
+                              ? 'bg-orange-600/20'
+                              : isCompleted
+                              ? 'bg-green-600/20'
+                              : 'bg-gray-700/50'
+                          }`}
+                        >
+                          {isCompleted ? (
+                            <CheckCircle className="w-6 h-6 text-green-400" />
+                          ) : (
+                            <LevelIcon
+                              className={`w-6 h-6 ${
+                                isCurrentLevel ? 'text-orange-400' : 'text-gray-400'
+                              }`}
+                            />
+                          )}
+                        </div>
+                        <div>
+                          <h4
+                            className={`font-semibold ${
+                              isCurrentLevel
+                                ? 'text-orange-400'
+                                : isCompleted
+                                ? 'text-green-400'
+                                : 'text-white'
+                            }`}
+                          >
+                            Level {level.level}: {level.name}
+                          </h4>
+                          <p className="text-xs text-gray-400">{level.description}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span
+                          className={`text-sm font-medium ${
+                            isCompleted ? 'text-green-400' : 'text-yellow-400'
+                          }`}
+                        >
+                          +{formatPoints(level.points)}
+                        </span>
+                        {isCurrentLevel && (
+                          <p className="text-xs text-orange-400 mt-1">Current</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-3 space-y-1">
+                      <p className="text-xs text-gray-400 font-medium mb-1">Requirements:</p>
+                      {level.requirements.map((req, reqIndex) => (
+                        <div key={reqIndex} className="flex items-center gap-2">
+                          <div
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              isCompleted ? 'bg-green-400' : 'bg-gray-600'
+                            }`}
+                          />
+                          <p
+                            className={`text-xs ${
+                              isCompleted ? 'text-green-300' : 'text-gray-400'
+                            }`}
+                          >
+                            {req}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+
+              <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-4 mt-4">
+                <p className="text-sm text-blue-300">
+                  <span className="font-medium">💡 Tip:</span> Add more documents to your Strategy, Meetings, Financial, and Projects folders to progress faster. Higher levels unlock more Launch Points and enhanced AI capabilities!
+                </p>
+              </div>
+
+              <div className="flex justify-center pt-2">
+                <button
+                  onClick={() => setShowLevelInfoModal(false)}
+                  className="px-6 py-3 bg-gradient-to-r from-orange-600 to-blue-600 hover:from-orange-700 hover:to-blue-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl min-h-[44px]"
+                >
+                  Got It
+                </button>
+              </div>
             </div>
           </div>
         </div>
