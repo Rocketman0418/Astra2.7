@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface AddMoreFoldersStepProps {
-  onComplete: () => void;
+  onComplete: (newFolderTypes: ('strategy' | 'meetings' | 'financial' | 'projects')[]) => void;
   onBack: () => void;
 }
 
@@ -186,8 +186,9 @@ export const AddMoreFoldersStep: React.FC<AddMoreFoldersStepProps> = ({ onComple
         }
       }
 
-      // Success - proceed to next step
-      onComplete();
+      // Success - proceed to next step with the new folder types
+      const newFolderTypesArray = newFolders.map(f => f.type);
+      onComplete(newFolderTypesArray);
     } catch (err: any) {
       console.error('Error saving folders:', err);
       setError(err.message || 'Failed to save folders');

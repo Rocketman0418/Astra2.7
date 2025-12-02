@@ -32,6 +32,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
   const [showDriveFlow, setShowDriveFlow] = useState(false);
   const [driveFlowStep, setDriveFlowStep] = useState<'status' | 'connect' | 'choose-folder' | 'add-more-folders' | 'place-files' | 'sync-data'>('status');
   const [folderData, setFolderData] = useState<any>(null);
+  const [newFolderTypes, setNewFolderTypes] = useState<('strategy' | 'meetings' | 'financial' | 'projects')[]>([]);
   const [checkingLevel, setCheckingLevel] = useState(false);
   const [hasGoogleDrive, setHasGoogleDrive] = useState(false);
   const [checkingDrive, setCheckingDrive] = useState(true);
@@ -504,7 +505,9 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
               )}
               {driveFlowStep === 'add-more-folders' && (
                 <AddMoreFoldersStep
-                  onComplete={async () => {
+                  onComplete={async (newFolders) => {
+                    // Store new folder types for sync step
+                    setNewFolderTypes(newFolders);
                     // Move to sync step after selecting folders
                     setDriveFlowStep('sync-data');
                     await persistFlowState('sync-data');
@@ -535,6 +538,8 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
                     }
                     await clearFlowState();
                     setShowDriveFlow(false);
+                    // Reset new folder types
+                    setNewFolderTypes([]);
                   }}
                   onGoBack={async () => {
                     setDriveFlowStep('place-files');
@@ -542,6 +547,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
                   }}
                   progress={null}
                   fromLaunchPrep={true}
+                  newFolderTypes={newFolderTypes}
                 />
               )}
             </div>

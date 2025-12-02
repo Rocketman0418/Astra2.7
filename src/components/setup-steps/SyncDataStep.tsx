@@ -10,17 +10,19 @@ interface SyncDataStepProps {
   onGoBack?: () => void;
   progress: SetupGuideProgress | null;
   fromLaunchPrep?: boolean; // Flag to customize messaging for Launch Prep flow
+  newFolderTypes?: ('strategy' | 'meetings' | 'financial' | 'projects')[]; // New folders to check for
 }
 
 
-export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack, fromLaunchPrep = false }) => {
+export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack, fromLaunchPrep = false, newFolderTypes = [] }) => {
   const { user } = useAuth();
   const [syncing, setSyncing] = useState(true);
   const [syncComplete, setSyncComplete] = useState(false);
-  const [documentCounts, setDocumentCounts] = useState<{ meetings: number; strategy: number; financial: number }>({ meetings: 0, strategy: 0, financial: 0 });
+  const [documentCounts, setDocumentCounts] = useState<{ meetings: number; strategy: number; financial: number; projects: number }>({ meetings: 0, strategy: 0, financial: 0, projects: 0 });
   const [checkAttempts, setCheckAttempts] = useState(0);
   const [showNoDocumentModal, setShowNoDocumentModal] = useState(false);
   const maxCheckAttempts = 90; // Check for up to 3 minutes (90 * 2s intervals)
+  const isAddingNewFolders = newFolderTypes.length > 0;
 
   useEffect(() => {
     // Start syncing process
@@ -83,37 +85,62 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack
       const teamId = user.user_metadata?.team_id;
       if (!teamId) return;
 
-      const [meetingsData, strategyData, financialData] = await Promise.all([
+      const [meetingsData, strategyData, financialData, projectsData] = await Promise.all([
         supabase.from('documents').select('id', { count: 'exact', head: true }).eq('team_id', teamId).eq('folder_type', 'meetings'),
         supabase.from('documents').select('id', { count: 'exact', head: true }).eq('team_id', teamId).eq('folder_type', 'strategy'),
-        supabase.from('documents').select('id', { count: 'exact', head: true }).eq('team_id', teamId).eq('folder_type', 'financial')
+        supabase.from('documents').select('id', { count: 'exact', head: true }).eq('team_id', teamId).eq('folder_type', 'financial'),
+        supabase.from('documents').select('id', { count: 'exact', head: true }).eq('team_id', teamId).eq('folder_type', 'projects')
       ]);
 
       const counts = {
         meetings: meetingsData.count || 0,
         strategy: strategyData.count || 0,
-        financial: financialData.count || 0
+        financial: financialData.count || 0,
+        projects: projectsData.count || 0
       };
 
       setDocumentCounts(counts);
 
-      // Check if we have any synced data
-      if (counts.meetings > 0 || counts.strategy > 0 || counts.financial > 0) {
-        setSyncing(false);
-        setSyncComplete(true);
+      // If adding new folders, check specifically for documents in those new folder types
+      if (isAddingNewFolders) {
+        const hasNewFolderDocs = newFolderTypes.some(folderType => counts[folderType] > 0);
+
+        if (hasNewFolderDocs) {
+          setSyncing(false);
+          setSyncComplete(true);
+        } else {
+          // Increment check attempts
+          setCheckAttempts(prev => {
+            const newCount = prev + 1;
+
+            // If we've exceeded max attempts (3 minutes), show error modal
+            if (newCount >= maxCheckAttempts) {
+              setSyncing(false);
+              setShowNoDocumentModal(true);
+            }
+
+            return newCount;
+          });
+        }
       } else {
-        // Increment check attempts
-        setCheckAttempts(prev => {
-          const newCount = prev + 1;
+        // Original behavior - check if we have any synced data
+        if (counts.meetings > 0 || counts.strategy > 0 || counts.financial > 0 || counts.projects > 0) {
+          setSyncing(false);
+          setSyncComplete(true);
+        } else {
+          // Increment check attempts
+          setCheckAttempts(prev => {
+            const newCount = prev + 1;
 
-          // If we've exceeded max attempts (3 minutes), show error modal
-          if (newCount >= maxCheckAttempts) {
-            setSyncing(false);
-            setShowNoDocumentModal(true);
-          }
+            // If we've exceeded max attempts (3 minutes), show error modal
+            if (newCount >= maxCheckAttempts) {
+              setSyncing(false);
+              setShowNoDocumentModal(true);
+            }
 
-          return newCount;
-        });
+            return newCount;
+          });
+        }
       }
     } catch (error) {
       console.error('Error checking synced data:', error);
@@ -152,18 +179,35 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack
 
   // Sync complete view
   if (syncComplete) {
-    const totalDocs = documentCounts.meetings + documentCounts.strategy + documentCounts.financial;
+    const totalDocs = documentCounts.meetings + documentCounts.strategy + documentCounts.financial + documentCounts.projects;
+    const newFolderNames = newFolderTypes.map(type =>
+      type.charAt(0).toUpperCase() + type.slice(1)
+    ).join(', ');
+
     return (
       <div className="space-y-4">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-600/20 mb-4">
             <CheckCircle className="w-8 h-8 text-green-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Sync Complete!</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">
+            {isAddingNewFolders ? 'New Folders Syncing!' : 'Sync Complete!'}
+          </h2>
           <p className="text-sm text-gray-300">
-            Your documents have been successfully processed and Astra is ready to help
+            {isAddingNewFolders
+              ? `At least one document from your new ${newFolderNames} folder(s) has been detected`
+              : 'Your documents have been successfully processed and Astra is ready to help'
+            }
           </p>
         </div>
+
+        {isAddingNewFolders && (
+          <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-3">
+            <p className="text-sm text-blue-300 text-center">
+              <span className="font-medium">⏳ Note:</span> Full document sync may take 5+ minutes depending on the number of documents. Your new data will continue syncing in the background.
+            </p>
+          </div>
+        )}
 
         <div className="bg-gray-800 rounded-lg p-4">
           <h3 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
@@ -207,6 +251,18 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack
                 <CheckCircle className="w-5 h-5 text-green-400" />
               </div>
             )}
+            {documentCounts.projects > 0 && (
+              <div className="flex items-center justify-between bg-gray-900/50 rounded-lg p-3">
+                <div className="flex items-center space-x-2">
+                  <span className="text-2xl">📁</span>
+                  <div>
+                    <p className="text-white text-sm font-medium">Project Documents</p>
+                    <p className="text-xs text-gray-400">{documentCounts.projects.toLocaleString()} documents processed</p>
+                  </div>
+                </div>
+                <CheckCircle className="w-5 h-5 text-green-400" />
+              </div>
+            )}
           </div>
           <div className="mt-3 pt-3 border-t border-gray-700">
             <p className="text-xs text-gray-400">
@@ -225,24 +281,67 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack
                 <Sparkles className="w-5 h-5 text-orange-400" />
               </div>
               <p className="text-center text-gray-300 text-sm mb-3">
-                You've unlocked AI-powered insights and the next stage: Boosters
+                {isAddingNewFolders
+                  ? `You've added new data sources! Astra can now provide insights from ${newFolderNames} documents`
+                  : "You've unlocked AI-powered insights and the next stage: Boosters"
+                }
               </p>
               <div className="grid grid-cols-2 gap-2">
-                <div className="flex items-center gap-1 text-xs text-green-300">
-                  <span className="text-green-400">✓</span>
-                  <span>Answer questions</span>
-                </div>
-                <div className="flex items-center gap-1 text-xs text-green-300">
-                  <span className="text-green-400">✓</span>
-                  <span>Track progress</span>
-                </div>
-                <div className="flex items-center gap-1 text-xs text-green-300">
-                  <span className="text-green-400">✓</span>
-                  <span>Analyze alignment</span>
-                </div>
+                {documentCounts.strategy > 0 && (
+                  <>
+                    <div className="flex items-center gap-1 text-xs text-green-300">
+                      <span className="text-green-400">✓</span>
+                      <span>Analyze strategy</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-green-300">
+                      <span className="text-green-400">✓</span>
+                      <span>Track goals</span>
+                    </div>
+                  </>
+                )}
+                {documentCounts.meetings > 0 && (
+                  <>
+                    <div className="flex items-center gap-1 text-xs text-green-300">
+                      <span className="text-green-400">✓</span>
+                      <span>Review meetings</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-green-300">
+                      <span className="text-green-400">✓</span>
+                      <span>Track decisions</span>
+                    </div>
+                  </>
+                )}
+                {documentCounts.financial > 0 && (
+                  <>
+                    <div className="flex items-center gap-1 text-xs text-green-300">
+                      <span className="text-green-400">✓</span>
+                      <span>Analyze finances</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-green-300">
+                      <span className="text-green-400">✓</span>
+                      <span>Budget insights</span>
+                    </div>
+                  </>
+                )}
+                {documentCounts.projects > 0 && (
+                  <>
+                    <div className="flex items-center gap-1 text-xs text-green-300">
+                      <span className="text-green-400">✓</span>
+                      <span>Track projects</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-green-300">
+                      <span className="text-green-400">✓</span>
+                      <span>Project status</span>
+                    </div>
+                  </>
+                )}
                 <div className="flex items-center gap-1 text-xs text-green-300">
                   <span className="text-green-400">✓</span>
                   <span>Create visuals</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-green-300">
+                  <span className="text-green-400">✓</span>
+                  <span>Answer questions</span>
                 </div>
               </div>
             </div>
