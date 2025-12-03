@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, User as UserIcon, Save, LogOut, Key, Camera, Trash2, Upload, Settings, Mail, Clock, HardDrive, BarChart3 } from 'lucide-react';
+import { X, User as UserIcon, Save, LogOut, Key, Camera, Trash2, Upload, Settings, Mail, Clock, HardDrive, BarChart3, Shield, FileText } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { GmailSettings } from './GmailSettings';
 import { GoogleDriveSettings } from './GoogleDriveSettings';
@@ -10,6 +10,7 @@ import { TeamMembersPanel } from './TeamMembersPanel';
 import { TeamSettingsModal } from './TeamSettingsModal';
 import { FEATURES } from '../config/features';
 import { HelpCenterTab } from './HelpCenter';
+import { LegalDocumentModal } from './LegalDocumentModal';
 
 interface UserSettingsModalProps {
   isOpen: boolean;
@@ -48,6 +49,8 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
   const [savingTeamName, setSavingTeamName] = useState(false);
   const [teamNameError, setTeamNameError] = useState('');
   const [teamNameSuccess, setTeamNameSuccess] = useState('');
+  const [showLegalModal, setShowLegalModal] = useState(false);
+  const [legalDocumentType, setLegalDocumentType] = useState<'privacy' | 'terms'>('privacy');
 
   const isAdmin = user?.user_metadata?.role === 'admin';
   const superAdminEmails = ['clay@rockethub.ai', 'derek@rockethub.ai', 'marshall@rockethub.ai'];
@@ -783,6 +786,33 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
           {isSuperAdmin && (
             <AdminInviteCodesPanel />
           )}
+
+          {/* Legal Documents */}
+          <div className="bg-gray-700/50 rounded-lg p-6 border border-gray-600">
+            <h3 className="text-lg font-semibold text-white mb-4">Legal Information</h3>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => {
+                  setLegalDocumentType('privacy');
+                  setShowLegalModal(true);
+                }}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors min-h-[44px]"
+              >
+                <Shield className="w-4 h-4" />
+                <span>Privacy Policy</span>
+              </button>
+              <button
+                onClick={() => {
+                  setLegalDocumentType('terms');
+                  setShowLegalModal(true);
+                }}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors min-h-[44px]"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Terms of Service</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -849,6 +879,13 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
             </div>
           </div>
         </div>
+      )}
+
+      {showLegalModal && (
+        <LegalDocumentModal
+          type={legalDocumentType}
+          onClose={() => setShowLegalModal(false)}
+        />
       )}
     </div>
   );
