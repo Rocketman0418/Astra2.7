@@ -49,6 +49,7 @@ export async function triggerManualFolderSync(payload: ManualSyncPayload): Promi
 async function getValidAccessToken(teamId: string, userId: string): Promise<string | null> {
   // Get the connection from user_drive_connections
   // First try to get the user's own connection
+  console.log('getValidAccessToken: Querying by user_id:', userId);
   let { data: connection, error } = await supabase
     .from('user_drive_connections')
     .select('access_token, refresh_token, token_expires_at')
@@ -56,8 +57,11 @@ async function getValidAccessToken(teamId: string, userId: string): Promise<stri
     .eq('is_active', true)
     .maybeSingle();
 
+  console.log('getValidAccessToken: Query by user_id result:', { hasConnection: !!connection, error });
+
   // If user doesn't have a connection, try to get team connection
   if (!connection && !error) {
+    console.log('getValidAccessToken: No connection found by user_id, trying team_id:', teamId);
     const result = await supabase
       .from('user_drive_connections')
       .select('access_token, refresh_token, token_expires_at')
@@ -65,12 +69,13 @@ async function getValidAccessToken(teamId: string, userId: string): Promise<stri
       .eq('is_active', true)
       .maybeSingle();
 
+    console.log('getValidAccessToken: Query by team_id result:', { hasConnection: !!result.data, error: result.error });
     connection = result.data;
     error = result.error;
   }
 
   if (error || !connection) {
-    console.error('Failed to get drive connection:', error);
+    console.error('getValidAccessToken: Failed to get drive connection:', error);
     return null;
   }
 
@@ -139,8 +144,11 @@ export interface SyncAllFoldersResult {
 export async function syncAllFolders(options: SyncAllFoldersOptions): Promise<SyncAllFoldersResult> {
   const { teamId, userId, folderTypes = ['strategy', 'meetings', 'financial'] } = options;
 
+  console.log('syncAllFolders called with:', { teamId, userId, folderTypes });
+
   // Get folder configuration from user_drive_connections
   // First try to get the user's own connection
+  console.log('Querying by user_id:', userId);
   let { data: connection, error: connectionError } = await supabase
     .from('user_drive_connections')
     .select('strategy_folder_id, meetings_folder_id, financial_folder_id, projects_folder_id')
@@ -148,8 +156,11 @@ export async function syncAllFolders(options: SyncAllFoldersOptions): Promise<Sy
     .eq('is_active', true)
     .maybeSingle();
 
+  console.log('Query by user_id result:', { connection, error: connectionError });
+
   // If user doesn't have a connection, try to get team connection
   if (!connection && !connectionError) {
+    console.log('No connection found by user_id, trying team_id:', teamId);
     const result = await supabase
       .from('user_drive_connections')
       .select('strategy_folder_id, meetings_folder_id, financial_folder_id, projects_folder_id')
@@ -157,12 +168,14 @@ export async function syncAllFolders(options: SyncAllFoldersOptions): Promise<Sy
       .eq('is_active', true)
       .maybeSingle();
 
+    console.log('Query by team_id result:', { data: result.data, error: result.error });
     connection = result.data;
     connectionError = result.error;
   }
 
   if (connectionError || !connection) {
-    console.error('Connection error:', connectionError);
+    console.error('Final connection error:', connectionError);
+    console.error('Final connection data:', connection);
     throw new Error('No active Google Drive connection found');
   }
 
