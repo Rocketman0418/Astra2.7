@@ -76,47 +76,54 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
   };
 
   const handleManualSync = async () => {
-    try {
-      setManualSyncing(true);
-      setSyncResult(null);
+    console.log('[SYNC] Button clicked, starting sync...');
 
+    setManualSyncing(true);
+    setSyncResult(null);
+
+    try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        console.error('[SYNC] No user found');
         setSyncResult({ success: false, message: 'No user found' });
-        setManualSyncing(false);
         return;
       }
 
       const teamId = user.user_metadata?.team_id;
       if (!teamId) {
+        console.error('[SYNC] No team ID found');
         setSyncResult({ success: false, message: 'No team ID found' });
-        setManualSyncing(false);
         return;
       }
 
-      console.log('Starting manual sync for all folders...');
+      console.log('[SYNC] Starting manual sync for all folders with teamId:', teamId);
+
       const result = await syncAllFolders({
         teamId,
         userId: user.id,
         folderTypes: ['strategy', 'meetings', 'financial'],
       });
 
-      console.log('Manual sync completed:', result);
+      console.log('[SYNC] Manual sync completed with result:', result);
 
       if (result.success) {
+        console.log('[SYNC] Success! Setting success state...');
         setSyncResult({
           success: true,
           message: `Successfully synced ${result.totalFilesSent} files across all folders`,
         });
         // Auto-clear success message after 5 seconds
         setTimeout(() => {
+          console.log('[SYNC] Clearing success message');
           setSyncResult(null);
         }, 5000);
         // Reload documents after a delay to see new data
         setTimeout(() => {
+          console.log('[SYNC] Reloading documents...');
           loadSyncedDocuments();
         }, 2000);
       } else {
+        console.error('[SYNC] Sync completed with failures:', result);
         const failedFolders = result.results.filter(r => !r.success).map(r => r.folderType);
         setSyncResult({
           success: false,
@@ -124,13 +131,13 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
         });
       }
     } catch (error) {
-      console.error('Manual sync error:', error);
+      console.error('[SYNC] Exception during sync:', error);
       setSyncResult({
         success: false,
         message: error instanceof Error ? error.message : 'Failed to sync folders',
       });
     } finally {
-      console.log('Setting manualSyncing to false');
+      console.log('[SYNC] Finally block - setting manualSyncing to false');
       setManualSyncing(false);
     }
   };
