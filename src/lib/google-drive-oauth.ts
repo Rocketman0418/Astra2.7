@@ -12,9 +12,8 @@ const SCOPES = [
   'https://www.googleapis.com/auth/gmail.compose',
   'https://www.googleapis.com/auth/gmail.send',
   'https://www.googleapis.com/auth/gmail.modify',
-  // Google Drive scopes - FULL ACCESS for folder creation
+  // Google Drive scope - FULL ACCESS (includes metadata, files, folder creation, etc.)
   'https://www.googleapis.com/auth/drive',
-  'https://www.googleapis.com/auth/drive.metadata.readonly',
   // Google Docs scope - for editing document content
   'https://www.googleapis.com/auth/documents',
   // Google Sheets scope - for reading/writing spreadsheet data

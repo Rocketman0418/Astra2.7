@@ -11,9 +11,8 @@ const SCOPES = [
   'https://www.googleapis.com/auth/gmail.compose',
   'https://www.googleapis.com/auth/gmail.send',
   'https://www.googleapis.com/auth/gmail.modify',
-  // Google Drive scopes
-  'https://www.googleapis.com/auth/drive.readonly',
-  'https://www.googleapis.com/auth/drive.metadata.readonly'
+  // Google Drive scope - FULL ACCESS (includes metadata, files, folder creation, etc.)
+  'https://www.googleapis.com/auth/drive'
 ].join(' ');
 
 export interface GmailAuthData {

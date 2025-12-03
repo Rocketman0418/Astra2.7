@@ -31,8 +31,8 @@ export const ChooseFolderStep: React.FC<ChooseFolderStepProps> = ({ onComplete, 
   const [isNewlyCreated, setIsNewlyCreated] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [accessToken, setAccessToken] = useState<string>('');
-  // Always use Google Picker for OAuth compliance
-  const useGooglePicker = true;
+  // Use custom UI with list and search (we have full drive scope)
+  const useGooglePicker = false;
 
   useEffect(() => {
     checkExistingSetup();
