@@ -13,7 +13,7 @@ export interface LevelRequirement {
 export const FUEL_LEVELS: LevelRequirement[] = [
   {
     level: 1,
-    name: 'Ignition',
+    name: 'Level 1',
     description: 'Get started with your first document',
     requirements: ['1 document (any type)'],
     points: 100,
@@ -21,7 +21,7 @@ export const FUEL_LEVELS: LevelRequirement[] = [
   },
   {
     level: 2,
-    name: 'Foundation',
+    name: 'Level 2',
     description: 'Establish your data foundation',
     requirements: ['1 strategy document', '1 meeting note', '1 financial record'],
     points: 300,
@@ -29,7 +29,7 @@ export const FUEL_LEVELS: LevelRequirement[] = [
   },
   {
     level: 3,
-    name: 'Building',
+    name: 'Level 3',
     description: 'Build a solid data collection',
     requirements: ['3 strategy docs', '10 meeting notes', '3 financial records'],
     points: 500,
@@ -37,7 +37,7 @@ export const FUEL_LEVELS: LevelRequirement[] = [
   },
   {
     level: 4,
-    name: 'Mature',
+    name: 'Level 4',
     description: 'Establish a mature data foundation',
     requirements: ['10 strategy docs', '50 meeting notes', '10 financial records'],
     points: 1000,
@@ -45,7 +45,7 @@ export const FUEL_LEVELS: LevelRequirement[] = [
   },
   {
     level: 5,
-    name: 'Advanced',
+    name: 'Level 5',
     description: 'Advanced preparation for maximum insights',
     requirements: ['10 strategy docs', '100 meeting notes', '10 financial records', 'Projects folder'],
     points: 2000,
@@ -57,7 +57,7 @@ export const FUEL_LEVELS: LevelRequirement[] = [
 export const BOOSTERS_LEVELS: LevelRequirement[] = [
   {
     level: 1,
-    name: 'First Contact',
+    name: 'Level 1',
     description: 'Start talking to Astra',
     requirements: ['Use Guided Chat OR send 5 prompts'],
     points: 200,
@@ -65,7 +65,7 @@ export const BOOSTERS_LEVELS: LevelRequirement[] = [
   },
   {
     level: 2,
-    name: 'Visualization',
+    name: 'Level 2',
     description: 'See your data come to life',
     requirements: ['Create 1 visualization'],
     points: 400,
@@ -73,7 +73,7 @@ export const BOOSTERS_LEVELS: LevelRequirement[] = [
   },
   {
     level: 3,
-    name: 'Reporting',
+    name: 'Level 3',
     description: 'Generate insights on demand',
     requirements: ['Generate 1 manual report'],
     points: 600,
@@ -81,7 +81,7 @@ export const BOOSTERS_LEVELS: LevelRequirement[] = [
   },
   {
     level: 4,
-    name: 'Automation',
+    name: 'Level 4',
     description: 'Set up automated insights',
     requirements: ['Schedule 1 recurring report'],
     points: 800,
@@ -89,7 +89,7 @@ export const BOOSTERS_LEVELS: LevelRequirement[] = [
   },
   {
     level: 5,
-    name: 'AI Agents',
+    name: 'Level 5',
     description: 'Build your first AI agent',
     requirements: ['Build 1 AI agent (coming soon)'],
     points: 1500,
@@ -101,7 +101,7 @@ export const BOOSTERS_LEVELS: LevelRequirement[] = [
 export const GUIDANCE_LEVELS: LevelRequirement[] = [
   {
     level: 1,
-    name: 'Configuration',
+    name: 'Level 1',
     description: 'Set up your team',
     requirements: ['Configure team settings'],
     points: 150,
@@ -109,7 +109,7 @@ export const GUIDANCE_LEVELS: LevelRequirement[] = [
   },
   {
     level: 2,
-    name: 'Information',
+    name: 'Level 2',
     description: 'Stay informed',
     requirements: ['Enable news preferences'],
     points: 250,
@@ -117,7 +117,7 @@ export const GUIDANCE_LEVELS: LevelRequirement[] = [
   },
   {
     level: 3,
-    name: 'Collaboration',
+    name: 'Level 3',
     description: 'Build your team',
     requirements: ['Invite 1+ team member'],
     points: 400,
@@ -125,7 +125,7 @@ export const GUIDANCE_LEVELS: LevelRequirement[] = [
   },
   {
     level: 4,
-    name: 'AI Jobs',
+    name: 'Level 4',
     description: 'Create automated workflows',
     requirements: ['Create 1 AI job (coming soon)'],
     points: 800,
@@ -133,7 +133,7 @@ export const GUIDANCE_LEVELS: LevelRequirement[] = [
   },
   {
     level: 5,
-    name: 'Documentation',
+    name: 'Level 5',
     description: 'Document your processes',
     requirements: ['Create 1 guidance document (coming soon)'],
     points: 1200,

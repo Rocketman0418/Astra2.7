@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Fuel, Zap, Compass, ArrowRight, Lock, CheckCircle, Info } from 'lucide-react';
+import { Fuel, Zap, Compass, ArrowRight, Lock, CheckCircle, Info, X, FileText, Folder, Database, HardDrive, Rocket, MessageCircle, BarChart, FileBarChart, CalendarClock, Bot, Settings, Newspaper, UserPlus, Briefcase, BookOpen } from 'lucide-react';
 import { StageProgress } from '../../hooks/useLaunchPreparation';
-import { calculateStageProgress, formatPoints, getStageDisplayName } from '../../lib/launch-preparation-utils';
+import { calculateStageProgress, formatPoints, getStageDisplayName, FUEL_LEVELS, BOOSTERS_LEVELS, GUIDANCE_LEVELS } from '../../lib/launch-preparation-utils';
 import { LaunchPreparationHeader } from './LaunchPreparationHeader';
 
 interface StageSelectorProps {
@@ -24,11 +24,32 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
   onExit
 }) => {
   const [showInfoTooltip, setShowInfoTooltip] = useState<string | null>(null);
+  const [showStageInfoModal, setShowStageInfoModal] = useState<'fuel' | 'boosters' | 'guidance' | null>(null);
+  const [showPointsModal, setShowPointsModal] = useState(false);
 
   const handleExit = () => {
     if (onExit) {
       onExit();
     }
+  };
+
+  // Icon mapping for level details
+  const iconMap: Record<string, any> = {
+    'file-text': FileText,
+    'folder-tree': Folder,
+    'database': Database,
+    'hard-drive': HardDrive,
+    'rocket': Rocket,
+    'message-circle': MessageCircle,
+    'bar-chart': BarChart,
+    'file-bar-chart': FileBarChart,
+    'calendar-clock': CalendarClock,
+    'bot': Bot,
+    'settings': Settings,
+    'newspaper': Newspaper,
+    'user-plus': UserPlus,
+    'briefcase': Briefcase,
+    'book-open': BookOpen
   };
 
   const fuelLevel = fuelProgress?.level || 0;
@@ -44,6 +65,10 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
   const boostersUnlocked = fuelLevel >= 1;
   const guidanceUnlocked = fuelLevel >= 1 && boostersLevel >= 1;
 
+  // Check if stages should show NEW indicator
+  const boostersIsNew = boostersUnlocked && boostersLevel === 0;
+  const guidanceIsNew = guidanceUnlocked && guidanceLevel === 0;
+
   const stages = [
     {
       id: 'fuel' as const,
@@ -55,7 +80,8 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
       progress: fuelPercent,
       level: fuelLevel,
       unlocked: fuelUnlocked,
-      completed: fuelLevel >= 5
+      completed: fuelLevel >= 5,
+      isNew: false
     },
     {
       id: 'boosters' as const,
@@ -67,7 +93,8 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
       progress: boostersPercent,
       level: boostersLevel,
       unlocked: boostersUnlocked,
-      completed: boostersLevel >= 5
+      completed: boostersLevel >= 5,
+      isNew: boostersIsNew
     },
     {
       id: 'guidance' as const,
@@ -79,7 +106,8 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
       progress: guidancePercent,
       level: guidanceLevel,
       unlocked: guidanceUnlocked,
-      completed: guidanceLevel >= 5
+      completed: guidanceLevel >= 5,
+      isNew: guidanceIsNew
     }
   ];
 
@@ -105,26 +133,18 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
           </div>
 
           {/* Points Display */}
-          <div className="bg-gray-800/50 border border-gray-700 rounded-lg px-6 py-2 mb-6 relative">
+          <button
+            onClick={() => setShowPointsModal(true)}
+            className="bg-gray-800/50 border border-gray-700 rounded-lg px-6 py-2 mb-6 hover:bg-gray-800/70 hover:border-gray-600 transition-all group"
+          >
             <div className="flex items-center space-x-2">
               <div>
-                <p className="text-gray-400 text-xs">Launch Points</p>
+                <p className="text-gray-400 text-xs group-hover:text-gray-300 transition-colors">Launch Points</p>
                 <p className="text-xl font-bold text-yellow-400">{formatPoints(totalPoints)}</p>
               </div>
-              <button
-                onMouseEnter={() => setShowInfoTooltip('points')}
-                onMouseLeave={() => setShowInfoTooltip(null)}
-                className="text-gray-500 hover:text-gray-400 transition-colors"
-              >
-                <Info className="w-4 h-4" />
-              </button>
+              <Info className="w-4 h-4 text-gray-500 group-hover:text-gray-400 transition-colors" />
             </div>
-            {showInfoTooltip === 'points' && (
-              <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gray-800 border border-gray-600 rounded-lg p-3 text-sm text-gray-300 w-64 z-10 shadow-lg">
-                Earn points by completing achievements in each stage. Higher levels unlock more AI capabilities!
-              </div>
-            )}
-          </div>
+          </button>
 
           {/* Stage Cards with Circular Progress */}
           <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -136,22 +156,34 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
               const strokeDashoffset = circumference - (stage.progress / 100) * circumference;
 
               return (
-                <button
-                  key={stage.id}
-                  onClick={() => !isLocked && onNavigateToStage(stage.id)}
-                  disabled={isLocked}
-                  className={`
-                    relative bg-gray-800/50 border-2 rounded-2xl p-6 text-center transition-all
-                    ${isLocked
-                      ? 'border-gray-700 opacity-50 cursor-not-allowed'
-                      : stage.color === 'blue'
-                        ? 'border-orange-500/30 hover:border-orange-500 hover:bg-gray-800/70 cursor-pointer hover:scale-105'
-                        : stage.color === 'cyan'
-                          ? 'border-cyan-500/30 hover:border-cyan-500 hover:bg-gray-800/70 cursor-pointer hover:scale-105'
-                          : 'border-green-500/30 hover:border-green-500 hover:bg-gray-800/70 cursor-pointer hover:scale-105'
-                    }
-                  `}
-                >
+                <div key={stage.id} className="relative">
+                  {/* Info Icon Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowStageInfoModal(stage.id);
+                    }}
+                    className="absolute top-2 right-2 z-10 p-2 rounded-lg bg-gray-800/80 hover:bg-gray-700 border border-gray-600 hover:border-gray-500 transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    title="View level details"
+                  >
+                    <Info className="w-4 h-4 text-gray-400 hover:text-white" />
+                  </button>
+
+                  <button
+                    onClick={() => !isLocked && onNavigateToStage(stage.id)}
+                    disabled={isLocked}
+                    className={`
+                      w-full relative bg-gray-800/50 border-2 rounded-2xl p-6 text-center transition-all
+                      ${isLocked
+                        ? 'border-gray-700 opacity-50 cursor-not-allowed'
+                        : stage.color === 'blue'
+                          ? 'border-orange-500/30 hover:border-orange-500 hover:bg-gray-800/70 cursor-pointer hover:scale-105'
+                          : stage.color === 'cyan'
+                            ? 'border-cyan-500/30 hover:border-cyan-500 hover:bg-gray-800/70 cursor-pointer hover:scale-105'
+                            : 'border-green-500/30 hover:border-green-500 hover:bg-gray-800/70 cursor-pointer hover:scale-105'
+                      }
+                    `}
+                  >
                   {/* Circular Progress */}
                   <div className="relative w-32 h-32 mx-auto mb-4">
                     <svg className="w-32 h-32 transform -rotate-90">
@@ -213,9 +245,16 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
                   </div>
 
                   {/* Stage Info */}
-                  <h3 className="text-2xl font-bold text-white mb-2">
-                    {stage.name}
-                  </h3>
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <h3 className="text-2xl font-bold text-white">
+                      {stage.name}
+                    </h3>
+                    {stage.isNew && (
+                      <span className="px-2 py-0.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold rounded uppercase">
+                        NEW
+                      </span>
+                    )}
+                  </div>
                   <p className="text-gray-400 text-sm mb-3">{stage.description}</p>
 
                   {/* Level Badge */}
@@ -249,11 +288,306 @@ export const StageSelector: React.FC<StageSelectorProps> = ({
                     </div>
                   )}
                 </button>
+                </div>
               );
             })}
           </div>
         </div>
       </div>
+
+      {/* Stage Level Details Modal */}
+      {showStageInfoModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] p-4">
+          <div className="bg-gray-900 rounded-lg border border-gray-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            {(() => {
+              const stageData = showStageInfoModal === 'fuel' ? FUEL_LEVELS : showStageInfoModal === 'boosters' ? BOOSTERS_LEVELS : GUIDANCE_LEVELS;
+              const stageIcon = showStageInfoModal === 'fuel' ? Fuel : showStageInfoModal === 'boosters' ? Zap : Compass;
+              const stageColor = showStageInfoModal === 'fuel' ? 'orange' : showStageInfoModal === 'boosters' ? 'cyan' : 'green';
+              const stageLevel = showStageInfoModal === 'fuel' ? fuelLevel : showStageInfoModal === 'boosters' ? boostersLevel : guidanceLevel;
+              const StageIcon = stageIcon;
+
+              return (
+                <>
+                  <div className={`bg-gradient-to-r ${stageColor === 'orange' ? 'from-orange-900/30 to-blue-900/30' : stageColor === 'cyan' ? 'from-cyan-900/30 to-blue-900/30' : 'from-green-900/30 to-blue-900/30'} border-b border-gray-700 p-4`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-full ${stageColor === 'orange' ? 'bg-orange-600/20' : stageColor === 'cyan' ? 'bg-cyan-600/20' : 'bg-green-600/20'} flex items-center justify-center`}>
+                          <StageIcon className={`w-6 h-6 ${stageColor === 'orange' ? 'text-orange-400' : stageColor === 'cyan' ? 'text-cyan-400' : 'text-green-400'}`} />
+                        </div>
+                        <h3 className="text-lg font-semibold text-white">
+                          {showStageInfoModal.charAt(0).toUpperCase() + showStageInfoModal.slice(1)} Stage Levels
+                        </h3>
+                      </div>
+                      <button
+                        onClick={() => setShowStageInfoModal(null)}
+                        className="text-gray-400 hover:text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-6 space-y-4">
+                    <p className="text-sm text-gray-300 mb-4">
+                      Progress through 5 levels by completing requirements. Each level unlocks more Launch Points and enhances your capabilities.
+                    </p>
+
+                    {stageData.map((level, index) => {
+                      const isCurrentLevel = stageLevel === level.level;
+                      const isCompleted = stageLevel > level.level;
+                      const LevelIcon = iconMap[level.icon] || FileText;
+
+                      return (
+                        <div
+                          key={level.level}
+                          className={`border rounded-lg p-4 ${
+                            isCurrentLevel
+                              ? `${stageColor === 'orange' ? 'border-orange-500 bg-orange-900/10' : stageColor === 'cyan' ? 'border-cyan-500 bg-cyan-900/10' : 'border-green-500 bg-green-900/10'}`
+                              : isCompleted
+                              ? 'border-green-700 bg-green-900/10'
+                              : 'border-gray-700 bg-gray-800/50'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                                  isCurrentLevel
+                                    ? `${stageColor === 'orange' ? 'bg-orange-600/20' : stageColor === 'cyan' ? 'bg-cyan-600/20' : 'bg-green-600/20'}`
+                                    : isCompleted
+                                    ? 'bg-green-600/20'
+                                    : 'bg-gray-700/50'
+                                }`}
+                              >
+                                {isCompleted ? (
+                                  <CheckCircle className="w-6 h-6 text-green-400" />
+                                ) : (
+                                  <LevelIcon
+                                    className={`w-6 h-6 ${
+                                      isCurrentLevel ? `${stageColor === 'orange' ? 'text-orange-400' : stageColor === 'cyan' ? 'text-cyan-400' : 'text-green-400'}` : 'text-gray-400'
+                                    }`}
+                                  />
+                                )}
+                              </div>
+                              <div>
+                                <h4
+                                  className={`font-semibold ${
+                                    isCurrentLevel
+                                      ? `${stageColor === 'orange' ? 'text-orange-400' : stageColor === 'cyan' ? 'text-cyan-400' : 'text-green-400'}`
+                                      : isCompleted
+                                      ? 'text-green-400'
+                                      : 'text-white'
+                                  }`}
+                                >
+                                  {level.name}
+                                </h4>
+                                <p className="text-xs text-gray-400">{level.description}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <span
+                                className={`text-sm font-medium ${
+                                  isCompleted ? 'text-green-400' : 'text-yellow-400'
+                                }`}
+                              >
+                                +{formatPoints(level.points)}
+                              </span>
+                              {isCurrentLevel && (
+                                <p className={`text-xs mt-1 ${stageColor === 'orange' ? 'text-orange-400' : stageColor === 'cyan' ? 'text-cyan-400' : 'text-green-400'}`}>Current</p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="mt-3 space-y-1">
+                            <p className="text-xs text-gray-400 font-medium mb-1">Requirements:</p>
+                            {level.requirements.map((req, reqIndex) => (
+                              <div key={reqIndex} className="flex items-center gap-2">
+                                <div
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    isCompleted ? 'bg-green-400' : 'bg-gray-600'
+                                  }`}
+                                />
+                                <p
+                                  className={`text-xs ${
+                                    isCompleted ? 'text-green-300' : 'text-gray-400'
+                                  }`}
+                                >
+                                  {req}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    <div className={`${stageColor === 'orange' ? 'bg-orange-900/20 border-orange-700' : stageColor === 'cyan' ? 'bg-cyan-900/20 border-cyan-700' : 'bg-green-900/20 border-green-700'} border rounded-lg p-4 mt-4`}>
+                      <p className={`text-sm ${stageColor === 'orange' ? 'text-orange-300' : stageColor === 'cyan' ? 'text-cyan-300' : 'text-green-300'}`}>
+                        <span className="font-medium">💡 Tip:</span> Complete more levels to unlock additional Launch Points and enhanced capabilities!
+                      </p>
+                    </div>
+
+                    <div className="flex justify-center pt-2">
+                      <button
+                        onClick={() => setShowStageInfoModal(null)}
+                        className={`px-6 py-3 bg-gradient-to-r ${stageColor === 'orange' ? 'from-orange-600 to-blue-600 hover:from-orange-700 hover:to-blue-700' : stageColor === 'cyan' ? 'from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700' : 'from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700'} text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl min-h-[44px]`}
+                      >
+                        Got It
+                      </button>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* Launch Points Details Modal */}
+      {showPointsModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] p-4">
+          <div className="bg-gray-900 rounded-lg border border-gray-700 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-b border-gray-700 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-yellow-600/20 flex items-center justify-center">
+                    <Rocket className="w-6 h-6 text-yellow-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Launch Points Overview</h3>
+                </div>
+                <button
+                  onClick={() => setShowPointsModal(false)}
+                  className="text-gray-400 hover:text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="text-center mb-4">
+                <p className="text-gray-300 text-sm mb-2">Your Total Points</p>
+                <p className="text-4xl font-bold text-yellow-400">{formatPoints(totalPoints)}</p>
+              </div>
+
+              <p className="text-sm text-gray-300 text-center">
+                Earn Launch Points by completing levels across all three stages. Each level unlocks new capabilities and brings you closer to launch readiness!
+              </p>
+
+              {/* Fuel Stage Points */}
+              <div className="border border-orange-700/50 bg-orange-900/10 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-orange-600/20 flex items-center justify-center">
+                    <Fuel className="w-6 h-6 text-orange-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-white">Fuel Stage</h4>
+                    <p className="text-xs text-gray-400">Data Collection & Connection</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {FUEL_LEVELS.map((level) => (
+                    <div key={level.level} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        {fuelLevel >= level.level ? (
+                          <CheckCircle className="w-4 h-4 text-green-400" />
+                        ) : (
+                          <div className="w-4 h-4 border-2 border-gray-600 rounded-full" />
+                        )}
+                        <span className={fuelLevel >= level.level ? 'text-green-400' : 'text-gray-400'}>
+                          {level.name}
+                        </span>
+                      </div>
+                      <span className={fuelLevel >= level.level ? 'text-green-400 font-medium' : 'text-gray-500'}>
+                        +{formatPoints(level.points)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Boosters Stage Points */}
+              <div className="border border-cyan-700/50 bg-cyan-900/10 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-cyan-600/20 flex items-center justify-center">
+                    <Zap className="w-6 h-6 text-cyan-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-white">Boosters Stage</h4>
+                    <p className="text-xs text-gray-400">AI Features & Capabilities</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {BOOSTERS_LEVELS.map((level) => (
+                    <div key={level.level} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        {boostersLevel >= level.level ? (
+                          <CheckCircle className="w-4 h-4 text-green-400" />
+                        ) : (
+                          <div className="w-4 h-4 border-2 border-gray-600 rounded-full" />
+                        )}
+                        <span className={boostersLevel >= level.level ? 'text-green-400' : 'text-gray-400'}>
+                          {level.name}
+                        </span>
+                      </div>
+                      <span className={boostersLevel >= level.level ? 'text-green-400 font-medium' : 'text-gray-500'}>
+                        +{formatPoints(level.points)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Guidance Stage Points */}
+              <div className="border border-green-700/50 bg-green-900/10 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-green-600/20 flex items-center justify-center">
+                    <Compass className="w-6 h-6 text-green-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-white">Guidance Stage</h4>
+                    <p className="text-xs text-gray-400">Team Setup & Configuration</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {GUIDANCE_LEVELS.map((level) => (
+                    <div key={level.level} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        {guidanceLevel >= level.level ? (
+                          <CheckCircle className="w-4 h-4 text-green-400" />
+                        ) : (
+                          <div className="w-4 h-4 border-2 border-gray-600 rounded-full" />
+                        )}
+                        <span className={guidanceLevel >= level.level ? 'text-green-400' : 'text-gray-400'}>
+                          {level.name}
+                        </span>
+                      </div>
+                      <span className={guidanceLevel >= level.level ? 'text-green-400 font-medium' : 'text-gray-500'}>
+                        +{formatPoints(level.points)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-4">
+                <p className="text-sm text-blue-300 text-center">
+                  <span className="font-medium">🚀 Launch Ready:</span> Complete Level 1 in all three stages to unlock launch capability!
+                </p>
+              </div>
+
+              <div className="flex justify-center pt-2">
+                <button
+                  onClick={() => setShowPointsModal(false)}
+                  className="px-6 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl min-h-[44px]"
+                >
+                  Got It
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

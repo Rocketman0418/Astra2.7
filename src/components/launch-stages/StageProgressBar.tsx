@@ -17,6 +17,10 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
   currentStage,
   onStageClick
 }) => {
+  // Check for NEW indicators
+  const boostersIsNew = (fuelProgress?.level ?? 0) >= 1 && (boostersProgress?.level ?? 0) === 0;
+  const guidanceIsNew = (fuelProgress?.level ?? 0) >= 1 && (boostersProgress?.level ?? 0) >= 1 && (guidanceProgress?.level ?? 0) === 0;
+
   const stages = [
     {
       id: 'fuel' as const,
@@ -24,7 +28,8 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
       icon: Fuel,
       progress: fuelProgress,
       color: 'orange',
-      unlocked: true
+      unlocked: true,
+      isNew: false
     },
     {
       id: 'boosters' as const,
@@ -32,7 +37,8 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
       icon: Zap,
       progress: boostersProgress,
       color: 'blue',
-      unlocked: (fuelProgress?.level ?? 0) >= 1
+      unlocked: (fuelProgress?.level ?? 0) >= 1,
+      isNew: boostersIsNew
     },
     {
       id: 'guidance' as const,
@@ -40,7 +46,8 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
       icon: Compass,
       progress: guidanceProgress,
       color: 'purple',
-      unlocked: (fuelProgress?.level ?? 0) >= 1 && (boostersProgress?.level ?? 0) >= 1
+      unlocked: (fuelProgress?.level ?? 0) >= 1 && (boostersProgress?.level ?? 0) >= 1,
+      isNew: guidanceIsNew
     }
   ];
 
@@ -135,7 +142,14 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
 
                   {/* Stage info */}
                   <div className="flex-1 text-left min-w-0">
-                    <div className="font-semibold text-white text-sm">{stage.name}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-white text-sm">{stage.name}</span>
+                      {stage.isNew && (
+                        <span className="px-1.5 py-0.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-[10px] font-bold rounded uppercase">
+                          NEW
+                        </span>
+                      )}
+                    </div>
                     <div className={`text-xs ${stage.unlocked ? 'text-gray-400' : 'text-gray-600'}`}>
                       {stage.unlocked ? `Level ${level}/${maxLevel}` : 'Locked'}
                     </div>
