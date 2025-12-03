@@ -2,16 +2,11 @@ import { supabase } from './supabase';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-// Combined scopes for both Gmail and Google Drive access
+// Minimal scopes for Google Drive access
+// Only requesting what we need: email and drive access
 const SCOPES = [
-  // User profile
+  'openid',
   'https://www.googleapis.com/auth/userinfo.email',
-  // Gmail scopes
-  'https://www.googleapis.com/auth/gmail.readonly',
-  'https://www.googleapis.com/auth/gmail.compose',
-  'https://www.googleapis.com/auth/gmail.send',
-  'https://www.googleapis.com/auth/gmail.modify',
-  // Google Drive scope - FULL ACCESS (includes metadata, files, folder creation, etc.)
   'https://www.googleapis.com/auth/drive'
 ].join(' ');
 
