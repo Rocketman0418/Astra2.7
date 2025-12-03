@@ -46,14 +46,28 @@ export async function triggerManualFolderSync(payload: ManualSyncPayload): Promi
 /**
  * Gets the current access token for a team, refreshing if necessary
  */
-async function getValidAccessToken(teamId: string): Promise<string | null> {
+async function getValidAccessToken(teamId: string, userId: string): Promise<string | null> {
   // Get the connection from user_drive_connections
-  const { data: connection, error } = await supabase
+  // First try to get the user's own connection
+  let { data: connection, error } = await supabase
     .from('user_drive_connections')
     .select('access_token, refresh_token, token_expires_at')
-    .eq('team_id', teamId)
+    .eq('user_id', userId)
     .eq('is_active', true)
     .maybeSingle();
+
+  // If user doesn't have a connection, try to get team connection
+  if (!connection && !error) {
+    const result = await supabase
+      .from('user_drive_connections')
+      .select('access_token, refresh_token, token_expires_at')
+      .eq('team_id', teamId)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    connection = result.data;
+    error = result.error;
+  }
 
   if (error || !connection) {
     console.error('Failed to get drive connection:', error);
@@ -153,7 +167,7 @@ export async function syncAllFolders(options: SyncAllFoldersOptions): Promise<Sy
   }
 
   // Get valid access token
-  const accessToken = await getValidAccessToken(teamId);
+  const accessToken = await getValidAccessToken(teamId, userId);
   if (!accessToken) {
     throw new Error('Failed to get valid access token');
   }
