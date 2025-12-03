@@ -83,12 +83,14 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setSyncResult({ success: false, message: 'No user found' });
+        setManualSyncing(false);
         return;
       }
 
       const teamId = user.user_metadata?.team_id;
       if (!teamId) {
         setSyncResult({ success: false, message: 'No team ID found' });
+        setManualSyncing(false);
         return;
       }
 
@@ -99,15 +101,21 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
         folderTypes: ['strategy', 'meetings', 'financial'],
       });
 
+      console.log('Manual sync completed:', result);
+
       if (result.success) {
         setSyncResult({
           success: true,
           message: `Successfully synced ${result.totalFilesSent} files across all folders`,
         });
+        // Auto-clear success message after 5 seconds
+        setTimeout(() => {
+          setSyncResult(null);
+        }, 5000);
         // Reload documents after a delay to see new data
         setTimeout(() => {
           loadSyncedDocuments();
-        }, 3000);
+        }, 2000);
       } else {
         const failedFolders = result.results.filter(r => !r.success).map(r => r.folderType);
         setSyncResult({
@@ -122,6 +130,7 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
         message: error instanceof Error ? error.message : 'Failed to sync folders',
       });
     } finally {
+      console.log('Setting manualSyncing to false');
       setManualSyncing(false);
     }
   };
@@ -634,11 +643,24 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
                           <button
                             onClick={handleManualSync}
                             disabled={manualSyncing || loadingDocuments}
-                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs rounded transition-colors flex items-center gap-1.5 min-h-[36px]"
+                            className={`px-3 py-1.5 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs rounded transition-all flex items-center gap-1.5 min-h-[36px] ${
+                              syncResult?.success
+                                ? 'bg-green-600 hover:bg-green-700'
+                                : 'bg-blue-600 hover:bg-blue-700'
+                            }`}
                             title="Manually sync all folders now"
                           >
-                            <Zap className={`w-3.5 h-3.5 ${manualSyncing ? 'animate-pulse' : ''}`} />
-                            <span>{manualSyncing ? 'Syncing...' : 'Manual Sync'}</span>
+                            {syncResult?.success ? (
+                              <>
+                                <CheckCircle className="w-3.5 h-3.5 animate-bounce" />
+                                <span>Synced!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Zap className={`w-3.5 h-3.5 ${manualSyncing ? 'animate-pulse' : ''}`} />
+                                <span>{manualSyncing ? 'Syncing...' : 'Manual Sync'}</span>
+                              </>
+                            )}
                           </button>
                           <button
                             onClick={loadSyncedDocuments}
@@ -652,12 +674,17 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
                       </div>
 
                       {syncResult && (
-                        <div className={`mb-3 p-2 rounded text-xs ${
+                        <div className={`mb-3 p-3 rounded-lg text-sm animate-in fade-in slide-in-from-top-2 duration-300 flex items-start gap-2 ${
                           syncResult.success
-                            ? 'bg-green-900/20 border border-green-700 text-green-300'
-                            : 'bg-red-900/20 border border-red-700 text-red-300'
+                            ? 'bg-green-900/30 border-2 border-green-600 text-green-200'
+                            : 'bg-red-900/30 border-2 border-red-600 text-red-200'
                         }`}>
-                          {syncResult.message}
+                          {syncResult.success ? (
+                            <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                          )}
+                          <span className="flex-1">{syncResult.message}</span>
                         </div>
                       )}
 
@@ -944,20 +971,38 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
                   <button
                     onClick={handleManualSync}
                     disabled={manualSyncing || loadingDocuments}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors flex items-center gap-2 min-h-[44px] whitespace-nowrap font-medium"
+                    className={`px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-all flex items-center gap-2 min-h-[44px] whitespace-nowrap font-medium ${
+                      syncResult?.success
+                        ? 'bg-green-600 hover:bg-green-700'
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
                     title="Manually sync all folders now"
                   >
-                    <Zap className={`w-4 h-4 ${manualSyncing ? 'animate-pulse' : ''}`} />
-                    <span>{manualSyncing ? 'Syncing...' : 'Sync Now'}</span>
+                    {syncResult?.success ? (
+                      <>
+                        <CheckCircle className="w-4 h-4 animate-bounce" />
+                        <span>Synced!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Zap className={`w-4 h-4 ${manualSyncing ? 'animate-pulse' : ''}`} />
+                        <span>{manualSyncing ? 'Syncing...' : 'Sync Now'}</span>
+                      </>
+                    )}
                   </button>
                 </div>
                 {syncResult && (
-                  <div className={`mt-3 p-2 rounded text-xs ${
+                  <div className={`mt-3 p-3 rounded-lg text-sm animate-in fade-in slide-in-from-top-2 duration-300 flex items-start gap-2 ${
                     syncResult.success
-                      ? 'bg-green-900/30 border border-green-600 text-green-300'
-                      : 'bg-red-900/30 border border-red-600 text-red-300'
+                      ? 'bg-green-900/30 border-2 border-green-600 text-green-200'
+                      : 'bg-red-900/30 border-2 border-red-600 text-red-200'
                   }`}>
-                    {syncResult.message}
+                    {syncResult.success ? (
+                      <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                    )}
+                    <span className="flex-1">{syncResult.message}</span>
                   </div>
                 )}
               </div>
