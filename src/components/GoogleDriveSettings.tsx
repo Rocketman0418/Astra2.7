@@ -110,18 +110,18 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
         console.log('[SYNC] Success! Setting success state...');
         setSyncResult({
           success: true,
-          message: `Successfully synced ${result.totalFilesSent} files across all folders`,
+          message: `Sync started! Your documents are being synced in the background. This may take up to 30 minutes. Check back later to see new documents.`,
         });
-        // Auto-clear success message after 5 seconds
+        // Auto-clear success message after 8 seconds
         setTimeout(() => {
           console.log('[SYNC] Clearing success message');
           setSyncResult(null);
-        }, 5000);
-        // Reload documents after a delay to see new data
+        }, 8000);
+        // Reload documents after a delay to see if any new data arrived
         setTimeout(() => {
           console.log('[SYNC] Reloading documents...');
           loadSyncedDocuments();
-        }, 2000);
+        }, 3000);
       } else {
         console.error('[SYNC] Sync completed with failures:', result);
         const failedFolders = result.results.filter(r => !r.success).map(r => r.folderType);

@@ -25,43 +25,39 @@ const MANUAL_SYNC_WEBHOOK_URL = 'https://healthrocket.app.n8n.cloud/webhook/manu
 
 /**
  * Calls the manual folder sync webhook for a single folder
+ * This is fire-and-forget - we trigger the webhook and return immediately
+ * since the actual sync can take 30+ minutes
  */
 export async function triggerManualFolderSync(payload: ManualSyncPayload): Promise<ManualSyncResponse> {
   console.log('Triggering manual folder sync for:', payload.folder_type);
 
-  // Add timeout to prevent hanging forever
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+  // Fire the webhook request without waiting for completion
+  // The webhook can take 30+ minutes, so we use keepalive to let it run in background
+  fetch(MANUAL_SYNC_WEBHOOK_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+    keepalive: true, // Allow request to complete even if page navigates away
+  }).then(() => {
+    console.log('Webhook request completed for', payload.folder_type);
+  }).catch((err) => {
+    console.error('Webhook request failed for', payload.folder_type, ':', err);
+  });
 
-  try {
-    const response = await fetch(MANUAL_SYNC_WEBHOOK_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    });
+  console.log('Sync triggered successfully for', payload.folder_type, '- processing in background');
 
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Manual sync failed:', response.status, errorText);
-      throw new Error(`Manual sync failed: ${response.status} ${errorText}`);
-    }
-
-    const result = await response.json();
-    console.log('Manual sync completed for', payload.folder_type, ':', result);
-    return result;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error instanceof Error && error.name === 'AbortError') {
-      console.error('Manual sync timeout for:', payload.folder_type);
-      throw new Error('Sync request timed out after 2 minutes');
-    }
-    throw error;
-  }
+  // Return immediately with success
+  return {
+    success: true,
+    message: 'Sync triggered successfully',
+    team_id: payload.team_id,
+    folder_id: payload.folder_id,
+    folder_type: payload.folder_type,
+    files_sent: 1, // Indicate sync was triggered
+    files_failed: 0,
+  };
 }
 
 /**
