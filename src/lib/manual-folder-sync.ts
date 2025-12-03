@@ -126,14 +126,29 @@ export async function syncAllFolders(options: SyncAllFoldersOptions): Promise<Sy
   const { teamId, userId, folderTypes = ['strategy', 'meetings', 'financial'] } = options;
 
   // Get folder configuration from user_drive_connections
-  const { data: connection, error: connectionError } = await supabase
+  // First try to get the user's own connection
+  let { data: connection, error: connectionError } = await supabase
     .from('user_drive_connections')
     .select('strategy_folder_id, meetings_folder_id, financial_folder_id, projects_folder_id')
-    .eq('team_id', teamId)
+    .eq('user_id', userId)
     .eq('is_active', true)
     .maybeSingle();
 
+  // If user doesn't have a connection, try to get team connection
+  if (!connection && !connectionError) {
+    const result = await supabase
+      .from('user_drive_connections')
+      .select('strategy_folder_id, meetings_folder_id, financial_folder_id, projects_folder_id')
+      .eq('team_id', teamId)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    connection = result.data;
+    connectionError = result.error;
+  }
+
   if (connectionError || !connection) {
+    console.error('Connection error:', connectionError);
     throw new Error('No active Google Drive connection found');
   }
 
