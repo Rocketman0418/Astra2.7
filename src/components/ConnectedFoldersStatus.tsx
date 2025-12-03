@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Folder, CheckCircle, Loader2, FolderPlus, FileText } from 'lucide-react';
+import { Folder, CheckCircle, Loader2, FolderPlus, FileText, Edit2, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { GoogleDriveFolderPicker } from './GoogleDriveFolderPicker';
+import { FolderInfo as GoogleFolderInfo, getGoogleDriveConnection, updateFolderConfiguration } from '../lib/google-drive-oauth';
 
 interface ConnectedFoldersStatusProps {
   onConnectMore: () => void;
@@ -21,6 +23,9 @@ export const ConnectedFoldersStatus: React.FC<ConnectedFoldersStatusProps> = ({ 
   const [loading, setLoading] = useState(true);
   const [folders, setFolders] = useState<FolderInfo[]>([]);
   const [error, setError] = useState('');
+  const [changingFolder, setChangingFolder] = useState<'strategy' | 'meetings' | 'financial' | 'projects' | null>(null);
+  const [accessToken, setAccessToken] = useState<string>('');
+  const [savingChange, setSavingChange] = useState(false);
 
   useEffect(() => {
     loadFolderStatus();
@@ -115,6 +120,53 @@ export const ConnectedFoldersStatus: React.FC<ConnectedFoldersStatusProps> = ({ 
     }
   };
 
+  const handleChangeFolder = async (folderType: 'strategy' | 'meetings' | 'financial' | 'projects') => {
+    try {
+      // Get access token from connection
+      const connection = await getGoogleDriveConnection();
+      if (!connection || !connection.access_token) {
+        setError('No valid Google Drive connection found');
+        return;
+      }
+
+      setAccessToken(connection.access_token);
+      setChangingFolder(folderType);
+    } catch (err) {
+      console.error('Error getting access token:', err);
+      setError('Failed to get Drive access');
+    }
+  };
+
+  const handleFolderSelected = async (newFolder: GoogleFolderInfo | null) => {
+    if (!changingFolder || !newFolder) {
+      setChangingFolder(null);
+      return;
+    }
+
+    try {
+      setSavingChange(true);
+
+      // Update the folder configuration
+      const updates = {
+        [`${changingFolder}_folder_id`]: newFolder.id,
+        [`${changingFolder}_folder_name`]: newFolder.name
+      };
+
+      await updateFolderConfiguration(updates);
+
+      // Reload folder status to show updated info
+      await loadFolderStatus();
+
+      // Close the change modal
+      setChangingFolder(null);
+    } catch (err) {
+      console.error('Error updating folder:', err);
+      setError('Failed to update folder');
+    } finally {
+      setSavingChange(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -166,24 +218,33 @@ export const ConnectedFoldersStatus: React.FC<ConnectedFoldersStatusProps> = ({ 
           {connectedFolders.map((folder) => (
             <div
               key={folder.type}
-              className="bg-gray-800/50 border border-green-700/50 rounded-lg p-4 flex items-center justify-between"
+              className="bg-gray-800/50 border border-green-700/50 rounded-lg p-4"
             >
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-lg bg-green-600/20 flex items-center justify-center flex-shrink-0">
-                  <Folder className="w-5 h-5 text-green-400" />
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-3 flex-1">
+                  <div className="w-10 h-10 rounded-lg bg-green-600/20 flex items-center justify-center flex-shrink-0">
+                    <Folder className="w-5 h-5 text-green-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-white font-medium">{folder.label}</p>
+                    <p className="text-sm text-gray-400">📁 {folder.folderName || 'Unnamed Folder'}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-white font-medium">{folder.label}</p>
-                  <p className="text-sm text-gray-400">📁 {folder.folderName || 'Unnamed Folder'}</p>
+                <div className="text-right">
+                  <div className="flex items-center space-x-2 text-green-400">
+                    <FileText className="w-4 h-4" />
+                    <span className="font-semibold">{folder.documentCount}</span>
+                  </div>
+                  <p className="text-xs text-gray-400">documents</p>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="flex items-center space-x-2 text-green-400">
-                  <FileText className="w-4 h-4" />
-                  <span className="font-semibold">{folder.documentCount}</span>
-                </div>
-                <p className="text-xs text-gray-400">documents</p>
-              </div>
+              <button
+                onClick={() => handleChangeFolder(folder.type)}
+                className="w-full px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/50 text-blue-300 rounded-lg text-sm font-medium transition-all flex items-center justify-center space-x-2 min-h-[44px]"
+              >
+                <Edit2 className="w-4 h-4" />
+                <span>Change Folder</span>
+              </button>
             </div>
           ))}
         </div>
@@ -238,6 +299,48 @@ export const ConnectedFoldersStatus: React.FC<ConnectedFoldersStatusProps> = ({ 
           <span className="font-medium">💡 Tip:</span> Add more documents to your connected folders to increase your Fuel level and unlock more features!
         </p>
       </div>
+
+      {/* Change Folder Modal */}
+      {changingFolder && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[70] p-4">
+          <div className="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
+            <div className="sticky top-0 bg-gray-800 border-b border-gray-700 p-4 flex items-center justify-between z-10">
+              <h3 className="text-xl font-bold text-white">
+                Change {changingFolder.charAt(0).toUpperCase() + changingFolder.slice(1)} Folder
+              </h3>
+              <button
+                onClick={() => setChangingFolder(null)}
+                disabled={savingChange}
+                className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-700 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center disabled:opacity-50"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6">
+              {savingChange ? (
+                <div className="text-center py-12">
+                  <Loader2 className="w-8 h-8 text-blue-400 animate-spin mx-auto mb-4" />
+                  <p className="text-gray-300">Updating folder...</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-300">
+                    Select a new folder from your Google Drive to replace the current {changingFolder} folder.
+                  </p>
+                  <GoogleDriveFolderPicker
+                    accessToken={accessToken}
+                    folderType={changingFolder}
+                    currentFolder={null}
+                    onFolderSelected={handleFolderSelected}
+                    allowCreateNew={false}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
