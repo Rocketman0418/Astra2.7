@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingCarousel } from './LoadingCarousel';
 import { FUEL_LEVELS } from '../../lib/launch-preparation-utils';
+import { syncAllFolders } from '../../lib/manual-folder-sync';
 
 interface SyncDataStepProps {
   onComplete: () => void;
@@ -46,36 +47,47 @@ export const SyncDataStep: React.FC<SyncDataStepProps> = ({ onComplete, onGoBack
   }, [syncing, syncComplete]);
 
   const triggerSync = async () => {
-    console.log('Triggering document sync...');
+    console.log('Triggering manual folder sync...');
     setSyncing(true);
 
     try {
       // Get user's team info
       const teamId = user?.user_metadata?.team_id;
-      if (!teamId) {
-        console.error('No team ID found for user');
+      const userId = user?.id;
+
+      if (!teamId || !userId) {
+        console.error('No team ID or user ID found');
         return;
       }
 
-      // Trigger the n8n webhook for the Multi-Team Data Sync Agent
-      const webhookUrl = `https://healthrocket.app.n8n.cloud/webhook/21473ebb-405d-4be1-ab71-6bf2a2d4063b?team_id=${teamId}&trigger_source=guided_setup&immediate=true`;
+      // Determine which folder types to sync
+      let foldersToSync: ('strategy' | 'meetings' | 'financial')[] = ['strategy', 'meetings', 'financial'];
 
-      console.log('Calling n8n webhook to trigger sync for team:', teamId);
+      // If adding new folders, only sync those specific types
+      if (isAddingNewFolders && newFolderTypes.length > 0) {
+        foldersToSync = newFolderTypes.filter(type =>
+          type === 'strategy' || type === 'meetings' || type === 'financial'
+        ) as ('strategy' | 'meetings' | 'financial')[];
+      }
 
-      const response = await fetch(webhookUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      console.log('Calling manual folder sync for team:', teamId, 'folders:', foldersToSync);
+
+      // Call the new manual folder sync for each configured folder
+      const result = await syncAllFolders({
+        teamId,
+        userId,
+        folderTypes: foldersToSync,
       });
 
-      if (!response.ok) {
-        console.error('Failed to trigger sync webhook:', response.status, response.statusText);
+      console.log('Manual folder sync completed:', result);
+
+      if (result.success) {
+        console.log(`Successfully synced ${result.totalFilesSent} files`);
       } else {
-        console.log('Sync webhook triggered successfully');
+        console.warn('Some folders failed to sync:', result.results.filter(r => !r.success));
       }
     } catch (error) {
-      console.error('Error triggering sync:', error);
+      console.error('Error triggering manual sync:', error);
     }
 
     // Start checking for data immediately

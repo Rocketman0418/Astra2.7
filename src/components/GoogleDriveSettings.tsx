@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HardDrive, CheckCircle, XCircle, Trash2, FolderOpen, RefreshCw, Info, FileText, CreditCard as Edit, Search, Sparkles } from 'lucide-react';
+import { HardDrive, CheckCircle, XCircle, Trash2, FolderOpen, RefreshCw, Info, FileText, CreditCard as Edit, Search, Sparkles, Zap } from 'lucide-react';
 import {
   initiateGoogleDriveOAuth,
   disconnectGoogleDrive as disconnectDrive,
@@ -12,6 +12,7 @@ import {
 import { supabase } from '../lib/supabase';
 import { AstraGuidedSetupModal } from './AstraGuidedSetupModal';
 import { FolderSelectionWrapper } from './FolderSelectionWrapper';
+import { syncAllFolders } from '../lib/manual-folder-sync';
 
 interface GoogleDriveSettingsProps {
   fromLaunchPrep?: boolean;
@@ -44,6 +45,8 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
   const [documentSearchTerm, setDocumentSearchTerm] = useState('');
   const [showGuidedSetup, setShowGuidedSetup] = useState(false);
   const [needsScopeUpgrade, setNeedsScopeUpgrade] = useState(false);
+  const [manualSyncing, setManualSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<{ success: boolean; message: string } | null>(null);
 
   // Temporary state for folder selection
   const [selectedMeetingsFolder, setSelectedMeetingsFolder] = useState<FolderInfo | null>(null);
@@ -69,6 +72,57 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
       console.error('Failed to load synced documents:', err);
     } finally {
       setLoadingDocuments(false);
+    }
+  };
+
+  const handleManualSync = async () => {
+    try {
+      setManualSyncing(true);
+      setSyncResult(null);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setSyncResult({ success: false, message: 'No user found' });
+        return;
+      }
+
+      const teamId = user.user_metadata?.team_id;
+      if (!teamId) {
+        setSyncResult({ success: false, message: 'No team ID found' });
+        return;
+      }
+
+      console.log('Starting manual sync for all folders...');
+      const result = await syncAllFolders({
+        teamId,
+        userId: user.id,
+        folderTypes: ['strategy', 'meetings', 'financial'],
+      });
+
+      if (result.success) {
+        setSyncResult({
+          success: true,
+          message: `Successfully synced ${result.totalFilesSent} files across all folders`,
+        });
+        // Reload documents after a delay to see new data
+        setTimeout(() => {
+          loadSyncedDocuments();
+        }, 3000);
+      } else {
+        const failedFolders = result.results.filter(r => !r.success).map(r => r.folderType);
+        setSyncResult({
+          success: false,
+          message: `Sync completed with issues. Failed folders: ${failedFolders.join(', ')}`,
+        });
+      }
+    } catch (error) {
+      console.error('Manual sync error:', error);
+      setSyncResult({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to sync folders',
+      });
+    } finally {
+      setManualSyncing(false);
     }
   };
 
@@ -576,15 +630,36 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
                           <FileText className="w-4 h-4 text-blue-400" />
                           <span>Synced Documents</span>
                         </h4>
-                        <button
-                          onClick={loadSyncedDocuments}
-                          disabled={loadingDocuments}
-                          className="text-blue-400 hover:text-blue-300 transition-colors"
-                          title="Refresh"
-                        >
-                          <RefreshCw className={`w-4 h-4 ${loadingDocuments ? 'animate-spin' : ''}`} />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={handleManualSync}
+                            disabled={manualSyncing || loadingDocuments}
+                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs rounded transition-colors flex items-center gap-1.5 min-h-[36px]"
+                            title="Manually sync all folders now"
+                          >
+                            <Zap className={`w-3.5 h-3.5 ${manualSyncing ? 'animate-pulse' : ''}`} />
+                            <span>{manualSyncing ? 'Syncing...' : 'Manual Sync'}</span>
+                          </button>
+                          <button
+                            onClick={loadSyncedDocuments}
+                            disabled={loadingDocuments || manualSyncing}
+                            className="text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50 min-w-[36px] min-h-[36px] flex items-center justify-center"
+                            title="Refresh document list"
+                          >
+                            <RefreshCw className={`w-4 h-4 ${loadingDocuments ? 'animate-spin' : ''}`} />
+                          </button>
+                        </div>
                       </div>
+
+                      {syncResult && (
+                        <div className={`mb-3 p-2 rounded text-xs ${
+                          syncResult.success
+                            ? 'bg-green-900/20 border border-green-700 text-green-300'
+                            : 'bg-red-900/20 border border-red-700 text-red-300'
+                        }`}>
+                          {syncResult.message}
+                        </div>
+                      )}
 
                       {loadingDocuments ? (
                         <div className="flex items-center space-x-2 text-gray-400 text-sm">
