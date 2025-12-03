@@ -12,7 +12,7 @@ import {
 import { supabase } from '../lib/supabase';
 import { AstraGuidedSetupModal } from './AstraGuidedSetupModal';
 import { FolderSelectionWrapper } from './FolderSelectionWrapper';
-import { syncAllFolders } from '../lib/manual-folder-sync';
+import { triggerIncrementalSync } from '../lib/manual-folder-sync';
 
 interface GoogleDriveSettingsProps {
   fromLaunchPrep?: boolean;
@@ -76,41 +76,22 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
   };
 
   const handleManualSync = async () => {
-    console.log('[SYNC] Button clicked, starting sync...');
+    console.log('[SYNC] Button clicked, starting incremental sync...');
 
     setManualSyncing(true);
     setSyncResult(null);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error('[SYNC] No user found');
-        setSyncResult({ success: false, message: 'No user found' });
-        return;
-      }
+      // Call incremental sync - it requires no parameters and handles all active connections
+      const result = await triggerIncrementalSync();
 
-      const teamId = user.user_metadata?.team_id;
-      if (!teamId) {
-        console.error('[SYNC] No team ID found');
-        setSyncResult({ success: false, message: 'No team ID found' });
-        return;
-      }
-
-      console.log('[SYNC] Starting manual sync for all folders with teamId:', teamId);
-
-      const result = await syncAllFolders({
-        teamId,
-        userId: user.id,
-        folderTypes: ['strategy', 'meetings', 'financial'],
-      });
-
-      console.log('[SYNC] Manual sync completed with result:', result);
+      console.log('[SYNC] Incremental sync result:', result);
 
       if (result.success) {
         console.log('[SYNC] Success! Setting success state...');
         setSyncResult({
           success: true,
-          message: 'Sync triggered',
+          message: 'Sync started - processing new files',
         });
         // Clear success checkmark after 2 seconds
         setTimeout(() => {
@@ -123,18 +104,17 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
           loadSyncedDocuments();
         }, 3000);
       } else {
-        console.error('[SYNC] Sync completed with failures:', result);
-        const failedFolders = result.results.filter(r => !r.success).map(r => r.folderType);
+        console.error('[SYNC] Sync failed:', result);
         setSyncResult({
           success: false,
-          message: `Sync completed with issues. Failed folders: ${failedFolders.join(', ')}`,
+          message: result.message || 'Failed to start sync',
         });
       }
     } catch (error) {
       console.error('[SYNC] Exception during sync:', error);
       setSyncResult({
         success: false,
-        message: error instanceof Error ? error.message : 'Failed to sync folders',
+        message: error instanceof Error ? error.message : 'Failed to trigger sync',
       });
     } finally {
       console.log('[SYNC] Finally block - setting manualSyncing to false');
@@ -979,7 +959,7 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
                     onClick={handleManualSync}
                     disabled={manualSyncing || loadingDocuments}
                     className="px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-all flex items-center gap-2 min-h-[44px] whitespace-nowrap font-medium bg-blue-600 hover:bg-blue-700"
-                    title="Manually sync all folders now"
+                    title="Sync new and modified files now"
                   >
                     {syncResult?.success ? (
                       <CheckCircle className="w-4 h-4 text-green-400 animate-bounce" />

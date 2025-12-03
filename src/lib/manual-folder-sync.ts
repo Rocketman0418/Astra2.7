@@ -22,17 +22,56 @@ export interface ManualSyncResponse {
 }
 
 const MANUAL_SYNC_WEBHOOK_URL = 'https://healthrocket.app.n8n.cloud/webhook/manual-folder-sync';
+const INCREMENTAL_SYNC_WEBHOOK_URL = 'https://healthrocket.app.n8n.cloud/webhook/incremental-sync-trigger';
+
+/**
+ * Triggers the incremental sync workflow
+ * This is the lightweight sync that only processes new/modified files since last checkpoint
+ * Use this for "Sync Now" button in user settings
+ * Returns immediately - the workflow processes in background
+ */
+export async function triggerIncrementalSync(): Promise<{ success: boolean; message: string }> {
+  console.log('Triggering incremental sync (only new files)...');
+
+  try {
+    const response = await fetch(INCREMENTAL_SYNC_WEBHOOK_URL, {
+      method: 'GET',
+      keepalive: true,
+    });
+
+    if (response.ok) {
+      const text = await response.text();
+      console.log('Incremental sync triggered successfully:', text);
+      return {
+        success: true,
+        message: 'Incremental sync started - processing new files in background',
+      };
+    } else {
+      console.error('Failed to trigger incremental sync:', response.status);
+      return {
+        success: false,
+        message: 'Failed to trigger sync',
+      };
+    }
+  } catch (error) {
+    console.error('Error triggering incremental sync:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
 
 /**
  * Calls the manual folder sync webhook for a single folder
- * This is fire-and-forget - we trigger the webhook and return immediately
- * since the actual sync can take 30+ minutes
+ * This is the FULL sync that processes ALL files - use only for initial setup
+ * For quick syncs, use triggerIncrementalSync() instead
  */
 export async function triggerManualFolderSync(payload: ManualSyncPayload): Promise<ManualSyncResponse> {
-  console.log('Triggering manual folder sync for:', payload.folder_type);
+  console.log('Triggering manual full folder sync for:', payload.folder_type);
 
   // Fire the webhook request without waiting for completion
-  // The webhook can take 30+ minutes, so we use keepalive to let it run in background
+  // The workflow typically takes 1-2 minutes, so we use keepalive to let it run in background
   fetch(MANUAL_SYNC_WEBHOOK_URL, {
     method: 'POST',
     headers: {
