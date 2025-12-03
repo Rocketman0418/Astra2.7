@@ -151,7 +151,7 @@ export async function syncAllFolders(options: SyncAllFoldersOptions): Promise<Sy
   console.log('Querying by user_id:', userId);
   let { data: connection, error: connectionError } = await supabase
     .from('user_drive_connections')
-    .select('strategy_folder_id, meetings_folder_id, financial_folder_id, projects_folder_id')
+    .select('strategy_folder_id, meetings_folder_id, financial_folder_id')
     .eq('user_id', userId)
     .eq('is_active', true)
     .maybeSingle();
@@ -163,7 +163,7 @@ export async function syncAllFolders(options: SyncAllFoldersOptions): Promise<Sy
     console.log('No connection found by user_id, trying team_id:', teamId);
     const result = await supabase
       .from('user_drive_connections')
-      .select('strategy_folder_id, meetings_folder_id, financial_folder_id, projects_folder_id')
+      .select('strategy_folder_id, meetings_folder_id, financial_folder_id')
       .eq('team_id', teamId)
       .eq('is_active', true)
       .maybeSingle();
