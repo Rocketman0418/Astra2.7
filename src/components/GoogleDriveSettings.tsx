@@ -110,13 +110,13 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
         console.log('[SYNC] Success! Setting success state...');
         setSyncResult({
           success: true,
-          message: `Sync started! Your documents are being synced in the background. This may take up to 30 minutes. Check back later to see new documents.`,
+          message: 'Sync triggered',
         });
-        // Auto-clear success message after 8 seconds
+        // Clear success checkmark after 2 seconds
         setTimeout(() => {
-          console.log('[SYNC] Clearing success message');
+          console.log('[SYNC] Clearing success checkmark');
           setSyncResult(null);
-        }, 8000);
+        }, 2000);
         // Reload documents after a delay to see if any new data arrived
         setTimeout(() => {
           console.log('[SYNC] Reloading documents...');
@@ -972,46 +972,25 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
                   <div className="flex items-start space-x-2 flex-1">
                     <Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
                     <p className="text-blue-300 text-xs">
-                      Document sync can take up to 30 minutes. See the Synced Documents section below to see what files are synced.
+                      Astra syncs your documents every 15 minutes. For immediate sync, select the Sync Now button.
                     </p>
                   </div>
                   <button
                     onClick={handleManualSync}
                     disabled={manualSyncing || loadingDocuments}
-                    className={`px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-all flex items-center gap-2 min-h-[44px] whitespace-nowrap font-medium ${
-                      syncResult?.success
-                        ? 'bg-green-600 hover:bg-green-700'
-                        : 'bg-blue-600 hover:bg-blue-700'
-                    }`}
+                    className="px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-all flex items-center gap-2 min-h-[44px] whitespace-nowrap font-medium bg-blue-600 hover:bg-blue-700"
                     title="Manually sync all folders now"
                   >
                     {syncResult?.success ? (
-                      <>
-                        <CheckCircle className="w-4 h-4 animate-bounce" />
-                        <span>Synced!</span>
-                      </>
+                      <CheckCircle className="w-4 h-4 text-green-400 animate-bounce" />
+                    ) : manualSyncing ? (
+                      <Zap className="w-4 h-4 animate-pulse" />
                     ) : (
-                      <>
-                        <Zap className={`w-4 h-4 ${manualSyncing ? 'animate-pulse' : ''}`} />
-                        <span>{manualSyncing ? 'Syncing...' : 'Sync Now'}</span>
-                      </>
+                      <Zap className="w-4 h-4" />
                     )}
+                    <span>Sync Now</span>
                   </button>
                 </div>
-                {syncResult && (
-                  <div className={`mt-3 p-3 rounded-lg text-sm animate-in fade-in slide-in-from-top-2 duration-300 flex items-start gap-2 ${
-                    syncResult.success
-                      ? 'bg-green-900/30 border-2 border-green-600 text-green-200'
-                      : 'bg-red-900/30 border-2 border-red-600 text-red-200'
-                  }`}>
-                    {syncResult.success ? (
-                      <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                    ) : (
-                      <XCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
-                    )}
-                    <span className="flex-1">{syncResult.message}</span>
-                  </div>
-                )}
               </div>
             )}
 
