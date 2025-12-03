@@ -931,15 +931,35 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
               </div>
             </div>
 
-            {/* Sync Info Note */}
+            {/* Sync Info Note with Sync Now Button */}
             {(selectedMeetingsFolder || selectedStrategyFolder || selectedFinancialFolder) && (
               <div className="mt-4 bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-                <div className="flex items-start space-x-2">
-                  <Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                  <p className="text-blue-300 text-xs">
-                    Document sync can take up to 30 minutes. See the Synced Documents section below to see what files are synced.
-                  </p>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start space-x-2 flex-1">
+                    <Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                    <p className="text-blue-300 text-xs">
+                      Document sync can take up to 30 minutes. See the Synced Documents section below to see what files are synced.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleManualSync}
+                    disabled={manualSyncing || loadingDocuments}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors flex items-center gap-2 min-h-[44px] whitespace-nowrap font-medium"
+                    title="Manually sync all folders now"
+                  >
+                    <Zap className={`w-4 h-4 ${manualSyncing ? 'animate-pulse' : ''}`} />
+                    <span>{manualSyncing ? 'Syncing...' : 'Sync Now'}</span>
+                  </button>
                 </div>
+                {syncResult && (
+                  <div className={`mt-3 p-2 rounded text-xs ${
+                    syncResult.success
+                      ? 'bg-green-900/30 border border-green-600 text-green-300'
+                      : 'bg-red-900/30 border border-red-600 text-red-300'
+                  }`}>
+                    {syncResult.message}
+                  </div>
+                )}
               </div>
             )}
 
