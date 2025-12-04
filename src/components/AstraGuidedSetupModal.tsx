@@ -15,6 +15,7 @@ interface SetupProgress {
   strategy_folders_selected: string[];
   meetings_folders_selected: string[];
   financial_folders_selected: string[];
+  projects_folders_selected: string[];
   is_completed: boolean;
 }
 
@@ -22,10 +23,11 @@ interface AstraGuidedSetupModalProps {
   isOpen: boolean;
   onClose: () => void;
   folders: FolderItem[];
-  onSaveAndSync: (strategyIds: string[], meetingsIds: string[], financialIds: string[]) => Promise<void>;
+  onSaveAndSync: (strategyIds: string[], meetingsIds: string[], financialIds: string[], projectsIds: string[]) => Promise<void>;
   existingStrategyIds?: string[];
   existingMeetingsIds?: string[];
   existingFinancialIds?: string[];
+  existingProjectsIds?: string[];
 }
 
 interface StepContent {
@@ -34,17 +36,17 @@ interface StepContent {
   examples: string[];
   samplePrompts: string[];
   bestPractices: string[];
-  folderType: 'strategy' | 'meetings' | 'financial';
+  folderType: 'strategy' | 'meetings' | 'financial' | 'projects';
 }
 
 const STEPS: StepContent[] = [
   {
     title: 'Welcome to Guided Setup',
-    astraMessage: "Hi there! I'm Astra, and I'm excited to help you connect your team's data. By syncing your Google Drive folders, you'll unlock powerful AI insights across your business. Let me walk you through selecting the right folders for Strategy, Meetings, and Financial data. We'll go step-by-step, and you can save your progress and come back anytime!",
+    astraMessage: "Hi there! I'm Astra, and I'm excited to help you connect your team's data. By syncing your Google Drive folders, you'll unlock powerful AI insights across your business. Let me walk you through selecting the right folders for Strategy, Projects, Meetings, and Financial data. We'll go step-by-step, and you can save your progress and come back anytime!",
     examples: [],
     samplePrompts: [],
     bestPractices: [
-      "This setup takes about 5 minutes",
+      "This setup takes about 5-7 minutes",
       "You can pause and resume anytime",
       "Each folder type unlocks specific AI capabilities",
       "You can always adjust your selections later"
@@ -85,6 +87,29 @@ const STEPS: StepContent[] = [
       "Avoid folders with sensitive personal data"
     ],
     folderType: 'strategy'
+  },
+  {
+    title: 'Projects & Campaigns',
+    astraMessage: "Next, let's connect your Projects folder. This is where you keep documents for active campaigns, client projects, and time-bound initiatives. With projects synced, I can help you track progress, identify blockers, and ensure projects align with your strategic goals.",
+    examples: [
+      "Marketing campaigns",
+      "Client project folders",
+      "Product launches",
+      "Sales programs",
+      "Initiative documentation",
+      "Campaign materials"
+    ],
+    samplePrompts: [
+      "Summarize status of all active projects",
+      "Which projects align best with our Q1 goals?",
+      "Show me common blockers across our campaigns"
+    ],
+    bestPractices: [
+      "Include active project documentation",
+      "Keep campaign materials organized",
+      "Separate from evergreen strategy docs"
+    ],
+    folderType: 'projects'
   },
   {
     title: 'Meeting Notes',
@@ -135,7 +160,7 @@ const STEPS: StepContent[] = [
   },
   {
     title: 'Summary & Confirmation',
-    astraMessage: "Great work! Let's review what you've selected. Once you confirm, I'll start syncing your data and you'll be able to ask me questions about your business, strategy, meetings, and financials. Remember, you can always come back to adjust these selections in User Settings.",
+    astraMessage: "Great work! Let's review what you've selected. Once you confirm, I'll start syncing your data and you'll be able to ask me questions about your business, strategy, projects, meetings, and financials. Remember, you can always come back to adjust these selections in User Settings.",
     examples: [],
     samplePrompts: [],
     bestPractices: [
@@ -155,7 +180,8 @@ export function AstraGuidedSetupModal({
   onSaveAndSync,
   existingStrategyIds = [],
   existingMeetingsIds = [],
-  existingFinancialIds = []
+  existingFinancialIds = [],
+  existingProjectsIds = []
 }: AstraGuidedSetupModalProps) {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
@@ -165,6 +191,7 @@ export function AstraGuidedSetupModal({
     strategy_folders_selected: existingStrategyIds,
     meetings_folders_selected: existingMeetingsIds,
     financial_folders_selected: existingFinancialIds,
+    projects_folders_selected: existingProjectsIds,
     is_completed: false
   });
   const [isSaving, setIsSaving] = useState(false);
@@ -194,14 +221,26 @@ export function AstraGuidedSetupModal({
           strategy_folders_selected: data.strategy_folders_selected || existingStrategyIds,
           meetings_folders_selected: data.meetings_folders_selected || existingMeetingsIds,
           financial_folders_selected: data.financial_folders_selected || existingFinancialIds,
+          projects_folders_selected: data.projects_folders_selected || existingProjectsIds,
           is_completed: data.is_completed
         });
         setCurrentStep(data.current_step);
+      } else {
+        // No saved progress found, initialize with existing selections
+        setProgress({
+          current_step: 0,
+          completed_steps: [],
+          strategy_folders_selected: existingStrategyIds,
+          meetings_folders_selected: existingMeetingsIds,
+          financial_folders_selected: existingFinancialIds,
+          projects_folders_selected: existingProjectsIds,
+          is_completed: false
+        });
       }
     };
 
     loadProgress();
-  }, [isOpen, user, existingStrategyIds, existingMeetingsIds, existingFinancialIds]);
+  }, [isOpen, user, existingStrategyIds, existingMeetingsIds, existingFinancialIds, existingProjectsIds]);
 
   const saveProgress = async (step: number, completedSteps: number[]) => {
     if (!user) return;
@@ -214,6 +253,7 @@ export function AstraGuidedSetupModal({
       strategy_folders_selected: progress.strategy_folders_selected,
       meetings_folders_selected: progress.meetings_folders_selected,
       financial_folders_selected: progress.financial_folders_selected,
+      projects_folders_selected: progress.projects_folders_selected,
       is_completed: false,
       last_updated_at: new Date().toISOString()
     };
@@ -291,7 +331,8 @@ export function AstraGuidedSetupModal({
       await onSaveAndSync(
         progress.strategy_folders_selected,
         progress.meetings_folders_selected,
-        progress.financial_folders_selected
+        progress.financial_folders_selected,
+        progress.projects_folders_selected
       );
 
       if (progress.id) {
@@ -587,6 +628,27 @@ export function AstraGuidedSetupModal({
                     {progress.meetings_folders_selected.length > 0 ? (
                       <div className="space-y-1">
                         {progress.meetings_folders_selected.map(id => {
+                          const folder = folders.find(f => f.id === id);
+                          return folder ? (
+                            <div key={id} className="text-sm text-gray-400 flex items-center gap-2">
+                              <Check className="w-4 h-4 text-green-500" />
+                              {folder.name}
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">No folders selected</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <h5 className="text-sm font-semibold text-gray-300 mb-2">
+                      Projects & Campaigns ({progress.projects_folders_selected.length})
+                    </h5>
+                    {progress.projects_folders_selected.length > 0 ? (
+                      <div className="space-y-1">
+                        {progress.projects_folders_selected.map(id => {
                           const folder = folders.find(f => f.id === id);
                           return folder ? (
                             <div key={id} className="text-sm text-gray-400 flex items-center gap-2">

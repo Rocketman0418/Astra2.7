@@ -1529,9 +1529,10 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
         onClose={() => setShowGuidedSetup(false)}
         folders={folders.map(f => ({ id: f.id, name: f.name }))}
         onSaveAndSync={handleGuidedSetupSave}
-        existingStrategyIds={connection?.selected_strategy_folder_ids || []}
-        existingMeetingsIds={connection?.selected_meetings_folder_ids || []}
-        existingFinancialIds={connection?.selected_financial_folder_ids || []}
+        existingStrategyIds={connection?.strategy_folder_id ? [connection.strategy_folder_id] : []}
+        existingMeetingsIds={connection?.meetings_folder_id ? [connection.meetings_folder_id] : []}
+        existingFinancialIds={connection?.financial_folder_id ? [connection.financial_folder_id] : []}
+        existingProjectsIds={connection?.projects_folder_id ? [connection.projects_folder_id] : []}
       />
     </div>
   );
