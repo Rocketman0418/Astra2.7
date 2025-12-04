@@ -326,14 +326,14 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
                   // Check if requirement is met
                   if (req.includes('1 document')) {
                     isMet = counts.total >= 1;
-                  } else if (req.includes('1 strategy') && req.includes('1 meeting') && req.includes('1 financial')) {
-                    isMet = counts.strategy >= 1 && counts.meetings >= 1 && counts.financial >= 1;
-                  } else if (req.includes('3 strategy')) {
-                    isMet = counts.strategy >= 3 && counts.meetings >= 10 && counts.financial >= 3;
-                  } else if (req.includes('10 strategy') && req.includes('50 meetings')) {
-                    isMet = counts.strategy >= 10 && counts.meetings >= 50 && counts.financial >= 10;
-                  } else if (req.includes('100 meetings')) {
-                    isMet = counts.strategy >= 10 && counts.meetings >= 100 && counts.financial >= 10 && counts.projects > 0;
+                  } else if (req.includes('1 strategy') && req.includes('1 project') && req.includes('1 meeting') && req.includes('1 financial')) {
+                    isMet = counts.strategy >= 1 && counts.projects >= 1 && counts.meetings >= 1 && counts.financial >= 1;
+                  } else if (req.includes('3 strategy') && req.includes('3 project')) {
+                    isMet = counts.strategy >= 3 && counts.projects >= 3 && counts.meetings >= 10 && counts.financial >= 3;
+                  } else if (req.includes('10 strategy') && req.includes('10 project') && req.includes('50 meetings')) {
+                    isMet = counts.strategy >= 10 && counts.projects >= 10 && counts.meetings >= 50 && counts.financial >= 10;
+                  } else if (req.includes('100 meetings') && req.includes('10 project')) {
+                    isMet = counts.strategy >= 10 && counts.projects >= 10 && counts.meetings >= 100 && counts.financial >= 10;
                   }
 
                   return (

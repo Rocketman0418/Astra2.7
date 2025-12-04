@@ -6,7 +6,7 @@ import { Search, FolderOpen, CheckCircle } from 'lucide-react';
 
 interface FolderSelectionWrapperProps {
   accessToken: string;
-  folderType: 'meetings' | 'strategy' | 'financial';
+  folderType: 'meetings' | 'strategy' | 'financial' | 'projects';
   folders: FolderInfo[]; // For legacy mode
   currentFolder: FolderInfo | null;
   searchTerm: string;

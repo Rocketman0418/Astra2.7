@@ -29,6 +29,7 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
   const [showMeetingsBestPractices, setShowMeetingsBestPractices] = useState(false);
   const [showStrategyBestPractices, setShowStrategyBestPractices] = useState(false);
   const [showFinancialBestPractices, setShowFinancialBestPractices] = useState(false);
+  const [showProjectsBestPractices, setShowProjectsBestPractices] = useState(false);
   const [syncedDocuments, setSyncedDocuments] = useState<any[]>([]);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [showSetupGuide, setShowSetupGuide] = useState(false);
@@ -38,10 +39,11 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
   const [strategySearchTerm, setStrategySearchTerm] = useState('');
   const [meetingsSearchTerm, setMeetingsSearchTerm] = useState('');
   const [financialSearchTerm, setFinancialSearchTerm] = useState('');
+  const [projectsSearchTerm, setProjectsSearchTerm] = useState('');
   const [teamConnection, setTeamConnection] = useState<GoogleDriveConnection | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [connectedAdminName, setConnectedAdminName] = useState<string>('');
-  const [documentTypeFilter, setDocumentTypeFilter] = useState<'all' | 'strategy' | 'meetings' | 'financial'>('all');
+  const [documentTypeFilter, setDocumentTypeFilter] = useState<'all' | 'strategy' | 'meetings' | 'financial' | 'projects'>('all');
   const [documentSearchTerm, setDocumentSearchTerm] = useState('');
   const [showGuidedSetup, setShowGuidedSetup] = useState(false);
   const [needsScopeUpgrade, setNeedsScopeUpgrade] = useState(false);
@@ -52,6 +54,7 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
   const [selectedMeetingsFolder, setSelectedMeetingsFolder] = useState<FolderInfo | null>(null);
   const [selectedStrategyFolder, setSelectedStrategyFolder] = useState<FolderInfo | null>(null);
   const [selectedFinancialFolder, setSelectedFinancialFolder] = useState<FolderInfo | null>(null);
+  const [selectedProjectsFolder, setSelectedProjectsFolder] = useState<FolderInfo | null>(null);
 
   const loadSyncedDocuments = async () => {
     try {
@@ -198,6 +201,12 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
             name: conn.financial_folder_name
           });
         }
+        if (conn.projects_folder_id && conn.projects_folder_name) {
+          setSelectedProjectsFolder({
+            id: conn.projects_folder_id,
+            name: conn.projects_folder_name
+          });
+        }
 
         // Load synced documents if connected
         if (conn.is_active) {
@@ -286,6 +295,7 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
       setSelectedMeetingsFolder(null);
       setSelectedStrategyFolder(null);
       setSelectedFinancialFolder(null);
+      setSelectedProjectsFolder(null);
       setConnectedAdminName('');
       setError('');
     } catch (err: any) {
@@ -323,7 +333,7 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
     }
   };
 
-  const handleGuidedSetupSave = async (strategyIds: string[], meetingsIds: string[], financialIds: string[]) => {
+  const handleGuidedSetupSave = async (strategyIds: string[], meetingsIds: string[], financialIds: string[], projectsIds: string[] = []) => {
     try {
       setSavingFolders(true);
       setError('');
@@ -332,6 +342,7 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
       const strategyFolder = strategyIds.length > 0 ? folders.find(f => f.id === strategyIds[0]) : null;
       const meetingsFolder = meetingsIds.length > 0 ? folders.find(f => f.id === meetingsIds[0]) : null;
       const financialFolder = financialIds.length > 0 ? folders.find(f => f.id === financialIds[0]) : null;
+      const projectsFolder = projectsIds.length > 0 ? folders.find(f => f.id === projectsIds[0]) : null;
 
       // Update the configuration using the single folder columns
       await updateFolderConfiguration({
@@ -341,12 +352,15 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
         meetings_folder_name: meetingsFolder?.name || null,
         financial_folder_id: financialFolder?.id || null,
         financial_folder_name: financialFolder?.name || null,
+        projects_folder_id: projectsFolder?.id || null,
+        projects_folder_name: projectsFolder?.name || null,
       });
 
       // Update local state
       if (strategyFolder) setSelectedStrategyFolder(strategyFolder);
       if (meetingsFolder) setSelectedMeetingsFolder(meetingsFolder);
       if (financialFolder) setSelectedFinancialFolder(financialFolder);
+      if (projectsFolder) setSelectedProjectsFolder(projectsFolder);
 
       // Reload connection to get updated state
       await loadConnection();
@@ -445,7 +459,7 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
   };
 
   const handleSaveFolders = async () => {
-    if (!selectedMeetingsFolder && !selectedStrategyFolder && !selectedFinancialFolder) {
+    if (!selectedMeetingsFolder && !selectedStrategyFolder && !selectedFinancialFolder && !selectedProjectsFolder) {
       setError('Please select at least one folder');
       return;
     }
@@ -460,7 +474,9 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
         strategy_folder_id: selectedStrategyFolder?.id || null,
         strategy_folder_name: selectedStrategyFolder?.name || null,
         financial_folder_id: selectedFinancialFolder?.id || null,
-        financial_folder_name: selectedFinancialFolder?.name || null
+        financial_folder_name: selectedFinancialFolder?.name || null,
+        projects_folder_id: selectedProjectsFolder?.id || null,
+        projects_folder_name: selectedProjectsFolder?.name || null
       });
 
       await loadConnection();
@@ -616,6 +632,14 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
                         </div>
                       </div>
                     )}
+                    {teamConnection.projects_folder_name && (
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">Projects & Campaigns Folder</label>
+                        <div className="bg-gray-800 rounded px-3 py-2 text-sm">
+                          <span className="text-white">{teamConnection.projects_folder_name}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Synced Documents Summary */}
@@ -698,6 +722,9 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
                                 </p>
                                 <p className="text-white">
                                   Financial: <span className="font-semibold">{syncedDocuments.filter(d => d.folder_type === 'financial').length}</span>
+                                </p>
+                                <p className="text-white">
+                                  Projects: <span className="font-semibold">{syncedDocuments.filter(d => d.folder_type === 'projects').length}</span>
                                 </p>
                               </div>
                             </div>
@@ -943,10 +970,46 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
                   )}
                 </div>
               </div>
+
+              <div>
+                <label className="text-xs text-gray-400 mb-1 block">Projects & Campaigns Folder</label>
+                <div className="bg-gray-800 rounded px-3 py-2 text-sm">
+                  {selectedProjectsFolder ? (
+                    <span className="text-white">{selectedProjectsFolder.name}</span>
+                  ) : (
+                    <span className="text-gray-500">Not configured</span>
+                  )}
+                </div>
+
+                {/* Projects Best Practices */}
+                <div className="mt-2">
+                  <button
+                    onClick={() => setShowProjectsBestPractices(!showProjectsBestPractices)}
+                    className="flex items-center space-x-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    <Info className="w-3 h-3" />
+                    <span>Projects & Campaigns Best Practices: How to optimize for Astra Intelligence</span>
+                  </button>
+
+                  {showProjectsBestPractices && (
+                    <div className="mt-2 text-xs text-gray-300 bg-gray-800/50 rounded p-3 border border-blue-500/20">
+                      <p className="font-semibold text-blue-300 mb-2">Follow these best practices to get the best AI insights on your Projects data:</p>
+                      <ol className="list-decimal ml-4 space-y-1.5">
+                        <li>
+                          <span className="font-medium">Projects are time-bound initiatives:</span> Marketing campaigns, client projects, sales programs, and other specific, temporary work with deadlines.
+                        </li>
+                        <li>
+                          <span className="font-medium">Different from Strategy documents:</span> Use Projects for active campaigns and initiatives. Use Strategy for evergreen documents like vision, values, and long-term plans.
+                        </li>
+                      </ol>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Sync Info Note with Sync Now Button */}
-            {(selectedMeetingsFolder || selectedStrategyFolder || selectedFinancialFolder) && (
+            {(selectedMeetingsFolder || selectedStrategyFolder || selectedFinancialFolder || selectedProjectsFolder) && (
               <div className="mt-4 bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start space-x-2 flex-1">
@@ -1027,6 +1090,9 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
                           </p>
                           <p className="text-white">
                             Financial: <span className="font-semibold">{syncedDocuments.filter(d => d.folder_type === 'financial').length}</span>
+                          </p>
+                          <p className="text-white">
+                            Projects: <span className="font-semibold">{syncedDocuments.filter(d => d.folder_type === 'projects').length}</span>
                           </p>
                         </div>
                       </div>
@@ -1226,6 +1292,16 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
                   onSearchChange={setFinancialSearchTerm}
                   onFolderSelect={setSelectedFinancialFolder}
                 />
+
+                <FolderSelectionWrapper
+                  accessToken={connection?.access_token || ''}
+                  folderType="projects"
+                  folders={folders}
+                  currentFolder={selectedProjectsFolder}
+                  searchTerm={projectsSearchTerm}
+                  onSearchChange={setProjectsSearchTerm}
+                  onFolderSelect={setSelectedProjectsFolder}
+                />
               </div>
             </div>
 
@@ -1238,7 +1314,7 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
               </button>
               <button
                 onClick={handleSaveFolders}
-                disabled={savingFolders || (!selectedMeetingsFolder && !selectedStrategyFolder && !selectedFinancialFolder)}
+                disabled={savingFolders || (!selectedMeetingsFolder && !selectedStrategyFolder && !selectedFinancialFolder && !selectedProjectsFolder)}
                 className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center space-x-2 font-medium"
               >
                 {savingFolders ? (
@@ -1286,6 +1362,7 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
                     <option value="strategy">Strategy</option>
                     <option value="meetings">Meetings</option>
                     <option value="financial">Financial</option>
+                    <option value="projects">Projects</option>
                   </select>
                 </div>
                 <div className="flex-1">

@@ -23,7 +23,7 @@ export const FUEL_LEVELS: LevelRequirement[] = [
     level: 2,
     name: 'Level 2',
     description: 'Establish your data foundation',
-    requirements: ['1 strategy document', '1 meeting note', '1 financial record'],
+    requirements: ['1 strategy document', '1 project document', '1 meeting note', '1 financial record'],
     points: 300,
     icon: 'folder-tree'
   },
@@ -31,7 +31,7 @@ export const FUEL_LEVELS: LevelRequirement[] = [
     level: 3,
     name: 'Level 3',
     description: 'Build a solid data collection',
-    requirements: ['3 strategy docs', '10 meeting notes', '3 financial records'],
+    requirements: ['3 strategy docs', '3 project docs', '10 meeting notes', '3 financial records'],
     points: 500,
     icon: 'database'
   },
@@ -39,7 +39,7 @@ export const FUEL_LEVELS: LevelRequirement[] = [
     level: 4,
     name: 'Level 4',
     description: 'Establish a mature data foundation',
-    requirements: ['10 strategy docs', '50 meeting notes', '10 financial records'],
+    requirements: ['10 strategy docs', '10 project docs', '50 meeting notes', '10 financial records'],
     points: 1000,
     icon: 'hard-drive'
   },
@@ -47,7 +47,7 @@ export const FUEL_LEVELS: LevelRequirement[] = [
     level: 5,
     name: 'Level 5',
     description: 'Advanced preparation for maximum insights',
-    requirements: ['10 strategy docs', '100 meeting notes', '10 financial records', 'Projects folder'],
+    requirements: ['10 strategy docs', '10 project docs', '100 meeting notes', '10 financial records'],
     points: 2000,
     icon: 'rocket'
   }

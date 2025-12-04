@@ -80,23 +80,23 @@ export function useDocumentCounts() {
   const calculateFuelLevel = useCallback((): number => {
     const { strategy, meetings, financial, projects } = counts;
 
-    // Level 5: 10 strategy, 100 meetings, 10 financial, projects folder
-    if (strategy >= 10 && meetings >= 100 && financial >= 10 && projects > 0) {
+    // Level 5: 10 strategy, 10 projects, 100 meetings, 10 financial
+    if (strategy >= 10 && projects >= 10 && meetings >= 100 && financial >= 10) {
       return 5;
     }
 
-    // Level 4: 10 strategy, 50 meetings, 10 financial
-    if (strategy >= 10 && meetings >= 50 && financial >= 10) {
+    // Level 4: 10 strategy, 10 projects, 50 meetings, 10 financial
+    if (strategy >= 10 && projects >= 10 && meetings >= 50 && financial >= 10) {
       return 4;
     }
 
-    // Level 3: 3 strategy, 10 meetings, 3 financial
-    if (strategy >= 3 && meetings >= 10 && financial >= 3) {
+    // Level 3: 3 strategy, 3 projects, 10 meetings, 3 financial
+    if (strategy >= 3 && projects >= 3 && meetings >= 10 && financial >= 3) {
       return 3;
     }
 
-    // Level 2: At least 1 from each category
-    if (strategy >= 1 && meetings >= 1 && financial >= 1) {
+    // Level 2: At least 1 from each category (including projects)
+    if (strategy >= 1 && projects >= 1 && meetings >= 1 && financial >= 1) {
       return 2;
     }
 
@@ -117,27 +117,30 @@ export function useDocumentCounts() {
       case 1:
         return [
           '1 strategy document',
+          '1 project document',
           '1 meeting note',
           '1 financial record'
         ];
       case 2:
         return [
           '3 strategy documents',
+          '3 project documents',
           '10 meeting notes',
           '3 financial records'
         ];
       case 3:
         return [
           '10 strategy documents',
+          '10 project documents',
           '50 meeting notes',
           '10 financial records'
         ];
       case 4:
         return [
           '10 strategy documents',
+          '10 project documents',
           '100 meeting notes',
-          '10 financial records',
-          'Projects folder connected'
+          '10 financial records'
         ];
       case 5:
         return ['Maximum level reached!'];
@@ -154,13 +157,13 @@ export function useDocumentCounts() {
       case 1:
         return counts.total >= 1;
       case 2:
-        return strategy >= 1 && meetings >= 1 && financial >= 1;
+        return strategy >= 1 && projects >= 1 && meetings >= 1 && financial >= 1;
       case 3:
-        return strategy >= 3 && meetings >= 10 && financial >= 3;
+        return strategy >= 3 && projects >= 3 && meetings >= 10 && financial >= 3;
       case 4:
-        return strategy >= 10 && meetings >= 50 && financial >= 10;
+        return strategy >= 10 && projects >= 10 && meetings >= 50 && financial >= 10;
       case 5:
-        return strategy >= 10 && meetings >= 100 && financial >= 10 && projects > 0;
+        return strategy >= 10 && projects >= 10 && meetings >= 100 && financial >= 10;
       default:
         return false;
     }
