@@ -201,6 +201,18 @@ export function AstraGuidedSetupModal({
   const currentStepContent = STEPS[currentStep];
   const totalSteps = STEPS.length;
 
+  // Debug: Log what IDs are being passed in
+  useEffect(() => {
+    if (isOpen) {
+      console.log('🔍 Astra Guided Setup Modal Opened');
+      console.log('Existing Strategy IDs:', existingStrategyIds);
+      console.log('Existing Meetings IDs:', existingMeetingsIds);
+      console.log('Existing Financial IDs:', existingFinancialIds);
+      console.log('Existing Projects IDs:', existingProjectsIds);
+      console.log('Total folders available:', folders.length);
+    }
+  }, [isOpen, existingStrategyIds, existingMeetingsIds, existingFinancialIds, existingProjectsIds, folders]);
+
   // Load existing progress on mount
   useEffect(() => {
     if (!isOpen || !user) return;
@@ -214,6 +226,7 @@ export function AstraGuidedSetupModal({
         .maybeSingle();
 
       if (data && !error) {
+        console.log('✅ Found saved progress in database:', data);
         setProgress({
           id: data.id,
           current_step: data.current_step,
@@ -227,7 +240,8 @@ export function AstraGuidedSetupModal({
         setCurrentStep(data.current_step);
       } else {
         // No saved progress found, initialize with existing selections
-        setProgress({
+        console.log('📝 No saved progress, initializing with existing folder IDs');
+        const initialProgress = {
           current_step: 0,
           completed_steps: [],
           strategy_folders_selected: existingStrategyIds,
@@ -235,7 +249,10 @@ export function AstraGuidedSetupModal({
           financial_folders_selected: existingFinancialIds,
           projects_folders_selected: existingProjectsIds,
           is_completed: false
-        });
+        };
+        console.log('Initial progress state:', initialProgress);
+        setProgress(initialProgress);
+        setCurrentStep(0);
       }
     };
 
@@ -522,6 +539,41 @@ export function AstraGuidedSetupModal({
                       Select Your {currentStepContent.title}
                     </h4>
                   </div>
+
+                  {/* Current Selection Banner */}
+                  {(() => {
+                    const currentSelection = getCurrentFolderSelection();
+                    const selectedFolder = currentSelection.length > 0
+                      ? folders.find(f => f.id === currentSelection[0])
+                      : null;
+
+                    return selectedFolder ? (
+                      <div className="mb-4 p-4 bg-gradient-to-r from-green-500/20 to-blue-500/20 border-2 border-green-500/50 rounded-lg">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-green-500/30 border border-green-500 flex items-center justify-center flex-shrink-0">
+                            <Check className="w-5 h-5 text-green-400" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs font-semibold text-green-400 uppercase tracking-wide mb-1">
+                              Current Selection
+                            </p>
+                            <p className="text-white font-semibold text-sm">
+                              {selectedFolder.name}
+                            </p>
+                            <p className="text-gray-400 text-xs mt-1">
+                              You can change your selection below or keep this folder
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                        <p className="text-sm text-blue-300">
+                          💡 Select a folder below to sync your {currentStepContent.title.toLowerCase()}
+                        </p>
+                      </div>
+                    );
+                  })()}
 
                   {/* Search Bar */}
                   <div className="relative mb-4">

@@ -325,6 +325,15 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
       setError('');
       const folderList = await listGoogleDriveFolders();
       setFolders(folderList);
+
+      // Debug: Log connection data before opening modal
+      console.log('📊 Opening Guided Setup with connection data:');
+      console.log('Strategy Folder ID:', connection?.strategy_folder_id);
+      console.log('Meetings Folder ID:', connection?.meetings_folder_id);
+      console.log('Financial Folder ID:', connection?.financial_folder_id);
+      console.log('Projects Folder ID:', connection?.projects_folder_id);
+      console.log('Full connection object:', connection);
+
       setShowGuidedSetup(true);
     } catch (err: any) {
       setError(err.message || 'Failed to load folders');
