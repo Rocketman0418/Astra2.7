@@ -26,8 +26,23 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
   const [showNewsModal, setShowNewsModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showLevelInfo, setShowLevelInfo] = useState(false);
+  const [localProgress, setLocalProgress] = useState<StageProgress | null>(progress);
 
-  const currentLevel = progress?.level || 0;
+  // Update local progress when prop changes
+  useEffect(() => {
+    setLocalProgress(progress);
+  }, [progress]);
+
+  // Refresh local progress from hook after operations
+  const refreshLocalProgress = async () => {
+    const allProgress = await fetchStageProgress();
+    const updatedProgress = allProgress.find(p => p.stage === 'guidance') || null;
+    if (updatedProgress) {
+      setLocalProgress(updatedProgress);
+    }
+  };
+
+  const currentLevel = localProgress?.level || 0;
   const targetLevel = currentLevel + 1;
   const currentLevelInfo = GUIDANCE_LEVELS[currentLevel] || GUIDANCE_LEVELS[0];
   const targetLevelInfo = GUIDANCE_LEVELS[targetLevel - 1];
@@ -37,7 +52,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
 
   // Check achievements
   const hasCompletedAchievement = (key: string): boolean => {
-    return progress?.achievements?.includes(key) || false;
+    return localProgress?.achievements?.includes(key) || false;
   };
 
   // Handle modal proceeds with achievements
@@ -49,8 +64,8 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
     await completeAchievement('guidance_level_1', 'guidance');
     // Update level
     await updateStageLevel('guidance', 1);
-    // Refresh progress
-    await fetchStageProgress();
+    // Refresh local progress
+    await refreshLocalProgress();
   };
 
   const handleNewsProceed = async () => {
@@ -61,8 +76,8 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
     await completeAchievement('guidance_level_2', 'guidance');
     // Update level
     await updateStageLevel('guidance', 2);
-    // Refresh progress
-    await fetchStageProgress();
+    // Refresh local progress
+    await refreshLocalProgress();
   };
 
   const handleInviteProceed = async () => {
@@ -73,8 +88,8 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
     await completeAchievement('guidance_level_3', 'guidance');
     // Update level
     await updateStageLevel('guidance', 3);
-    // Refresh progress
-    await fetchStageProgress();
+    // Refresh local progress
+    await refreshLocalProgress();
   };
 
   const featureCards = [
@@ -152,7 +167,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
       <StageProgressBar
         fuelProgress={fuelProgress}
         boostersProgress={boostersProgress}
-        guidanceProgress={guidanceProgress}
+        guidanceProgress={localProgress || guidanceProgress}
         currentStage="guidance"
         onStageClick={handleStageNavigation}
       />
@@ -166,7 +181,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
             </div>
             <div>
               <h1 className="text-xl font-bold text-white">Guidance Stage</h1>
-              <p className="text-sm text-gray-400">Set your mission parameters</p>
+              <p className="text-sm text-gray-400">Configure and collaborate</p>
             </div>
           </div>
           <button
@@ -183,251 +198,197 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-bold text-white flex items-center">
               <LevelIcon className="w-5 h-5 mr-2 text-green-400" />
-              {currentLevel === 0 ? 'Get Started' : `Level ${currentLevel}: ${currentLevelInfo.name}`}
+              {currentLevel === 0 ? 'Get Started' : `Level ${currentLevel} → ${currentLevelInfo.name}`}
             </h2>
             <button
               onClick={() => setShowLevelInfo(true)}
-              className="text-gray-400 hover:text-white transition-colors"
-              title="View all levels"
+              className="text-gray-400 hover:text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               <Info className="w-5 h-5" />
             </button>
           </div>
 
           {currentLevel === 0 ? (
-            <div className="space-y-4">
-              <p className="text-gray-300">
-                Welcome to the Guidance Stage! Now let's configure your team and set up your mission parameters.
-              </p>
-              <p className="text-gray-300">
-                Your first step: <strong>Configure your team settings</strong> to reach Level 1.
+            <div className="bg-green-900/20 border border-green-700 rounded-lg p-3 mb-3">
+              <p className="text-sm text-green-300">
+                <strong>👇 Start with Level 1 below:</strong> Configure your team settings to unlock more features!
               </p>
             </div>
           ) : (
-            <p className="text-gray-300 mb-4">
+            <p className="text-sm text-gray-300 mb-3">
               {currentLevelInfo.description}
             </p>
           )}
 
           {/* Next Level */}
           {currentLevel < 5 && targetLevelInfo && (
-            <div className="mt-6 border-t border-gray-700 pt-6">
-              <h3 className="text-lg font-semibold text-white mb-3">
-                Next: Level {targetLevel}
-              </h3>
-              <p className="text-gray-400 mb-4">{targetLevelInfo.description}</p>
-
-              <div className="bg-gray-900/50 rounded-lg p-4">
-                <p className="text-sm font-medium text-gray-400 mb-2">Requirements:</p>
-                <ul className="space-y-2">
-                  {targetLevelInfo.requirements.map((req, index) => (
-                    <li key={index} className="flex items-center space-x-2">
-                      <div className="w-5 h-5 border-2 border-gray-600 rounded-full flex-shrink-0" />
-                      <span className="text-gray-300">{req}</span>
-                    </li>
-                  ))}
-                </ul>
+            <div className="border-t border-gray-700 pt-3">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-white">
+                  Next: Level {targetLevel}
+                </h3>
+                <span className="text-xs text-yellow-400 font-medium">
+                  +{formatPoints(targetLevelInfo.points)}
+                </span>
               </div>
 
-              <div className="mt-4">
-                <p className="text-sm text-gray-400">
-                  Reward: <span className="text-yellow-400 font-semibold">{formatPoints(targetLevelInfo.points)} points</span>
-                </p>
-              </div>
+              <ul className="space-y-1.5">
+                {targetLevelInfo.requirements.map((req, index) => (
+                  <li key={index} className="flex items-center space-x-2 text-sm">
+                    <div className="w-4 h-4 border-2 border-gray-600 rounded-full flex-shrink-0" />
+                    <span className="text-gray-400">{req}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
           {currentLevel === 5 && (
-            <div className="mt-6 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-lg p-6">
-              <div className="flex items-center space-x-3 mb-2">
-                <BookOpen className="w-8 h-8 text-purple-400" />
-                <h3 className="text-xl font-bold text-white">Guidance Complete!</h3>
+            <div className="mt-3 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-lg p-3 flex items-center gap-3">
+              <BookOpen className="w-6 h-6 text-green-400 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-bold text-white">Mission Parameters Set!</p>
+                <p className="text-xs text-gray-300">Ready to launch your AI Rocket</p>
               </div>
-              <p className="text-gray-300 mb-4">
-                Perfect! You've set all guidance parameters. Your AI Rocket is fully configured and ready to launch!
-              </p>
-              <p className="text-gray-400 text-sm">
-                You're ready to launch your AI Rocket!
-              </p>
             </div>
           )}
         </div>
 
-        {/* Next Action - Prominent */}
-        {currentLevel < 5 && targetLevelInfo && (
-          <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-xl p-6 mb-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Sparkles className="w-5 h-5 text-green-400" />
-                  <h3 className="text-lg font-bold text-white">Next: {targetLevelInfo.name}</h3>
-                </div>
-                <p className="text-gray-300 text-sm mb-4">{targetLevelInfo.description}</p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <span className="text-yellow-400 font-semibold">
-                      {formatPoints(targetLevelInfo.points)} points
-                    </span>
-                  </div>
-                  {targetLevel === 1 && !featureCards[0].completed && (
-                    <button
-                      onClick={() => setShowTeamConfigModal(true)}
-                      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors flex items-center space-x-2"
-                    >
-                      <span>Configure Team</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  )}
-                  {targetLevel === 2 && !featureCards[1].completed && (
-                    <button
-                      onClick={() => setShowNewsModal(true)}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center space-x-2"
-                    >
-                      <span>Enable News</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  )}
-                  {targetLevel === 3 && !featureCards[2].completed && (
-                    <button
-                      onClick={() => setShowInviteModal(true)}
-                      className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors flex items-center space-x-2"
-                    >
-                      <span>Invite Members</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Featured Next Action */}
+        {featureCards.map((feature) => {
+          const FeatureIcon = feature.icon;
+          const isNextLevel = feature.level === currentLevel + 1;
+          const isLocked = feature.level > currentLevel + 1;
+          const isDisabled = feature.disabled;
 
-        {/* Feature Cards */}
-        <div className="space-y-4 mb-6">
-          <h3 className="text-lg font-semibold text-white mb-3">Configuration Tasks</h3>
-          {featureCards.map((feature) => {
-            const FeatureIcon = feature.icon;
-            const isLocked = feature.level > currentLevel + 1;
-            const isDisabled = feature.disabled;
-
+          if (isNextLevel && !feature.completed) {
             return (
-              <div
-                key={feature.id}
-                className={`
-                  bg-gray-800/50 border rounded-xl p-6
-                  ${isLocked || isDisabled
-                    ? 'border-gray-700 opacity-50'
-                    : `border-${feature.color}-500/30`
-                  }
-                `}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-4 flex-1">
-                    <div className={`
-                      flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center
-                      ${isLocked || isDisabled
-                        ? 'bg-gray-700'
-                        : `bg-${feature.color}-500/20`
-                      }
-                    `}>
-                      {feature.completed ? (
-                        <CheckCircle className={`w-6 h-6 text-${feature.color}-400`} />
-                      ) : (
-                        <FeatureIcon className={`w-6 h-6 ${isLocked || isDisabled ? 'text-gray-500' : `text-${feature.color}-400`}`} />
-                      )}
+              <div key={feature.id} className="mb-6">
+                <h3 className="text-sm font-semibold text-white mb-3 flex items-center">
+                  <span className="text-green-400">→</span>
+                  <span className="ml-2">Your Next Step</span>
+                </h3>
+                <button
+                  onClick={feature.action}
+                  disabled={isDisabled}
+                  className="w-full bg-gradient-to-br from-green-900/40 to-emerald-900/40 border-2 border-green-500 rounded-xl p-6 text-left transition-all hover:from-green-900/60 hover:to-emerald-900/60 hover:border-green-400 hover:shadow-lg hover:shadow-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed group"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-16 h-16 bg-green-500/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-green-500/30 transition-colors">
+                      <FeatureIcon className="w-8 h-8 text-green-400" />
                     </div>
-
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <h4 className="text-lg font-semibold text-white">{feature.name}</h4>
-                        {feature.completed && (
-                          <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded">
-                            Completed
-                          </span>
-                        )}
-                        {isDisabled && (
-                          <span className="text-xs bg-gray-600 text-gray-400 px-2 py-0.5 rounded">
-                            Coming Soon
-                          </span>
-                        )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="text-xl font-bold text-white">{feature.name}</h4>
+                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full font-medium">
+                          Level {feature.level}
+                        </span>
                       </div>
-                      <p className="text-gray-400 text-sm mb-3">{feature.description}</p>
-
-                      {!isLocked && !isDisabled && !feature.completed && (
-                        <button
-                          onClick={feature.action}
-                          className={`
-                            bg-${feature.color}-500 hover:bg-${feature.color}-600
-                            text-white text-sm font-medium px-4 py-2 rounded-lg
-                            transition-colors
-                          `}
-                        >
-                          {feature.actionText}
-                        </button>
-                      )}
-
-                      {isLocked && (
-                        <p className="text-gray-500 text-sm">
-                          Complete Level {feature.level - 1} to unlock
-                        </p>
-                      )}
+                      <p className="text-sm text-gray-300 mb-3">{feature.description}</p>
+                      <div className="flex items-center text-green-400 text-sm font-medium">
+                        <span>Click to get started</span>
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </div>
                     </div>
                   </div>
-
-                  <div className="text-right ml-4">
-                    <span className={`
-                      text-xs font-medium px-2 py-1 rounded
-                      ${isLocked || isDisabled
-                        ? 'bg-gray-700 text-gray-400'
-                        : `bg-${feature.color}-500/20 text-${feature.color}-400`
-                      }
-                    `}>
-                      Level {feature.level}
-                    </span>
-                  </div>
-                </div>
+                </button>
               </div>
             );
-          })}
-        </div>
+          }
+          return null;
+        })}
 
-        {/* Action Buttons */}
-        <div className="space-y-4">
-          {currentLevel >= 1 && (
-            <button
-              onClick={onComplete}
-              className="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
-            >
-              <span>Ready to Launch!</span>
-              <ArrowRight className="w-5 h-5" />
-            </button>
-          )}
+        {/* Other Features */}
+        <div className="space-y-2 mb-4">
+          <h3 className="text-sm font-semibold text-gray-400 mb-3">
+            {currentLevel === 0 ? 'Coming Up Next' : 'All Features'}
+          </h3>
+          <div className="grid grid-cols-1 gap-2">
+            {featureCards.map((feature) => {
+              const FeatureIcon = feature.icon;
+              const isLocked = feature.level > currentLevel + 1;
+              const isDisabled = feature.disabled;
+              const isNextLevel = feature.level === currentLevel + 1;
 
-          {currentLevel < 1 && (
-            <p className="text-center text-gray-400 text-sm">
-              Complete Level 1 to proceed to Ready to Launch
-            </p>
-          )}
-        </div>
+              // Skip the featured next level card
+              if (isNextLevel && !feature.completed) {
+                return null;
+              }
 
-        {/* Why This Matters */}
-        <div className="mt-8 bg-gray-800/30 border border-gray-700 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-white mb-3">Why Guidance Matters</h3>
-          <div className="space-y-3 text-gray-300 text-sm">
-            <p>
-              <strong>Team Settings:</strong> Configure your team name, preferences, and collaboration settings.
-            </p>
-            <p>
-              <strong>News Preferences:</strong> Stay informed about your industry and relevant topics.
-            </p>
-            <p>
-              <strong>Team Members:</strong> Collaborate with your team for better insights and shared knowledge.
-            </p>
-            <p className="text-purple-400">
-              A well-configured team gets the most value from Astra!
-            </p>
+              return (
+                <button
+                  key={feature.id}
+                  onClick={!isLocked && !isDisabled && !feature.completed ? feature.action : undefined}
+                  disabled={isLocked || isDisabled || feature.completed}
+                  className={`
+                    border rounded-lg p-3 flex items-center gap-3 text-left transition-all
+                    ${feature.completed ? 'bg-green-900/10 border-green-700/50' :
+                      isLocked || isDisabled ? 'bg-gray-800/30 border-gray-700 opacity-50 cursor-not-allowed' :
+                      'bg-gray-800/50 border-gray-700 hover:bg-gray-800 hover:border-gray-600 cursor-pointer'}
+                  `}
+                >
+                  <div className="flex-shrink-0">
+                    {feature.completed ? (
+                      <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                        <CheckCircle className="w-5 h-5 text-green-400" />
+                      </div>
+                    ) : (
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        isLocked || isDisabled ? 'bg-gray-700/50' : 'bg-gray-700'
+                      }`}>
+                        <FeatureIcon className={`w-5 h-5 ${
+                          isLocked || isDisabled ? 'text-gray-500' : 'text-gray-400'
+                        }`} />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className={`text-sm font-semibold truncate ${
+                        feature.completed ? 'text-green-400' : 'text-white'
+                      }`}>
+                        {feature.name}
+                      </h4>
+                      {feature.completed && (
+                        <span className="text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded flex-shrink-0">
+                          Complete
+                        </span>
+                      )}
+                      {isDisabled && (
+                        <span className="text-xs bg-gray-600 text-gray-400 px-1.5 py-0.5 rounded flex-shrink-0">
+                          Soon
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400">{feature.description}</p>
+                  </div>
+
+                  <div className="flex-shrink-0">
+                    <span className="text-xs text-gray-500 font-medium">Lvl {feature.level}</span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
+
+        {/* Action Button */}
+        {currentLevel >= 1 && (
+          <button
+            onClick={onComplete}
+            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-all flex items-center justify-center space-x-2 shadow-lg"
+          >
+            <span>Continue to Ready</span>
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        )}
+
+        {currentLevel < 1 && (
+          <p className="text-center text-gray-400 text-xs">
+            Complete Level 1 to unlock Ready
+          </p>
+        )}
       </div>
 
       {/* Modals */}
@@ -454,113 +415,133 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
 
       {/* Level Info Modal */}
       {showLevelInfo && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-          <div className="bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden border border-gray-700">
-            <div className="sticky top-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-b border-green-500/30 px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Compass className="w-6 h-6 text-green-400" />
-                <h2 className="text-xl font-bold text-white">Guidance Stage Levels</h2>
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 rounded-lg border border-gray-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 border-b border-gray-700 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-green-600/20 flex items-center justify-center">
+                    <Compass className="w-6 h-6 text-green-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Guidance Stage Levels</h3>
+                </div>
+                <button
+                  onClick={() => setShowLevelInfo(false)}
+                  className="text-gray-400 hover:text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <button
-                onClick={() => setShowLevelInfo(false)}
-                className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-400" />
-              </button>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <div className="space-y-4">
-                {GUIDANCE_LEVELS.map((level, index) => {
-                  const LevelIconComp = levelIcons[index];
-                  const isCompleted = currentLevel > index;
-                  const isCurrent = currentLevel === index;
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-300 mb-4">
+                Progress through 5 Guidance Levels by configuring your team, enabling features, and building collaboration. Each level unlocks new capabilities and earns you Launch Points.
+              </p>
 
-                  return (
-                    <div
-                      key={index}
-                      className={`
-                        border rounded-lg p-4
-                        ${isCompleted ? 'bg-green-500/10 border-green-500/30' :
-                          isCurrent ? 'bg-blue-500/10 border-blue-500/30' :
-                          'bg-gray-700/30 border-gray-600'}
-                      `}
-                    >
-                      <div className="flex items-start space-x-4">
-                        <div className={`
-                          w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0
-                          ${isCompleted ? 'bg-green-500/20' :
-                            isCurrent ? 'bg-blue-500/20' :
-                            'bg-gray-700'}
-                        `}>
+              {GUIDANCE_LEVELS.map((level, index) => {
+                const isCurrentLevel = currentLevel === level.level;
+                const isCompleted = currentLevel > level.level;
+                const LevelIcon = levelIcons[index];
+
+                return (
+                  <div
+                    key={level.level}
+                    className={`border rounded-lg p-4 ${
+                      isCurrentLevel
+                        ? 'border-green-500 bg-green-900/10'
+                        : isCompleted
+                        ? 'border-green-700 bg-green-900/10'
+                        : 'border-gray-700 bg-gray-800/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                            isCurrentLevel
+                              ? 'bg-green-600/20'
+                              : isCompleted
+                              ? 'bg-green-600/20'
+                              : 'bg-gray-700/50'
+                          }`}
+                        >
                           {isCompleted ? (
                             <CheckCircle className="w-6 h-6 text-green-400" />
                           ) : (
-                            <LevelIconComp className={`w-6 h-6 ${isCurrent ? 'text-blue-400' : 'text-gray-500'}`} />
+                            <LevelIcon
+                              className={`w-6 h-6 ${
+                                isCurrentLevel ? 'text-green-400' : 'text-gray-400'
+                              }`}
+                            />
                           )}
                         </div>
-
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-semibold text-white">
-                              Level {index + 1}: {level.name}
-                            </h3>
-                            {isCompleted && (
-                              <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded">
-                                Completed
-                              </span>
-                            )}
-                            {isCurrent && (
-                              <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded">
-                                Current
-                              </span>
-                            )}
-                          </div>
-
-                          <p className="text-gray-300 text-sm mb-3">{level.description}</p>
-
-                          <div className="space-y-2">
-                            <p className="text-xs font-medium text-gray-400">Requirements:</p>
-                            <ul className="space-y-1">
-                              {level.requirements.map((req, reqIndex) => (
-                                <li key={reqIndex} className="flex items-center space-x-2 text-sm text-gray-300">
-                                  <div className={`
-                                    w-1.5 h-1.5 rounded-full
-                                    ${isCompleted ? 'bg-green-400' :
-                                      isCurrent ? 'bg-blue-400' :
-                                      'bg-gray-500'}
-                                  `} />
-                                  <span>{req}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-
-                          <div className="mt-3 flex items-center space-x-4">
-                            <span className={`
-                              text-xs font-semibold
-                              ${isCompleted ? 'text-green-400' :
-                                isCurrent ? 'text-yellow-400' :
-                                'text-gray-500'}
-                            `}>
-                              {formatPoints(level.points)} points
-                            </span>
-                          </div>
+                        <div>
+                          <h4
+                            className={`font-semibold ${
+                              isCurrentLevel
+                                ? 'text-green-400'
+                                : isCompleted
+                                ? 'text-green-400'
+                                : 'text-white'
+                            }`}
+                          >
+                            Level {level.level}
+                          </h4>
+                          <p className="text-xs text-gray-400">{level.description}</p>
                         </div>
                       </div>
+                      <div className="text-right">
+                        <span
+                          className={`text-sm font-medium ${
+                            isCompleted ? 'text-green-400' : 'text-yellow-400'
+                          }`}
+                        >
+                          +{formatPoints(level.points)}
+                        </span>
+                        {isCurrentLevel && (
+                          <p className="text-xs text-green-400 mt-1">Current</p>
+                        )}
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
 
-            <div className="sticky bottom-0 bg-gray-800 border-t border-gray-700 px-6 py-4">
-              <button
-                onClick={() => setShowLevelInfo(false)}
-                className="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors"
-              >
-                Close
-              </button>
+                    <div className="mt-3 space-y-1">
+                      <p className="text-xs text-gray-400 font-medium mb-1">Requirements:</p>
+                      {level.requirements.map((req, reqIndex) => (
+                        <div key={reqIndex} className="flex items-center gap-2">
+                          <div
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              isCompleted ? 'bg-green-400' : 'bg-gray-600'
+                            }`}
+                          />
+                          <p
+                            className={`text-xs ${
+                              isCompleted ? 'text-green-300' : 'text-gray-400'
+                            }`}
+                          >
+                            {req}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+
+              <div className="bg-green-900/20 border border-green-700 rounded-lg p-4 mt-4">
+                <p className="text-sm text-green-300">
+                  <span className="font-medium">💡 Tip:</span> Start with Team Configuration to set up your workspace. Then enable news preferences and invite team members for better collaboration!
+                </p>
+              </div>
+
+              <div className="flex justify-center pt-2">
+                <button
+                  onClick={() => setShowLevelInfo(false)}
+                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl min-h-[44px]"
+                >
+                  Got It
+                </button>
+              </div>
             </div>
           </div>
         </div>
