@@ -101,7 +101,7 @@ export const ManualReportBoosterModal: React.FC<ManualReportBoosterModalProps> =
 
 Available Data:
 - Strategy Documents: ${dataSnapshot.strategyCount} documents
-- Meetings: ${dataSnapshot.meetingCount} meeting notes
+- Meetings: ${dataSnapshot.meetingCount} meetings
 - Financial Documents: ${dataSnapshot.financialCount} documents
 - Project Documents: ${dataSnapshot.projectCount} documents
 
@@ -112,6 +112,12 @@ Requirements:
 4. Keep titles concise (3-5 words)
 5. Keep descriptions brief (1 sentence)
 6. Keep prompts specific and actionable
+
+CRITICAL WORDING RULES:
+- NEVER use the term "meeting notes" - always say "recent meetings" or "most recent meeting"
+- NEVER use specific numbers like "10 recent meetings" - use "recent meetings" or "most recent meeting" instead
+- For reports needing external data, include "recent news from the last 24-48 hours" to trigger web search
+- Use phrases like "most recent" or "recent" rather than specific quantities to ensure workflow success
 
 Return ONLY valid JSON in this exact format:
 [
@@ -142,19 +148,19 @@ Return ONLY valid JSON in this exact format:
       // Fallback suggestions if AI fails
       setSuggestions([
         {
-          title: 'Recent Activity Summary',
-          description: 'Overview of last 48 hours across all data',
-          prompt: 'Provide a comprehensive summary of all documents, meetings, and activity from the last 48 hours, highlighting key updates and action items'
+          title: 'Daily Meeting Action Digest',
+          description: 'Summarize all pending action items and critical decisions from recent meetings',
+          prompt: 'Review recent meetings from the last 24-48 hours and generate a prioritized list of open action items, identifying owners and critical deadlines for immediate follow-up'
         },
         {
           title: 'Strategic Priorities Update',
           description: 'Current progress on strategic initiatives',
-          prompt: 'Analyze recent strategy documents and meetings to provide an update on current strategic priorities, progress, and any blockers'
+          prompt: 'Analyze recent strategy documents and most recent meeting to provide an update on current strategic priorities, progress, and any blockers or action items that need attention'
         },
         {
-          title: 'Team Activity Highlights',
-          description: 'Key decisions and next steps from recent work',
-          prompt: 'Review recent meetings and documents to identify key decisions made, action items assigned, and important next steps'
+          title: 'Daily News Brief',
+          description: 'Industry updates aligned to your strategy',
+          prompt: 'Provide a brief summary of recent news from the last 24-48 hours that is important for our business. Focus on the top 3 impacts to our business, and a recommendation of actions that align with our mission, core values or goals'
         }
       ]);
     }
