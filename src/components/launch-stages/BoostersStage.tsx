@@ -4,6 +4,7 @@ import { StageProgress } from '../../hooks/useLaunchPreparation';
 import { useLaunchPreparation } from '../../hooks/useLaunchPreparation';
 import { BOOSTERS_LEVELS, formatPoints } from '../../lib/launch-preparation-utils';
 import { AstraGuidedChatModal } from '../AstraGuidedChatModal';
+import { AstraGuidedResponseModal } from './AstraGuidedResponseModal';
 import { VisualizationBoosterModal } from './VisualizationBoosterModal';
 import { ManualReportBoosterModal } from './ManualReportBoosterModal';
 import { ScheduledReportBoosterModal } from './ScheduledReportBoosterModal';
@@ -25,6 +26,9 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
   const { user } = useAuth();
   const { updateStageLevel, completeAchievement } = useLaunchPreparation();
   const [showGuidedChat, setShowGuidedChat] = useState(false);
+  const [showResponseModal, setShowResponseModal] = useState(false);
+  const [selectedPrompt, setSelectedPrompt] = useState<string>('');
+  const [lastAstraResponse, setLastAstraResponse] = useState<string>('');
   const [showVisualizationModal, setShowVisualizationModal] = useState(false);
   const [showManualReportModal, setShowManualReportModal] = useState(false);
   const [showScheduledReportModal, setShowScheduledReportModal] = useState(false);
@@ -46,7 +50,19 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
     return progress?.achievements?.includes(key) || false;
   };
 
-  const handleGuidedChatComplete = async (prompt?: string) => {
+  const handlePromptSelected = (prompt: string) => {
+    // Store the selected prompt and close the guided chat modal
+    setSelectedPrompt(prompt);
+    setShowGuidedChat(false);
+    // Open the response modal
+    setShowResponseModal(true);
+  };
+
+  const handleResponseComplete = async (response: string) => {
+    // Store the response for use in visualization step
+    setLastAstraResponse(response);
+
+    // Mark achievement as complete when user clicks Proceed after viewing the response
     if (!hasCompletedAchievement('boosters_first_prompt')) {
       await completeAchievement('boosters_guided_chat_used', 'boosters');
       await completeAchievement('boosters_first_prompt', 'boosters');
@@ -59,12 +75,9 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
       }
     }
 
-    // If a prompt was provided and onExitToChat is available, navigate to chat
-    if (prompt && onExitToChat) {
-      onExitToChat(prompt);
-    } else {
-      setShowGuidedChat(false);
-    }
+    // Close the response modal and return to Boosters Stage
+    setShowResponseModal(false);
+    setSelectedPrompt('');
   };
 
   const handleVisualizationComplete = async () => {
@@ -410,10 +423,21 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
         <AstraGuidedChatModal
           isOpen={showGuidedChat}
           onClose={() => setShowGuidedChat(false)}
-          onSelectPrompt={(prompt) => {
-            handleGuidedChatComplete(prompt);
-          }}
+          onSelectPrompt={handlePromptSelected}
           teamId={teamId}
+        />
+      )}
+
+      {/* Astra Response Modal */}
+      {showResponseModal && selectedPrompt && (
+        <AstraGuidedResponseModal
+          isOpen={showResponseModal}
+          onClose={() => {
+            setShowResponseModal(false);
+            setSelectedPrompt('');
+          }}
+          onComplete={handleResponseComplete}
+          selectedPrompt={selectedPrompt}
         />
       )}
 
@@ -422,6 +446,7 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
         <VisualizationBoosterModal
           onClose={() => setShowVisualizationModal(false)}
           onComplete={handleVisualizationComplete}
+          astraResponse={lastAstraResponse}
         />
       )}
 

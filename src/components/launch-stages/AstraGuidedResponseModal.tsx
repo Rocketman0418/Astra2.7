@@ -1,0 +1,209 @@
+import React, { useState, useEffect } from 'react';
+import { X, Loader2, CheckCircle, Sparkles } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
+import { v4 as uuidv4 } from 'uuid';
+import { formatAstraMessage } from '../../utils/formatAstraMessage';
+
+const WEBHOOK_URL = import.meta.env.VITE_N8N_WEBHOOK_URL;
+
+interface AstraGuidedResponseModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onComplete: (response: string) => void;
+  selectedPrompt: string;
+}
+
+export const AstraGuidedResponseModal: React.FC<AstraGuidedResponseModalProps> = ({
+  isOpen,
+  onClose,
+  onComplete,
+  selectedPrompt
+}) => {
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [astraResponse, setAstraResponse] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen && selectedPrompt) {
+      sendPromptToAstra();
+    }
+  }, [isOpen, selectedPrompt]);
+
+  const sendPromptToAstra = async () => {
+    if (!user) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Fetch user data
+      const userId = user.id;
+      const userEmail = user.email || '';
+      let teamId = '';
+      let teamName = '';
+      let role = 'member';
+      let viewFinancial = true;
+      let userName = user.email?.split('@')[0] || 'User';
+
+      try {
+        const { data: userData, error: userError } = await supabase
+          .rpc('get_user_team_info', { p_user_id: userId });
+
+        if (!userError && userData && userData.length > 0) {
+          const userInfo = userData[0];
+          teamId = userInfo.team_id || '';
+          teamName = userInfo.team_name || '';
+          role = userInfo.role || 'member';
+          viewFinancial = userInfo.view_financial !== false;
+          userName = userInfo.user_name || userName;
+        } else {
+          teamId = user.user_metadata?.team_id || '';
+          role = user.user_metadata?.role || 'member';
+          viewFinancial = user.user_metadata?.view_financial !== false;
+        }
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+        teamId = user.user_metadata?.team_id || '';
+        role = user.user_metadata?.role || 'member';
+        viewFinancial = user.user_metadata?.view_financial !== false;
+      }
+
+      // Send to webhook
+      const response = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chatInput: selectedPrompt,
+          user_id: userId,
+          user_email: userEmail,
+          user_name: userName,
+          conversation_id: null, // New conversation
+          team_id: teamId,
+          team_name: teamName,
+          role: role,
+          view_financial: viewFinancial,
+          mode: 'private'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Webhook request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Extract response text
+      let responseText = '';
+      if (data.output) {
+        responseText = data.output;
+      } else if (data.response) {
+        responseText = data.response;
+      } else if (data.message) {
+        responseText = data.message;
+      } else {
+        responseText = JSON.stringify(data);
+      }
+
+      setAstraResponse(responseText);
+      setIsLoading(false);
+    } catch (err: any) {
+      console.error('Error sending prompt to Astra:', err);
+      setError(err.message || 'Failed to get response from Astra');
+      setIsLoading(false);
+    }
+  };
+
+  const handleProceed = () => {
+    onComplete(astraResponse);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <div className="bg-gray-800 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-gray-700 flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-700 bg-gradient-to-r from-purple-900/30 to-blue-900/30 flex-shrink-0">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg">
+              <Sparkles className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white">Astra's Response</h2>
+              <p className="text-sm text-gray-300">Analyzing your data...</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            <X className="w-6 h-6 text-gray-400" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {/* User's prompt */}
+          <div className="mb-6">
+            <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-4">
+              <p className="text-sm text-gray-400 mb-2">Your Question:</p>
+              <p className="text-white">{selectedPrompt}</p>
+            </div>
+          </div>
+
+          {/* Loading state */}
+          {isLoading && (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="w-12 h-12 text-purple-400 animate-spin mb-4" />
+              <p className="text-white text-lg font-medium mb-2">Astra is thinking...</p>
+              <p className="text-gray-400 text-sm">Analyzing your data to provide insights</p>
+            </div>
+          )}
+
+          {/* Error state */}
+          {error && (
+            <div className="bg-red-900/20 border border-red-700 rounded-lg p-4">
+              <p className="text-red-400">{error}</p>
+              <button
+                onClick={sendPromptToAstra}
+                className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+
+          {/* Response */}
+          {!isLoading && !error && astraResponse && (
+            <div className="bg-purple-900/10 border border-purple-700/30 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="w-5 h-5 text-purple-400" />
+                <p className="text-sm text-gray-400">Astra's Insights:</p>
+              </div>
+              <div className="text-white prose prose-invert max-w-none">
+                {formatAstraMessage(astraResponse)}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer with Proceed button */}
+        {!isLoading && !error && astraResponse && (
+          <div className="border-t border-gray-700 p-4 bg-gray-800/50 flex justify-end items-center flex-shrink-0">
+            <button
+              onClick={handleProceed}
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-all flex items-center gap-2 shadow-lg hover:shadow-xl font-medium min-h-[44px]"
+            >
+              <CheckCircle className="w-5 h-5" />
+              Proceed
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
