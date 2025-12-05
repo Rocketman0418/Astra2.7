@@ -4,6 +4,9 @@ import { StageProgress } from '../../hooks/useLaunchPreparation';
 import { useLaunchPreparation } from '../../hooks/useLaunchPreparation';
 import { BOOSTERS_LEVELS, formatPoints } from '../../lib/launch-preparation-utils';
 import { AstraGuidedChatModal } from '../AstraGuidedChatModal';
+import { VisualizationBoosterModal } from './VisualizationBoosterModal';
+import { ManualReportBoosterModal } from './ManualReportBoosterModal';
+import { ScheduledReportBoosterModal } from './ScheduledReportBoosterModal';
 import { StageProgressBar } from './StageProgressBar';
 
 interface BoostersStageProps {
@@ -18,6 +21,9 @@ interface BoostersStageProps {
 export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProgress, boostersProgress, guidanceProgress, onBack, onComplete }) => {
   const { updateStageLevel, completeAchievement } = useLaunchPreparation();
   const [showGuidedChat, setShowGuidedChat] = useState(false);
+  const [showVisualizationModal, setShowVisualizationModal] = useState(false);
+  const [showManualReportModal, setShowManualReportModal] = useState(false);
+  const [showScheduledReportModal, setShowScheduledReportModal] = useState(false);
   const [checkingLevel, setCheckingLevel] = useState(false);
 
   const currentLevel = progress?.level || 0;
@@ -48,6 +54,48 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
     setShowGuidedChat(false);
   };
 
+  const handleVisualizationComplete = async () => {
+    if (!hasCompletedAchievement('boosters_first_visualization')) {
+      await completeAchievement('boosters_first_visualization', 'boosters');
+      await updateStageLevel('boosters', 2);
+
+      setTimeout(() => {
+        if (confirm('Great job! You\'ve completed Boosters Level 2!\n\nReady for Level 3?')) {
+          // User can continue in this stage
+        }
+      }, 1000);
+    }
+    setShowVisualizationModal(false);
+  };
+
+  const handleManualReportComplete = async () => {
+    if (!hasCompletedAchievement('boosters_manual_report')) {
+      await completeAchievement('boosters_manual_report', 'boosters');
+      await updateStageLevel('boosters', 3);
+
+      setTimeout(() => {
+        if (confirm('Excellent! You\'ve completed Boosters Level 3!\n\nReady for Level 4?')) {
+          // User can continue in this stage
+        }
+      }, 1000);
+    }
+    setShowManualReportModal(false);
+  };
+
+  const handleScheduledReportComplete = async () => {
+    if (!hasCompletedAchievement('boosters_scheduled_report')) {
+      await completeAchievement('boosters_scheduled_report', 'boosters');
+      await updateStageLevel('boosters', 4);
+
+      setTimeout(() => {
+        if (confirm('Amazing! You\'ve completed Boosters Level 4!\n\nYou\'re almost ready for Guidance!')) {
+          // User can continue in this stage
+        }
+      }, 1000);
+    }
+    setShowScheduledReportModal(false);
+  };
+
   const featureCards = [
     {
       id: 'guided_chat',
@@ -67,10 +115,7 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
       icon: BarChart,
       color: 'blue',
       level: 2,
-      action: () => {
-        // Navigate to main app with visualization prompt
-        alert('This will open the main chat where you can ask Astra to create a visualization');
-      },
+      action: () => setShowVisualizationModal(true),
       actionText: 'Create Visualization',
       completed: hasCompletedAchievement('boosters_first_visualization')
     },
@@ -81,9 +126,7 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
       icon: FileBarChart,
       color: 'green',
       level: 3,
-      action: () => {
-        alert('This will open the Reports section where you can generate a manual report');
-      },
+      action: () => setShowManualReportModal(true),
       actionText: 'Generate Report',
       completed: hasCompletedAchievement('boosters_manual_report')
     },
@@ -94,9 +137,7 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
       icon: CalendarClock,
       color: 'yellow',
       level: 4,
-      action: () => {
-        alert('This will open the Reports section where you can schedule a recurring report');
-      },
+      action: () => setShowScheduledReportModal(true),
       actionText: 'Schedule Report',
       completed: hasCompletedAchievement('boosters_scheduled_report')
     },
@@ -293,6 +334,30 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
         <AstraGuidedChatModal
           onClose={() => setShowGuidedChat(false)}
           onPromptSelected={handleGuidedChatComplete}
+        />
+      )}
+
+      {/* Visualization Modal */}
+      {showVisualizationModal && (
+        <VisualizationBoosterModal
+          onClose={() => setShowVisualizationModal(false)}
+          onComplete={handleVisualizationComplete}
+        />
+      )}
+
+      {/* Manual Report Modal */}
+      {showManualReportModal && (
+        <ManualReportBoosterModal
+          onClose={() => setShowManualReportModal(false)}
+          onComplete={handleManualReportComplete}
+        />
+      )}
+
+      {/* Scheduled Report Modal */}
+      {showScheduledReportModal && (
+        <ScheduledReportBoosterModal
+          onClose={() => setShowScheduledReportModal(false)}
+          onComplete={handleScheduledReportComplete}
         />
       )}
     </div>
