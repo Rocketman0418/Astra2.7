@@ -44,12 +44,13 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
   const minPoints = getMinimumPointsToLaunch();
   const recommendedPoints = getRecommendedPointsToLaunch();
 
-  const canLaunch = fuelLevel >= 1 && boostersLevel >= 1 && guidanceLevel >= 1;
-  const hasRecommendedLevel = fuelLevel >= 2 && boostersLevel >= 2 && guidanceLevel >= 2;
+  // Updated launch requirements: Fuel 1, Boosters 4, Guidance 2
+  const canLaunch = fuelLevel >= 1 && boostersLevel >= 4 && guidanceLevel >= 2;
+  const hasRecommendedLevel = fuelLevel >= 5 && boostersLevel >= 5 && guidanceLevel >= 5;
 
   const handleLaunch = () => {
     if (!canLaunch) {
-      alert('You need to complete at least Level 1 in all stages before launching!');
+      alert('Complete the minimum requirements before launching:\n• Fuel: Level 1\n• Boosters: Level 4\n• Guidance: Level 2');
       return;
     }
 
@@ -107,34 +108,8 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-1">
               Mission Control
             </h2>
-            <p className="text-gray-400 text-base md:text-lg mb-4">
+            <p className="text-gray-400 text-base md:text-lg">
               Launch Preparation
-            </p>
-
-            {/* Rocket Animation */}
-            <div className="relative inline-block mb-4">
-              <div className={`
-                w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full
-                flex items-center justify-center
-                ${launching ? 'animate-bounce' : 'animate-pulse'}
-              `}>
-                <Rocket className="w-10 h-10 text-white" />
-              </div>
-              {launching && (
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
-                  <div className="text-2xl animate-bounce">🔥</div>
-                </div>
-              )}
-            </div>
-
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
-              {canLaunch ? 'Ready to Launch!' : 'Almost Ready!'}
-            </h1>
-            <p className="text-gray-400 text-sm max-w-2xl mx-auto">
-              {canLaunch
-                ? 'Launch now or continue leveling up for better results!'
-                : 'Complete Level 1 in all stages to unlock launch.'
-              }
             </p>
           </div>
 
@@ -153,18 +128,33 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="text-center">
                   <p className="text-gray-400 text-xs mb-1">Total Points</p>
                   <p className="text-lg font-bold text-yellow-400">{formatPoints(totalPoints)}</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-gray-400 text-xs mb-1">Minimum</p>
-                  <p className="text-sm text-gray-300">{formatPoints(minPoints)}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-gray-400 text-xs mb-1">Recommended</p>
+                  <p className="text-gray-400 text-xs mb-1">Maximum</p>
                   <p className="text-sm text-gray-300">{formatPoints(recommendedPoints)}</p>
+                </div>
+              </div>
+
+              {/* Launch Requirements */}
+              <div className="mt-4 pt-4 border-t border-gray-700">
+                <p className="text-xs font-medium text-gray-400 mb-2">Minimum Requirements to Launch:</p>
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  <div className={`text-center p-2 rounded ${fuelLevel >= 1 ? 'bg-green-500/20 text-green-400' : 'bg-gray-700/50 text-gray-400'}`}>
+                    <p className="font-medium">Fuel</p>
+                    <p>Level 1</p>
+                  </div>
+                  <div className={`text-center p-2 rounded ${boostersLevel >= 4 ? 'bg-green-500/20 text-green-400' : 'bg-gray-700/50 text-gray-400'}`}>
+                    <p className="font-medium">Boosters</p>
+                    <p>Level 4</p>
+                  </div>
+                  <div className={`text-center p-2 rounded ${guidanceLevel >= 2 ? 'bg-green-500/20 text-green-400' : 'bg-gray-700/50 text-gray-400'}`}>
+                    <p className="font-medium">Guidance</p>
+                    <p>Level 2</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -255,15 +245,8 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
                     flex items-center justify-center space-x-3
                   `}
                 >
-                  <Rocket className={`w-6 h-6 ${launching ? 'animate-bounce' : ''}`} />
                   <span>{launching ? 'Launching...' : '🚀 LAUNCH AI ROCKET'}</span>
                 </button>
-
-            {!hasRecommendedLevel && (
-              <p className="text-center text-gray-400 text-sm">
-                💡 Tip: Reach Level 2 in all stages for recommended preparation
-              </p>
-            )}
 
             {hasRecommendedLevel && (
               <div className="bg-purple-500/20 border border-purple-500/30 rounded-lg p-4 text-center">
@@ -277,7 +260,7 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
         ) : (
           <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-6 text-center">
             <p className="text-yellow-400 mb-3">
-              Complete Level 1 in all stages to unlock launch capability
+              Complete minimum requirements to unlock launch capability
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               {fuelLevel < 1 && (
@@ -285,23 +268,23 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
                   onClick={() => onNavigateToStage('fuel')}
                   className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
                 >
-                  Complete Fuel Stage
+                  Fuel: Level 1 Required
                 </button>
               )}
-              {boostersLevel < 1 && (
+              {boostersLevel < 4 && (
                 <button
                   onClick={() => onNavigateToStage('boosters')}
                   className="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
                 >
-                  Complete Boosters Stage
+                  Boosters: Level 4 Required
                 </button>
               )}
-              {guidanceLevel < 1 && (
+              {guidanceLevel < 2 && (
                 <button
                   onClick={() => onNavigateToStage('guidance')}
                   className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
                 >
-                  Complete Guidance Stage
+                  Guidance: Level 2 Required
                 </button>
               )}
             </div>

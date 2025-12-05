@@ -16,7 +16,7 @@ export const FUEL_LEVELS: LevelRequirement[] = [
     name: 'Level 1',
     description: 'Get started with your first document',
     requirements: ['1 document (any type)'],
-    points: 100,
+    points: 10,
     icon: 'file-text'
   },
   {
@@ -24,7 +24,7 @@ export const FUEL_LEVELS: LevelRequirement[] = [
     name: 'Level 2',
     description: 'Establish your data foundation',
     requirements: ['1 strategy document', '1 project document', '1 meeting note', '1 financial record'],
-    points: 300,
+    points: 20,
     icon: 'folder-tree'
   },
   {
@@ -32,7 +32,7 @@ export const FUEL_LEVELS: LevelRequirement[] = [
     name: 'Level 3',
     description: 'Build a solid data collection',
     requirements: ['3 strategy docs', '3 project docs', '10 meeting notes', '3 financial records'],
-    points: 500,
+    points: 30,
     icon: 'database'
   },
   {
@@ -40,7 +40,7 @@ export const FUEL_LEVELS: LevelRequirement[] = [
     name: 'Level 4',
     description: 'Establish a mature data foundation',
     requirements: ['10 strategy docs', '10 project docs', '50 meeting notes', '10 financial records'],
-    points: 1000,
+    points: 40,
     icon: 'hard-drive'
   },
   {
@@ -48,7 +48,7 @@ export const FUEL_LEVELS: LevelRequirement[] = [
     name: 'Level 5',
     description: 'Advanced preparation for maximum insights',
     requirements: ['10 strategy docs', '10 project docs', '100 meeting notes', '10 financial records'],
-    points: 2000,
+    points: 50,
     icon: 'rocket'
   }
 ];
@@ -60,7 +60,7 @@ export const BOOSTERS_LEVELS: LevelRequirement[] = [
     name: 'Level 1',
     description: 'Start talking to Astra',
     requirements: ['Use Guided Chat OR send 5 prompts'],
-    points: 200,
+    points: 10,
     icon: 'message-circle'
   },
   {
@@ -68,7 +68,7 @@ export const BOOSTERS_LEVELS: LevelRequirement[] = [
     name: 'Level 2',
     description: 'See your data come to life',
     requirements: ['Create 1 visualization'],
-    points: 400,
+    points: 20,
     icon: 'bar-chart'
   },
   {
@@ -76,7 +76,7 @@ export const BOOSTERS_LEVELS: LevelRequirement[] = [
     name: 'Level 3',
     description: 'Generate insights on demand',
     requirements: ['Generate 1 manual report'],
-    points: 600,
+    points: 30,
     icon: 'file-bar-chart'
   },
   {
@@ -84,7 +84,7 @@ export const BOOSTERS_LEVELS: LevelRequirement[] = [
     name: 'Level 4',
     description: 'Set up automated insights',
     requirements: ['Schedule 1 recurring report'],
-    points: 800,
+    points: 40,
     icon: 'calendar-clock'
   },
   {
@@ -92,7 +92,7 @@ export const BOOSTERS_LEVELS: LevelRequirement[] = [
     name: 'Level 5',
     description: 'Build your first AI agent',
     requirements: ['Build 1 AI agent (coming soon)'],
-    points: 1500,
+    points: 50,
     icon: 'bot'
   }
 ];
@@ -104,7 +104,7 @@ export const GUIDANCE_LEVELS: LevelRequirement[] = [
     name: 'Level 1',
     description: 'Set up your team',
     requirements: ['Configure team settings'],
-    points: 150,
+    points: 10,
     icon: 'settings'
   },
   {
@@ -112,7 +112,7 @@ export const GUIDANCE_LEVELS: LevelRequirement[] = [
     name: 'Level 2',
     description: 'Stay informed',
     requirements: ['Enable news preferences'],
-    points: 250,
+    points: 20,
     icon: 'newspaper'
   },
   {
@@ -120,7 +120,7 @@ export const GUIDANCE_LEVELS: LevelRequirement[] = [
     name: 'Level 3',
     description: 'Build your team',
     requirements: ['Invite 1+ team member'],
-    points: 400,
+    points: 30,
     icon: 'user-plus'
   },
   {
@@ -128,7 +128,7 @@ export const GUIDANCE_LEVELS: LevelRequirement[] = [
     name: 'Level 4',
     description: 'Create automated workflows',
     requirements: ['Create 1 AI job (coming soon)'],
-    points: 800,
+    points: 40,
     icon: 'briefcase'
   },
   {
@@ -136,7 +136,7 @@ export const GUIDANCE_LEVELS: LevelRequirement[] = [
     name: 'Level 5',
     description: 'Document your processes',
     requirements: ['Create 1 guidance document (coming soon)'],
-    points: 1200,
+    points: 50,
     icon: 'book-open'
   }
 ];
@@ -189,26 +189,25 @@ export function isReadyToLaunch(
   boostersProgress: StageProgress | null,
   guidanceProgress: StageProgress | null
 ): boolean {
-  // User must have at least level 1 in all three stages
+  // User must meet minimum requirements: Fuel 1, Boosters 4, Guidance 2
   return (
     (fuelProgress?.level || 0) >= 1 &&
-    (boostersProgress?.level || 0) >= 1 &&
-    (guidanceProgress?.level || 0) >= 1
+    (boostersProgress?.level || 0) >= 4 &&
+    (guidanceProgress?.level || 0) >= 2
   );
 }
 
 // Get minimum points required to launch
 export function getMinimumPointsToLaunch(): number {
-  // Level 1 in each stage: 100 + 200 + 150 = 450 points
-  // We'll set minimum at 500 to include some micro-achievements
-  return 500;
+  // Minimum requirements: Fuel 1 (10) + Boosters 4 (10+20+30+40=100) + Guidance 2 (10+20=30) = 140 points
+  return 140;
 }
 
 // Get recommended points to launch
 export function getRecommendedPointsToLaunch(): number {
-  // Level 2 in each stage: 300 + 400 + 250 = 950 points
-  // Round to 1000 for cleaner number
-  return 1000;
+  // Maximum points possible: All levels 5 in all stages = 150 + 150 + 150 = 450 points
+  // Note: This includes both task achievements and level achievements
+  return 150;
 }
 
 // Get stage color theme
