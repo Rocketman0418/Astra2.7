@@ -8,6 +8,7 @@ import { VisualizationBoosterModal } from './VisualizationBoosterModal';
 import { ManualReportBoosterModal } from './ManualReportBoosterModal';
 import { ScheduledReportBoosterModal } from './ScheduledReportBoosterModal';
 import { StageProgressBar } from './StageProgressBar';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface BoostersStageProps {
   progress: StageProgress | null;
@@ -19,6 +20,7 @@ interface BoostersStageProps {
 }
 
 export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProgress, boostersProgress, guidanceProgress, onBack, onComplete }) => {
+  const { user } = useAuth();
   const { updateStageLevel, completeAchievement } = useLaunchPreparation();
   const [showGuidedChat, setShowGuidedChat] = useState(false);
   const [showVisualizationModal, setShowVisualizationModal] = useState(false);
@@ -26,6 +28,8 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
   const [showScheduledReportModal, setShowScheduledReportModal] = useState(false);
   const [showLevelInfoModal, setShowLevelInfoModal] = useState(false);
   const [checkingLevel, setCheckingLevel] = useState(false);
+
+  const teamId = user?.user_metadata?.team_id;
 
   const currentLevel = progress?.level || 0;
   const targetLevel = currentLevel + 1;
@@ -394,10 +398,14 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
       </div>
 
       {/* Guided Chat Modal */}
-      {showGuidedChat && (
+      {showGuidedChat && teamId && (
         <AstraGuidedChatModal
+          isOpen={showGuidedChat}
           onClose={() => setShowGuidedChat(false)}
-          onPromptSelected={handleGuidedChatComplete}
+          onSelectPrompt={(prompt) => {
+            handleGuidedChatComplete();
+          }}
+          teamId={teamId}
         />
       )}
 
