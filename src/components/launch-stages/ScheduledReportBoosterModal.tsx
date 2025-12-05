@@ -12,26 +12,27 @@ export const ScheduledReportBoosterModal: React.FC<ScheduledReportBoosterModalPr
   const { user } = useAuth();
   const [reportTitle, setReportTitle] = useState('');
   const [reportPrompt, setReportPrompt] = useState('');
-  const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
+  const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [scheduleDay, setScheduleDay] = useState<number>(1);
-  const [scheduleHour, setScheduleHour] = useState<number>(9);
+  const [scheduleHour, setScheduleHour] = useState<number>(8);
+  const [timezone, setTimezone] = useState<string>(Intl.DateTimeFormat().resolvedOptions().timeZone);
   const [isCreating, setIsCreating] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const suggestedScheduledReports = [
+    {
+      title: 'Daily News Update',
+      prompt: 'Review the latest news over the last 24-48 hours and provide insights on anything affecting our mission, goals, or recent initiatives discussed in meetings.',
+      frequency: 'daily' as const,
+      day: 0,
+      hour: 8
+    },
     {
       title: 'Weekly Business Review',
       prompt: 'Analyze all data from the past week and provide a comprehensive business review including key metrics, achievements, challenges, and action items',
       frequency: 'weekly' as const,
       day: 1,
       hour: 9
-    },
-    {
-      title: 'Daily Standup Summary',
-      prompt: 'Review yesterday\'s activities and meetings, summarize key outcomes, and highlight today\'s priorities and action items',
-      frequency: 'daily' as const,
-      day: 0,
-      hour: 8
     },
     {
       title: 'Monthly Executive Summary',
@@ -71,7 +72,7 @@ export const ScheduledReportBoosterModal: React.FC<ScheduledReportBoosterModalPr
           schedule_day: scheduleDay,
           schedule_hour: scheduleHour,
           is_active: true,
-          metadata: { from_launch_prep: true }
+          metadata: { from_launch_prep: true, timezone }
         });
 
       if (reportError) throw reportError;
@@ -87,13 +88,16 @@ export const ScheduledReportBoosterModal: React.FC<ScheduledReportBoosterModalPr
   };
 
   const getScheduleDescription = () => {
+    const timeStr = `${scheduleHour.toString().padStart(2, '0')}:00`;
+    const tzAbbr = new Date().toLocaleTimeString('en-US', { timeZone: timezone, timeZoneName: 'short' }).split(' ').pop();
+
     if (frequency === 'daily') {
-      return `Every day at ${scheduleHour}:00`;
+      return `Every day at ${timeStr} ${tzAbbr}`;
     } else if (frequency === 'weekly') {
       const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      return `Every ${days[scheduleDay]} at ${scheduleHour}:00`;
+      return `Every ${days[scheduleDay]} at ${timeStr} ${tzAbbr}`;
     } else {
-      return `Monthly on day ${scheduleDay} at ${scheduleHour}:00`;
+      return `Monthly on day ${scheduleDay} at ${timeStr} ${tzAbbr}`;
     }
   };
 
@@ -214,6 +218,23 @@ export const ScheduledReportBoosterModal: React.FC<ScheduledReportBoosterModalPr
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">
+                Timezone
+              </label>
+              <select
+                value={timezone}
+                onChange={(e) => setTimezone(e.target.value)}
+                className="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              >
+                {Intl.supportedValuesOf('timeZone').map((tz) => (
+                  <option key={tz} value={tz}>
+                    {tz.replace(/_/g, ' ')}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {frequency !== 'daily' && (
