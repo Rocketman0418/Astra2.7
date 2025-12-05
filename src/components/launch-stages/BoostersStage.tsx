@@ -123,16 +123,17 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
       await completeAchievement('boosters_manual_report', 'boosters');
       await updateStageLevel('boosters', 3);
 
-      // Refresh progress data to update UI
-      await fetchStageProgress();
-
       // Show toast notification
       if (showLevelUp) {
         const levelInfo = BOOSTERS_LEVELS[2]; // Level 3 info
         showLevelUp('boosters', 3, levelInfo?.points || 35);
       }
     }
+
     setShowManualReportModal(false);
+
+    // Refresh local progress after modal closes
+    await refreshLocalProgress();
   };
 
   const handleScheduledReportComplete = async () => {
@@ -140,16 +141,17 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
       await completeAchievement('boosters_scheduled_report', 'boosters');
       await updateStageLevel('boosters', 4);
 
-      // Refresh progress data to update UI
-      await fetchStageProgress();
-
       // Show toast notification
       if (showLevelUp) {
         const levelInfo = BOOSTERS_LEVELS[3]; // Level 4 info
         showLevelUp('boosters', 4, levelInfo?.points || 40);
       }
     }
+
     setShowScheduledReportModal(false);
+
+    // Refresh local progress after modal closes
+    await refreshLocalProgress();
   };
 
   const featureCards = [

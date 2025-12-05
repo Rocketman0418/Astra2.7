@@ -329,12 +329,28 @@ Return ONLY valid JSON in this exact format:
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
       {state === 'viewing' && reportData ? (
-        <VisualizationView
-          content={reportData.visualizationHtml}
-          title={selectedSuggestion?.title || 'Daily Update Report'}
-          backButtonText="Return"
-          onBack={() => setState('complete')}
-        />
+        <div className="fixed inset-0 bg-gray-900 z-50 flex flex-col">
+          {/* Visualization Content */}
+          <div className="flex-1 overflow-auto p-4">
+            <div
+              className="w-full h-full"
+              dangerouslySetInnerHTML={{ __html: reportData.visualizationHtml }}
+            />
+          </div>
+
+          {/* Proceed Button at Bottom Right */}
+          <div className="p-4 bg-gray-900/95 border-t border-gray-700">
+            <div className="max-w-7xl mx-auto flex justify-end">
+              <button
+                onClick={handleProceed}
+                className="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2 min-h-[44px] shadow-lg"
+              >
+                <span>Proceed</span>
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
       ) : (
         <div className="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
           <div className="sticky top-0 bg-gray-800 border-b border-gray-700 p-4 flex items-center justify-between z-10">
