@@ -176,7 +176,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
       if (!overviewMetrics || timeFilter !== lastTimeFilter) {
         loadAllMetrics();
         loadPreviewRequests();
-        loadActiveUsersToday();
         loadSetupProgress();
         sessionStorage.setItem('adminDashboardTimeFilter', timeFilter);
       } else {
@@ -255,7 +254,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
     try {
       await loadAllMetrics();
       await loadPreviewRequests();
-      await loadActiveUsersToday();
+      await loadSetupProgress();
     } finally {
       setRefreshing(false);
     }
@@ -437,6 +436,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
       activeUsersLast7Days: active7Days,
       activeUsersLast30Days: active30Days
     });
+
+    // Set active users today from the edge function data
+    if (data.active_users_today) {
+      setActiveUsersToday(data.active_users_today);
+    }
     setSupportMessages(supportMsgs.map((msg: any) => ({
       id: msg.id,
       user_email: users.find((u: any) => u.id === msg.user_id)?.email || 'Unknown',
@@ -563,78 +567,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen = true, o
     }
   };
 
-  const loadActiveUsersToday = async () => {
-    try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayISO = today.toISOString();
-
-      // Fetch dashboard data which includes all users and teams via service role
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-dashboard-data`;
-      const headers = {
-        'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        'Content-Type': 'application/json',
-      };
-
-      const response = await fetch(apiUrl, { headers });
-      if (!response.ok) throw new Error('Failed to fetch dashboard data');
-
-      const dashboardData = await response.json();
-      const usersData = dashboardData.users;
-      const teamsData = dashboardData.teams;
-
-      const teamMap = new Map(teamsData?.map((t: any) => [t.id, t.name]) || []);
-
-      // Get today's activity
-      const activeUsers = await Promise.all((usersData || []).map(async (user) => {
-        const [
-          { count: privateMessages },
-          { count: teamMessages },
-          { count: reportsToday }
-        ] = await Promise.all([
-          supabase
-            .from('astra_chats')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .eq('mode', 'private')
-            .gte('created_at', todayISO),
-          supabase
-            .from('astra_chats')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .eq('mode', 'team')
-            .gte('created_at', todayISO),
-          supabase
-            .from('astra_chats')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .eq('mode', 'reports')
-            .gte('created_at', todayISO)
-        ]);
-
-        const totalActions = (privateMessages || 0) + (teamMessages || 0) + (reportsToday || 0);
-
-        return {
-          id: user.id,
-          email: user.email,
-          team_name: teamMap.get(user.team_id) || 'No Team',
-          private_messages_today: privateMessages || 0,
-          team_messages_today: teamMessages || 0,
-          reports_today: reportsToday || 0,
-          total_actions_today: totalActions
-        };
-      }));
-
-      // Filter only users with activity today and sort by total actions
-      const activeWithActions = activeUsers
-        .filter(u => u.total_actions_today > 0)
-        .sort((a, b) => b.total_actions_today - a.total_actions_today);
-
-      setActiveUsersToday(activeWithActions);
-    } catch (error) {
-      console.error('Error loading active users today:', error);
-    }
-  };
+  // NOTE: loadActiveUsersToday is no longer needed - data now comes from admin-dashboard-data edge function
 
   const loadSetupProgress = async () => {
     setLoadingSetupProgress(true);

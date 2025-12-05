@@ -81,6 +81,11 @@ Deno.serve(async (req: Request) => {
       dateThreshold = new Date('2000-01-01');
     }
 
+    // Calculate today's date at midnight
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayISO = today.toISOString();
+
     // Fetch all data directly using service role
     const [
       usersResult,
@@ -90,7 +95,8 @@ Deno.serve(async (req: Request) => {
       reportsResult,
       gmailConnectionsResult,
       driveConnectionsResult,
-      feedbackResult
+      feedbackResult,
+      todayChatsResult
     ] = await Promise.all([
       supabaseAdmin.from('users').select('*'),
       supabaseAdmin.from('teams').select('*'),
@@ -99,7 +105,8 @@ Deno.serve(async (req: Request) => {
       supabaseAdmin.from('user_reports').select('*'),
       supabaseAdmin.from('gmail_auth').select('*'),
       supabaseAdmin.from('user_drive_connections').select('*'),
-      supabaseAdmin.from('user_feedback_submissions').select('*')
+      supabaseAdmin.from('user_feedback_submissions').select('*'),
+      supabaseAdmin.from('astra_chats').select('user_id, mode, created_at').gte('created_at', todayISO)
     ]);
 
     if (usersResult.error) {
@@ -113,6 +120,46 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Calculate active users today
+    const todayChats = todayChatsResult.data || [];
+    const activeUsersToday = new Map();
+
+    todayChats.forEach((chat: any) => {
+      if (!activeUsersToday.has(chat.user_id)) {
+        activeUsersToday.set(chat.user_id, {
+          user_id: chat.user_id,
+          private_messages: 0,
+          team_messages: 0,
+          reports: 0
+        });
+      }
+
+      const userStats = activeUsersToday.get(chat.user_id);
+      if (chat.mode === 'private') {
+        userStats.private_messages++;
+      } else if (chat.mode === 'team') {
+        userStats.team_messages++;
+      } else if (chat.mode === 'reports') {
+        userStats.reports++;
+      }
+    });
+
+    // Convert to array with user details
+    const activeUsersList = Array.from(activeUsersToday.values()).map((stats: any) => {
+      const user = (usersResult.data || []).find((u: any) => u.id === stats.user_id);
+      const team = (teamsResult.data || []).find((t: any) => t.id === user?.team_id);
+
+      return {
+        id: stats.user_id,
+        email: user?.email || 'Unknown',
+        team_name: team?.name || 'No Team',
+        private_messages_today: stats.private_messages,
+        team_messages_today: stats.team_messages,
+        reports_today: stats.reports,
+        total_actions_today: stats.private_messages + stats.team_messages + stats.reports
+      };
+    });
+
     // Return feedback as a single array - the frontend will split it by support_type
     const responseData = {
       users: usersResult.data || [],
@@ -122,7 +169,8 @@ Deno.serve(async (req: Request) => {
       reports: reportsResult.data || [],
       gmail_connections: gmailConnectionsResult.data || [],
       drive_connections: driveConnectionsResult.data || [],
-      feedback: feedbackResult.data || []
+      feedback: feedbackResult.data || [],
+      active_users_today: activeUsersList
     };
 
     return new Response(
