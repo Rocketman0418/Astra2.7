@@ -1,27 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Shield, FileText, Mail } from 'lucide-react';
-import { LegalDocumentModal } from './LegalDocumentModal';
-import { PRIVACY_POLICY, TERMS_OF_SERVICE } from '../data/legalDocuments';
 
 export const Footer: React.FC = () => {
-  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
-  const [showTermsOfService, setShowTermsOfService] = useState(false);
-
   const currentYear = new Date().getFullYear();
 
   return (
     <>
-      <LegalDocumentModal
-        isOpen={showPrivacyPolicy}
-        onClose={() => setShowPrivacyPolicy(false)}
-        document={PRIVACY_POLICY}
-      />
-
-      <LegalDocumentModal
-        isOpen={showTermsOfService}
-        onClose={() => setShowTermsOfService(false)}
-        document={TERMS_OF_SERVICE}
-      />
 
       <footer className="bg-gray-900 border-t border-gray-800 py-6 px-4 mt-auto">
         <div className="max-w-7xl mx-auto">
@@ -51,22 +35,26 @@ export const Footer: React.FC = () => {
               <h3 className="text-white font-semibold mb-3">Legal</h3>
               <ul className="space-y-2">
                 <li>
-                  <button
-                    onClick={() => setShowPrivacyPolicy(true)}
+                  <a
+                    href="https://airocket.app/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-sm text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-2 group"
                   >
                     <Shield className="w-4 h-4 group-hover:text-blue-400" />
                     Privacy Policy
-                  </button>
+                  </a>
                 </li>
                 <li>
-                  <button
-                    onClick={() => setShowTermsOfService(true)}
+                  <a
+                    href="https://airocket.app/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-sm text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-2 group"
                   >
                     <FileText className="w-4 h-4 group-hover:text-blue-400" />
                     Terms of Service
-                  </button>
+                  </a>
                 </li>
               </ul>
             </div>
