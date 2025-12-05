@@ -124,8 +124,10 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
   };
 
   // Handle back to stage selector
-  const backToStageSelector = () => {
+  const backToStageSelector = async () => {
     setShowStageSelector(true);
+    // Refresh data to show updated progress
+    await refresh();
   };
 
   // Handle onboarding completion

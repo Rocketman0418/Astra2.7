@@ -160,6 +160,70 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
             </div>
           </div>
 
+          {/* Launch Button - Moved here from bottom */}
+          <div className="w-full max-w-2xl space-y-3 mb-6">
+            {canLaunch ? (
+              <>
+                <button
+                  onClick={handleLaunch}
+                  disabled={launching}
+                  className={`
+                    w-full text-white font-bold py-4 px-6 rounded-xl text-lg
+                    transition-all transform
+                    ${launching
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 cursor-wait scale-95'
+                      : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:scale-105 hover:shadow-2xl'
+                    }
+                    flex items-center justify-center space-x-3
+                  `}
+                >
+                  <span>{launching ? 'Launching...' : '🚀 Launch AI Rocket'}</span>
+                </button>
+
+                {hasRecommendedLevel && (
+                  <div className="bg-purple-500/20 border border-purple-500/30 rounded-lg p-4 text-center">
+                    <Trophy className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+                    <p className="text-purple-400 font-semibold">
+                      Excellent Preparation! You're ready for optimal performance! 🎉
+                    </p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-6 text-center">
+                <p className="text-yellow-400 mb-3">
+                  Complete minimum requirements to unlock launch capability
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {fuelLevel < 1 && (
+                    <button
+                      onClick={() => onNavigateToStage('fuel')}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                    >
+                      Fuel: Level 1 Required
+                    </button>
+                  )}
+                  {boostersLevel < 4 && (
+                    <button
+                      onClick={() => onNavigateToStage('boosters')}
+                      className="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                    >
+                      Boosters: Level 4 Required
+                    </button>
+                  )}
+                  {guidanceLevel < 2 && (
+                    <button
+                      onClick={() => onNavigateToStage('guidance')}
+                      className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                    >
+                      Guidance: Level 2 Required
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Stage Progress Cards */}
           <div className="w-full max-w-4xl space-y-3 mb-4">
             <h2 className="text-lg font-bold text-white mb-2">Stage Status</h2>
@@ -226,70 +290,6 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
             </div>
           );
         })}
-      </div>
-
-          {/* Launch Button */}
-          <div className="w-full max-w-2xl space-y-3">
-            {canLaunch ? (
-              <>
-                <button
-                  onClick={handleLaunch}
-                  disabled={launching}
-                  className={`
-                    w-full text-white font-bold py-4 px-6 rounded-xl text-lg
-                    transition-all transform
-                    ${launching
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 cursor-wait scale-95'
-                      : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:scale-105 hover:shadow-2xl'
-                    }
-                    flex items-center justify-center space-x-3
-                  `}
-                >
-                  <span>{launching ? 'Launching...' : '🚀 LAUNCH AI ROCKET'}</span>
-                </button>
-
-            {hasRecommendedLevel && (
-              <div className="bg-purple-500/20 border border-purple-500/30 rounded-lg p-4 text-center">
-                <Trophy className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-                <p className="text-purple-400 font-semibold">
-                  Excellent Preparation! You're ready for optimal performance! 🎉
-                </p>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-6 text-center">
-            <p className="text-yellow-400 mb-3">
-              Complete minimum requirements to unlock launch capability
-            </p>
-            <div className="flex flex-wrap justify-center gap-2">
-              {fuelLevel < 1 && (
-                <button
-                  onClick={() => onNavigateToStage('fuel')}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
-                >
-                  Fuel: Level 1 Required
-                </button>
-              )}
-              {boostersLevel < 4 && (
-                <button
-                  onClick={() => onNavigateToStage('boosters')}
-                  className="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
-                >
-                  Boosters: Level 4 Required
-                </button>
-              )}
-              {guidanceLevel < 2 && (
-                <button
-                  onClick={() => onNavigateToStage('guidance')}
-                  className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
-                >
-                  Guidance: Level 2 Required
-                </button>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Benefits Reminder */}
