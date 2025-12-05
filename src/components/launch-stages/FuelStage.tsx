@@ -312,7 +312,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
             <div className="border-t border-gray-700 pt-3">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-semibold text-white">
-                  Next: Level {targetLevel} - {targetLevelInfo.name}
+                  Next: Level {targetLevel}
                 </h3>
                 <span className="text-xs text-yellow-400 font-medium">
                   +{formatPoints(targetLevelInfo.points)}
@@ -632,7 +632,7 @@ export const FuelStage: React.FC<FuelStageProps> = ({ progress, fuelProgress, bo
                                 : 'text-white'
                             }`}
                           >
-                            Level {level.level}: {level.name}
+                            Level {level.level}
                           </h4>
                           <p className="text-xs text-gray-400">{level.description}</p>
                         </div>

@@ -237,7 +237,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
           {currentLevel < 5 && targetLevelInfo && (
             <div className="mt-6 border-t border-gray-700 pt-6">
               <h3 className="text-lg font-semibold text-white mb-3">
-                Next: Level {targetLevel} - {targetLevelInfo.name}
+                Next: Level {targetLevel}
               </h3>
               <p className="text-gray-400 mb-4">{targetLevelInfo.description}</p>
 
