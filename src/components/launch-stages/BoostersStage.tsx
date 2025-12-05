@@ -256,42 +256,105 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
           )}
         </div>
 
-        {/* Compact Feature Cards */}
-        <div className="space-y-3 mb-4">
-          <h3 className="text-sm font-semibold text-white">Available Features</h3>
-          {featureCards.map((feature) => {
-            const FeatureIcon = feature.icon;
-            const isLocked = feature.level > currentLevel + 1;
-            const isDisabled = feature.disabled;
-            const isNextLevel = feature.level === currentLevel + 1;
+        {/* Featured Next Action */}
+        {featureCards.map((feature) => {
+          const FeatureIcon = feature.icon;
+          const isNextLevel = feature.level === currentLevel + 1;
+          const isLocked = feature.level > currentLevel + 1;
+          const isDisabled = feature.disabled;
 
+          if (isNextLevel && !feature.completed) {
             return (
-              <div
-                key={feature.id}
-                className={`
-                  bg-gray-800/50 border rounded-lg p-3 flex items-center justify-between transition-all
-                  ${isLocked || isDisabled ? 'border-gray-700 opacity-60' :
-                    isNextLevel ? 'border-cyan-500 bg-cyan-900/10 shadow-lg shadow-cyan-500/10' :
-                    'border-gray-700'}
-                `}
-              >
-                <div className="flex items-center gap-3 flex-1">
+              <div key={feature.id} className="mb-6">
+                <h3 className="text-sm font-semibold text-white mb-3 flex items-center">
+                  <span className="text-cyan-400">→</span>
+                  <span className="ml-2">Your Next Booster</span>
+                </h3>
+                <button
+                  onClick={feature.action}
+                  disabled={isDisabled}
+                  className="w-full bg-gradient-to-br from-cyan-900/40 to-blue-900/40 border-2 border-cyan-500 rounded-xl p-6 text-left transition-all hover:from-cyan-900/60 hover:to-blue-900/60 hover:border-cyan-400 hover:shadow-lg hover:shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed group"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-16 h-16 bg-cyan-500/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-500/30 transition-colors">
+                      <FeatureIcon className="w-8 h-8 text-cyan-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="text-xl font-bold text-white">{feature.name}</h4>
+                        <span className="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded-full font-medium">
+                          Level {feature.level}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-300 mb-3">{feature.description}</p>
+                      <div className="flex items-center text-cyan-400 text-sm font-medium">
+                        <span>Click to get started</span>
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            );
+          }
+          return null;
+        })}
+
+        {/* Other Features */}
+        <div className="space-y-2 mb-4">
+          <h3 className="text-sm font-semibold text-gray-400 mb-3">
+            {currentLevel === 0 ? 'Coming Up Next' : 'All Features'}
+          </h3>
+          <div className="grid grid-cols-1 gap-2">
+            {featureCards.map((feature) => {
+              const FeatureIcon = feature.icon;
+              const isLocked = feature.level > currentLevel + 1;
+              const isDisabled = feature.disabled;
+              const isNextLevel = feature.level === currentLevel + 1;
+
+              // Skip the featured next level card
+              if (isNextLevel && !feature.completed) {
+                return null;
+              }
+
+              return (
+                <button
+                  key={feature.id}
+                  onClick={!isLocked && !isDisabled && !feature.completed ? feature.action : undefined}
+                  disabled={isLocked || isDisabled || feature.completed}
+                  className={`
+                    border rounded-lg p-3 flex items-center gap-3 text-left transition-all
+                    ${feature.completed ? 'bg-green-900/10 border-green-700/50' :
+                      isLocked || isDisabled ? 'bg-gray-800/30 border-gray-700 opacity-50 cursor-not-allowed' :
+                      'bg-gray-800/50 border-gray-700 hover:bg-gray-800 hover:border-gray-600 cursor-pointer'}
+                  `}
+                >
                   <div className="flex-shrink-0">
                     {feature.completed ? (
-                      <CheckCircle className="w-5 h-5 text-green-400" />
-                    ) : isLocked || isDisabled ? (
-                      <FeatureIcon className="w-5 h-5 text-gray-500" />
+                      <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                        <CheckCircle className="w-5 h-5 text-green-400" />
+                      </div>
                     ) : (
-                      <FeatureIcon className="w-5 h-5 text-cyan-400" />
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        isLocked || isDisabled ? 'bg-gray-700/50' : 'bg-gray-700'
+                      }`}>
+                        <FeatureIcon className={`w-5 h-5 ${
+                          isLocked || isDisabled ? 'text-gray-500' : 'text-gray-400'
+                        }`} />
+                      </div>
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-semibold text-white truncate">{feature.name}</h4>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className={`text-sm font-semibold truncate ${
+                        feature.completed ? 'text-green-400' : 'text-white'
+                      }`}>
+                        {feature.name}
+                      </h4>
                       {feature.completed && (
                         <span className="text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded flex-shrink-0">
-                          Done
+                          Complete
                         </span>
                       )}
                       {isDisabled && (
@@ -300,24 +363,16 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-400 truncate">{feature.description}</p>
+                    <p className="text-xs text-gray-400">{feature.description}</p>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-xs text-gray-500">Lvl {feature.level}</span>
-                  {!isLocked && !isDisabled && !feature.completed && (
-                    <button
-                      onClick={feature.action}
-                      className="bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-medium px-3 py-1.5 rounded transition-colors"
-                    >
-                      Try
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                  <div className="flex-shrink-0">
+                    <span className="text-xs text-gray-500 font-medium">Lvl {feature.level}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Action Button */}
