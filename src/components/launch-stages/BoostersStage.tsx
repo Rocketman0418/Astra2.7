@@ -223,7 +223,7 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
       {/* Compact Progress Bar at Top */}
       <StageProgressBar
         fuelProgress={fuelProgress}
-        boostersProgress={boostersProgress}
+        boostersProgress={localProgress || boostersProgress}
         guidanceProgress={guidanceProgress}
         currentStage="boosters"
         onStageClick={handleStageNavigation}
@@ -255,7 +255,7 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-bold text-white flex items-center">
               <LevelIcon className="w-5 h-5 mr-2 text-cyan-400" />
-              {currentLevel === 0 ? 'Get Started' : `Level ${currentLevel}: ${currentLevelInfo.name}`}
+              {currentLevel === 0 ? 'Get Started' : `Level ${currentLevel} → ${currentLevelInfo.name}`}
             </h2>
             <button
               onClick={() => setShowLevelInfoModal(true)}
