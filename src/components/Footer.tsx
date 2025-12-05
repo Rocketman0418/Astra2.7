@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, FileText, Mail, ExternalLink } from 'lucide-react';
+import { Shield, FileText, Mail } from 'lucide-react';
 import { LegalDocumentModal } from './LegalDocumentModal';
 import { PRIVACY_POLICY, TERMS_OF_SERVICE } from '../data/legalDocuments';
 
@@ -25,7 +25,7 @@ export const Footer: React.FC = () => {
 
       <footer className="bg-gray-900 border-t border-gray-800 py-6 px-4 mt-auto">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Company Info */}
             <div>
               <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
@@ -71,34 +71,6 @@ export const Footer: React.FC = () => {
               </ul>
             </div>
 
-            {/* Product Links */}
-            <div>
-              <h3 className="text-white font-semibold mb-3">Product</h3>
-              <ul className="space-y-2">
-                <li>
-                  <a
-                    href="https://rockethub.ai"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-2 group"
-                  >
-                    Website
-                    <ExternalLink className="w-3 h-3 group-hover:text-blue-400" />
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://rockethub.ai/about"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-2 group"
-                  >
-                    About Us
-                    <ExternalLink className="w-3 h-3 group-hover:text-blue-400" />
-                  </a>
-                </li>
-              </ul>
-            </div>
           </div>
 
           {/* Bottom Bar */}
