@@ -119,16 +119,19 @@ CRITICAL WORDING RULES:
 - For documents and meetings: Use "recent" WITHOUT timeframes (NO "last 24 hours", "last 48 hours", etc.)
 - For news/web searches ONLY: Use "recent industry news in the last 24-48 hours" to trigger web search
 - Use phrases like "most recent" or "recent" rather than specific quantities or timeframes
+- AVOID overly specific business terms like "KPIs", "OKRs", "quarterly targets", etc. - use generic terms like "measurables", "metrics", "performance indicators", "key metrics"
 
 GOOD EXAMPLES:
 - "Analyze recent strategy documents and highlight key changes"
 - "Review recent meetings and identify action items"
 - "Compare recent financial documents with recent industry news in the last 24-48 hours"
+- "Summarize key metrics from recent financial documents"
 
 BAD EXAMPLES:
 - "Analyze strategy documents modified in the last 48 hours" ❌
 - "Review meetings from the last 24 hours" ❌
 - "10 recent meetings" ❌
+- "Summarize KPIs from recent financial documents" ❌
 
 Return ONLY valid JSON in this exact format:
 [
