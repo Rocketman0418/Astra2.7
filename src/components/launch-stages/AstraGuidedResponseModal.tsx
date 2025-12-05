@@ -140,7 +140,7 @@ export const AstraGuidedResponseModal: React.FC<AstraGuidedResponseModalProps> =
           user_id: userId,
           user_email: userEmail,
           user_name: userName,
-          message_type: 'ai',
+          message_type: 'astra',
           message: responseText,
           astra_prompt: selectedPrompt,
           mode: 'private'
