@@ -112,41 +112,40 @@ export const AstraGuidedResponseModal: React.FC<AstraGuidedResponseModalProps> =
       try {
         console.log('📝 Attempting to save to astra_chats. teamId:', teamId, 'userId:', userId);
 
-        if (!teamId) {
-          console.error('❌ Cannot save to astra_chats: teamId is empty');
-        } else {
-          // Save user's prompt first
-          const { error: userError } = await supabase.from('astra_chats').insert({
-            id: uuidv4(),
-            team_id: teamId,
-            user_id: userId,
-            sender: 'user',
-            message: selectedPrompt,
-            mode: 'private'
-          });
+        // Save user's prompt first
+        const { error: userError } = await supabase.from('astra_chats').insert({
+          id: uuidv4(),
+          user_id: userId,
+          user_email: userEmail,
+          user_name: userName,
+          message_type: 'user',
+          message: selectedPrompt,
+          mode: 'private'
+        });
 
-          if (userError) {
-            console.error('❌ Error saving user prompt to astra_chats:', userError);
-            throw userError;
-          }
-
-          // Then save Astra's response
-          const { error: astraError } = await supabase.from('astra_chats').insert({
-            id: uuidv4(),
-            team_id: teamId,
-            user_id: userId,
-            sender: 'astra',
-            message: responseText,
-            mode: 'private'
-          });
-
-          if (astraError) {
-            console.error('❌ Error saving Astra response to astra_chats:', astraError);
-            throw astraError;
-          }
-
-          console.log('✅ Successfully saved Level 1 prompt and response to astra_chats table');
+        if (userError) {
+          console.error('❌ Error saving user prompt to astra_chats:', userError);
+          throw userError;
         }
+
+        // Then save Astra's response
+        const { error: astraError } = await supabase.from('astra_chats').insert({
+          id: uuidv4(),
+          user_id: userId,
+          user_email: userEmail,
+          user_name: userName,
+          message_type: 'ai',
+          message: responseText,
+          astra_prompt: selectedPrompt,
+          mode: 'private'
+        });
+
+        if (astraError) {
+          console.error('❌ Error saving Astra response to astra_chats:', astraError);
+          throw astraError;
+        }
+
+        console.log('✅ Successfully saved Level 1 prompt and response to astra_chats table');
       } catch (saveError: any) {
         console.error('❌ Failed to save to astra_chats:', saveError);
         console.error('Error details:', JSON.stringify(saveError, null, 2));
