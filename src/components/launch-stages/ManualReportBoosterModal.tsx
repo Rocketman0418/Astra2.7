@@ -49,7 +49,7 @@ export const ManualReportBoosterModal: React.FC<ManualReportBoosterModalProps> =
       }
 
       // Analyze user's available data
-      const [strategyDocs, meetings, financials, emails] = await Promise.all([
+      const [strategyDocs, meetings, financials, projects] = await Promise.all([
         supabase
           .from('documents')
           .select('title, modified_time')
@@ -75,11 +75,12 @@ export const ManualReportBoosterModal: React.FC<ManualReportBoosterModalProps> =
           .limit(10),
 
         supabase
-          .from('company_emails')
-          .select('id, thread_id, email_date')
+          .from('documents')
+          .select('title, modified_time')
           .eq('team_id', teamId)
-          .order('email_date', { ascending: false })
-          .limit(50)
+          .eq('folder_type', 'projects')
+          .order('modified_time', { ascending: false })
+          .limit(10)
       ]);
 
       const dataSnapshot = {
@@ -89,8 +90,8 @@ export const ManualReportBoosterModal: React.FC<ManualReportBoosterModalProps> =
         meetingCount: meetings.data?.length || 0,
         hasFinancials: (financials.data?.length || 0) > 0,
         financialCount: financials.data?.length || 0,
-        hasEmails: (emails.data?.length || 0) > 0,
-        emailCount: emails.data?.length || 0
+        hasProjects: (projects.data?.length || 0) > 0,
+        projectCount: projects.data?.length || 0
       };
 
       // Generate AI suggestions
@@ -102,12 +103,12 @@ Available Data:
 - Strategy Documents: ${dataSnapshot.strategyCount} documents
 - Meetings: ${dataSnapshot.meetingCount} meeting notes
 - Financial Documents: ${dataSnapshot.financialCount} documents
-- Emails: ${dataSnapshot.emailCount} email threads
+- Project Documents: ${dataSnapshot.projectCount} documents
 
 Requirements:
 1. Focus on "Daily Update" style reports
 2. Mix of recent documents (last 24-48 hours), trends, and actionable insights
-3. Use available data sources
+3. Use available data sources (strategy, meetings, financials, projects)
 4. Keep titles concise (3-5 words)
 5. Keep descriptions brief (1 sentence)
 6. Keep prompts specific and actionable
