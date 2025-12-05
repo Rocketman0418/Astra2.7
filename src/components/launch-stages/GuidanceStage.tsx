@@ -318,11 +318,11 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
               return (
                 <button
                   key={feature.id}
-                  onClick={!isLocked && !isDisabled && !feature.completed ? feature.action : undefined}
-                  disabled={isLocked || isDisabled || feature.completed}
+                  onClick={!isLocked && !isDisabled ? feature.action : undefined}
+                  disabled={isLocked || isDisabled}
                   className={`
                     border rounded-lg p-3 flex items-center gap-3 text-left transition-all
-                    ${feature.completed ? 'bg-green-900/10 border-green-700/50' :
+                    ${feature.completed ? 'bg-green-900/10 border-green-700/50 hover:bg-green-900/20 hover:border-green-600 cursor-pointer' :
                       isLocked || isDisabled ? 'bg-gray-800/30 border-gray-700 opacity-50 cursor-not-allowed' :
                       'bg-gray-800/50 border-gray-700 hover:bg-gray-800 hover:border-gray-600 cursor-pointer'}
                   `}
@@ -352,7 +352,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
                       </h4>
                       {feature.completed && (
                         <span className="text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded flex-shrink-0">
-                          Complete
+                          ✓ Done - Click to Update
                         </span>
                       )}
                       {isDisabled && (
