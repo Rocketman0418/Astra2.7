@@ -107,7 +107,7 @@ Available Data:
 
 Requirements:
 1. Focus on "Daily Update" style reports
-2. Mix of recent documents (last 24-48 hours), trends, and actionable insights
+2. Mix of recent documents, trends, and actionable insights
 3. Use available data sources (strategy, meetings, financials, projects)
 4. Keep titles concise (3-5 words)
 5. Keep descriptions brief (1 sentence)
@@ -116,15 +116,26 @@ Requirements:
 CRITICAL WORDING RULES:
 - NEVER use the term "meeting notes" - always say "recent meetings" or "most recent meeting"
 - NEVER use specific numbers like "10 recent meetings" - use "recent meetings" or "most recent meeting" instead
-- For reports needing external data, include "recent news from the last 24-48 hours" to trigger web search
-- Use phrases like "most recent" or "recent" rather than specific quantities to ensure workflow success
+- For documents and meetings: Use "recent" WITHOUT timeframes (NO "last 24 hours", "last 48 hours", etc.)
+- For news/web searches ONLY: Use "recent industry news in the last 24-48 hours" to trigger web search
+- Use phrases like "most recent" or "recent" rather than specific quantities or timeframes
+
+GOOD EXAMPLES:
+- "Analyze recent strategy documents and highlight key changes"
+- "Review recent meetings and identify action items"
+- "Compare recent financial documents with recent industry news in the last 24-48 hours"
+
+BAD EXAMPLES:
+- "Analyze strategy documents modified in the last 48 hours" ❌
+- "Review meetings from the last 24 hours" ❌
+- "10 recent meetings" ❌
 
 Return ONLY valid JSON in this exact format:
 [
   {
     "title": "Recent Strategy Updates",
     "description": "Key changes in recent strategy documents",
-    "prompt": "Analyze strategy documents modified in the last 48 hours and highlight key changes, new initiatives, and action items"
+    "prompt": "Analyze recent strategy documents and highlight key changes, new initiatives, and action items"
   }
 ]`;
 
@@ -150,7 +161,7 @@ Return ONLY valid JSON in this exact format:
         {
           title: 'Daily Meeting Action Digest',
           description: 'Summarize all pending action items and critical decisions from recent meetings',
-          prompt: 'Review recent meetings from the last 24-48 hours and generate a prioritized list of open action items, identifying owners and critical deadlines for immediate follow-up'
+          prompt: 'Review recent meetings and generate a prioritized list of open action items, identifying owners and critical deadlines for immediate follow-up'
         },
         {
           title: 'Strategic Priorities Update',
@@ -160,7 +171,7 @@ Return ONLY valid JSON in this exact format:
         {
           title: 'Daily News Brief',
           description: 'Industry updates aligned to your strategy',
-          prompt: 'Provide a brief summary of recent news from the last 24-48 hours that is important for our business. Focus on the top 3 impacts to our business, and a recommendation of actions that align with our mission, core values or goals'
+          prompt: 'Provide a brief summary of recent industry news in the last 24-48 hours that is important for our business. Focus on the top 3 impacts to our business, and a recommendation of actions that align with our mission, core values or goals'
         }
       ]);
     }
