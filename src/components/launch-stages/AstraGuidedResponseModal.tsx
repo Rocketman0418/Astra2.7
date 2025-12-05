@@ -110,9 +110,13 @@ export const AstraGuidedResponseModal: React.FC<AstraGuidedResponseModalProps> =
 
       // Save both user prompt and Astra response to astra_chats table
       try {
-        if (teamId) {
+        console.log('📝 Attempting to save to astra_chats. teamId:', teamId, 'userId:', userId);
+
+        if (!teamId) {
+          console.error('❌ Cannot save to astra_chats: teamId is empty');
+        } else {
           // Save user's prompt first
-          await supabase.from('astra_chats').insert({
+          const { error: userError } = await supabase.from('astra_chats').insert({
             id: uuidv4(),
             team_id: teamId,
             user_id: userId,
@@ -121,8 +125,13 @@ export const AstraGuidedResponseModal: React.FC<AstraGuidedResponseModalProps> =
             mode: 'private'
           });
 
+          if (userError) {
+            console.error('❌ Error saving user prompt to astra_chats:', userError);
+            throw userError;
+          }
+
           // Then save Astra's response
-          await supabase.from('astra_chats').insert({
+          const { error: astraError } = await supabase.from('astra_chats').insert({
             id: uuidv4(),
             team_id: teamId,
             user_id: userId,
@@ -131,10 +140,16 @@ export const AstraGuidedResponseModal: React.FC<AstraGuidedResponseModalProps> =
             mode: 'private'
           });
 
-          console.log('✅ Saved Level 1 prompt and response to astra_chats table');
+          if (astraError) {
+            console.error('❌ Error saving Astra response to astra_chats:', astraError);
+            throw astraError;
+          }
+
+          console.log('✅ Successfully saved Level 1 prompt and response to astra_chats table');
         }
-      } catch (saveError) {
-        console.error('Error saving to astra_chats:', saveError);
+      } catch (saveError: any) {
+        console.error('❌ Failed to save to astra_chats:', saveError);
+        console.error('Error details:', JSON.stringify(saveError, null, 2));
         // Don't fail the whole operation if saving fails
       }
 

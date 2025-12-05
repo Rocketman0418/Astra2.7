@@ -87,9 +87,6 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
       await completeAchievement('boosters_first_prompt', 'boosters');
       await updateStageLevel('boosters', 1);
 
-      // Refresh progress data to update UI
-      await fetchStageProgress();
-
       // Show toast notification
       if (showLevelUp) {
         const levelInfo = BOOSTERS_LEVELS[0]; // Level 1 info
@@ -100,6 +97,9 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
     // Close the response modal and return to Boosters Stage
     setShowResponseModal(false);
     setSelectedPrompt('');
+
+    // Refresh local progress after modal closes
+    await refreshLocalProgress();
   };
 
   const handleVisualizationComplete = async () => {
