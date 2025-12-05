@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Shield, FileText, Mail } from 'lucide-react';
 
 export const Footer: React.FC = () => {
@@ -35,26 +36,22 @@ export const Footer: React.FC = () => {
               <h3 className="text-white font-semibold mb-3">Legal</h3>
               <ul className="space-y-2">
                 <li>
-                  <a
-                    href="https://airocket.app/privacy"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    to="/privacy"
                     className="text-sm text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-2 group"
                   >
                     <Shield className="w-4 h-4 group-hover:text-blue-400" />
                     Privacy Policy
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="https://airocket.app/terms"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    to="/terms"
                     className="text-sm text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-2 group"
                   >
                     <FileText className="w-4 h-4 group-hover:text-blue-400" />
                     Terms of Service
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>

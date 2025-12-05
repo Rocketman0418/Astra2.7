@@ -21,6 +21,8 @@ import { PricingStrategyPage } from './components/PricingStrategyPage';
 import { MCPStrategyPage } from './components/MCPStrategyPage';
 import { PasswordResetPage } from './components/PasswordResetPage';
 import { LaunchPreparationFlow } from './components/LaunchPreparationFlow';
+import { PrivacyPolicyPage } from './components/PrivacyPolicyPage';
+import { TermsOfServicePage } from './components/TermsOfServicePage';
 import { useGmailTokenRefresh } from './hooks/useGmailTokenRefresh';
 import { useFeedbackPrompt } from './hooks/useFeedbackPrompt';
 import { useActivityTracking } from './hooks/useActivityTracking';
@@ -270,6 +272,10 @@ const AppContent: React.FC = () => {
 
       {/* Password Reset Page - Public Route */}
       <Route path="/reset-password" element={<PasswordResetPage />} />
+
+      {/* Legal Pages - Public Routes */}
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/terms" element={<TermsOfServicePage />} />
 
       {/* Main App Routes */}
       <Route
