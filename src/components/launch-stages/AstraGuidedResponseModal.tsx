@@ -108,6 +108,36 @@ export const AstraGuidedResponseModal: React.FC<AstraGuidedResponseModalProps> =
         responseText = JSON.stringify(data);
       }
 
+      // Save both user prompt and Astra response to astra_chats table
+      try {
+        if (teamId) {
+          // Save user's prompt first
+          await supabase.from('astra_chats').insert({
+            id: uuidv4(),
+            team_id: teamId,
+            user_id: userId,
+            sender: 'user',
+            message: selectedPrompt,
+            mode: 'private'
+          });
+
+          // Then save Astra's response
+          await supabase.from('astra_chats').insert({
+            id: uuidv4(),
+            team_id: teamId,
+            user_id: userId,
+            sender: 'astra',
+            message: responseText,
+            mode: 'private'
+          });
+
+          console.log('✅ Saved Level 1 prompt and response to astra_chats table');
+        }
+      } catch (saveError) {
+        console.error('Error saving to astra_chats:', saveError);
+        // Don't fail the whole operation if saving fails
+      }
+
       setAstraResponse(responseText);
       setIsLoading(false);
     } catch (err: any) {

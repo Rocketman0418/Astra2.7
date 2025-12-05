@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X, Zap, CheckCircle, ArrowRight, MessageCircle, BarChart, FileBarChart, CalendarClock, Bot, Sparkles, Info } from 'lucide-react';
 import { StageProgress } from '../../hooks/useLaunchPreparation';
 import { useLaunchPreparation } from '../../hooks/useLaunchPreparation';
@@ -24,7 +24,7 @@ interface BoostersStageProps {
 
 export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProgress, boostersProgress, guidanceProgress, onBack, onComplete, showLevelUp, onExitToChat }) => {
   const { user } = useAuth();
-  const { updateStageLevel, completeAchievement, fetchStageProgress } = useLaunchPreparation();
+  const { updateStageLevel, completeAchievement, fetchStageProgress, getStageProgress } = useLaunchPreparation();
   const [showGuidedChat, setShowGuidedChat] = useState(false);
   const [showResponseModal, setShowResponseModal] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<string>('');
@@ -34,10 +34,29 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
   const [showScheduledReportModal, setShowScheduledReportModal] = useState(false);
   const [showLevelInfoModal, setShowLevelInfoModal] = useState(false);
   const [checkingLevel, setCheckingLevel] = useState(false);
+  const [localProgress, setLocalProgress] = useState<StageProgress | null>(progress);
 
   const teamId = user?.user_metadata?.team_id;
 
-  const currentLevel = progress?.level || 0;
+  // Update local progress when prop changes
+  useEffect(() => {
+    setLocalProgress(progress);
+  }, [progress]);
+
+  // Refresh local progress from hook after operations
+  const refreshLocalProgress = useCallback(async () => {
+    await fetchStageProgress();
+    // Give a moment for the state to update
+    setTimeout(() => {
+      const updatedProgress = getStageProgress('boosters');
+      if (updatedProgress) {
+        setLocalProgress(updatedProgress);
+        console.log('✅ Local progress updated:', updatedProgress);
+      }
+    }, 200);
+  }, [fetchStageProgress, getStageProgress]);
+
+  const currentLevel = localProgress?.level || 0;
   const targetLevel = currentLevel + 1;
   const currentLevelInfo = BOOSTERS_LEVELS[currentLevel] || BOOSTERS_LEVELS[0];
   const targetLevelInfo = BOOSTERS_LEVELS[targetLevel - 1];
@@ -47,7 +66,7 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
 
   // Check achievements in progress
   const hasCompletedAchievement = (key: string): boolean => {
-    return progress?.achievements?.includes(key) || false;
+    return localProgress?.achievements?.includes(key) || false;
   };
 
   const handlePromptSelected = (prompt: string) => {
@@ -88,16 +107,17 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
       await completeAchievement('boosters_first_visualization', 'boosters');
       await updateStageLevel('boosters', 2);
 
-      // Refresh progress data to update UI
-      await fetchStageProgress();
-
       // Show toast notification
       if (showLevelUp) {
         const levelInfo = BOOSTERS_LEVELS[1]; // Level 2 info
         showLevelUp('boosters', 2, levelInfo?.points || 30);
       }
     }
+
     setShowVisualizationModal(false);
+
+    // Refresh local progress after modal closes
+    await refreshLocalProgress();
   };
 
   const handleManualReportComplete = async () => {
