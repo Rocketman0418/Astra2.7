@@ -24,6 +24,7 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
   const [showVisualizationModal, setShowVisualizationModal] = useState(false);
   const [showManualReportModal, setShowManualReportModal] = useState(false);
   const [showScheduledReportModal, setShowScheduledReportModal] = useState(false);
+  const [showLevelInfoModal, setShowLevelInfoModal] = useState(false);
   const [checkingLevel, setCheckingLevel] = useState(false);
 
   const currentLevel = progress?.level || 0;
@@ -201,15 +202,20 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
               <LevelIcon className="w-5 h-5 mr-2 text-cyan-400" />
               {currentLevel === 0 ? 'Get Started' : `Level ${currentLevel}: ${currentLevelInfo.name}`}
             </h2>
-            <button className="text-gray-400 hover:text-white transition-colors">
+            <button
+              onClick={() => setShowLevelInfoModal(true)}
+              className="text-gray-400 hover:text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            >
               <Info className="w-5 h-5" />
             </button>
           </div>
 
           {currentLevel === 0 ? (
-            <p className="text-sm text-gray-300 mb-3">
-              <strong>Try Astra Guided Chat</strong> or send 5 prompts to reach Level 1.
-            </p>
+            <div className="bg-cyan-900/20 border border-cyan-700 rounded-lg p-3 mb-3">
+              <p className="text-sm text-cyan-300">
+                <strong>👇 Start with Level 1 below:</strong> Try Astra Guided Chat or send 5 prompts to unlock more features!
+              </p>
+            </div>
           ) : (
             <p className="text-sm text-gray-300 mb-3">
               {currentLevelInfo.description}
@@ -257,13 +263,16 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
             const FeatureIcon = feature.icon;
             const isLocked = feature.level > currentLevel + 1;
             const isDisabled = feature.disabled;
+            const isNextLevel = feature.level === currentLevel + 1;
 
             return (
               <div
                 key={feature.id}
                 className={`
-                  bg-gray-800/50 border rounded-lg p-3 flex items-center justify-between
-                  ${isLocked || isDisabled ? 'border-gray-700 opacity-60' : 'border-gray-700'}
+                  bg-gray-800/50 border rounded-lg p-3 flex items-center justify-between transition-all
+                  ${isLocked || isDisabled ? 'border-gray-700 opacity-60' :
+                    isNextLevel ? 'border-cyan-500 bg-cyan-900/10 shadow-lg shadow-cyan-500/10' :
+                    'border-gray-700'}
                 `}
               >
                 <div className="flex items-center gap-3 flex-1">
@@ -359,6 +368,140 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
           onClose={() => setShowScheduledReportModal(false)}
           onComplete={handleScheduledReportComplete}
         />
+      )}
+
+      {/* Level Info Modal */}
+      {showLevelInfoModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 rounded-lg border border-gray-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border-b border-gray-700 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-cyan-600/20 flex items-center justify-center">
+                    <Zap className="w-6 h-6 text-cyan-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Boosters Stage Levels</h3>
+                </div>
+                <button
+                  onClick={() => setShowLevelInfoModal(false)}
+                  className="text-gray-400 hover:text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-300 mb-4">
+                Progress through 5 Booster Levels by trying out powerful AI features. Each level unlocks new capabilities and earns you Launch Points.
+              </p>
+
+              {BOOSTERS_LEVELS.map((level, index) => {
+                const isCurrentLevel = currentLevel === level.level;
+                const isCompleted = currentLevel > level.level;
+                const LevelIcon = levelIcons[index];
+
+                return (
+                  <div
+                    key={level.level}
+                    className={`border rounded-lg p-4 ${
+                      isCurrentLevel
+                        ? 'border-cyan-500 bg-cyan-900/10'
+                        : isCompleted
+                        ? 'border-green-700 bg-green-900/10'
+                        : 'border-gray-700 bg-gray-800/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                            isCurrentLevel
+                              ? 'bg-cyan-600/20'
+                              : isCompleted
+                              ? 'bg-green-600/20'
+                              : 'bg-gray-700/50'
+                          }`}
+                        >
+                          {isCompleted ? (
+                            <CheckCircle className="w-6 h-6 text-green-400" />
+                          ) : (
+                            <LevelIcon
+                              className={`w-6 h-6 ${
+                                isCurrentLevel ? 'text-cyan-400' : 'text-gray-400'
+                              }`}
+                            />
+                          )}
+                        </div>
+                        <div>
+                          <h4
+                            className={`font-semibold ${
+                              isCurrentLevel
+                                ? 'text-cyan-400'
+                                : isCompleted
+                                ? 'text-green-400'
+                                : 'text-white'
+                            }`}
+                          >
+                            Level {level.level}: {level.name}
+                          </h4>
+                          <p className="text-xs text-gray-400">{level.description}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span
+                          className={`text-sm font-medium ${
+                            isCompleted ? 'text-green-400' : 'text-yellow-400'
+                          }`}
+                        >
+                          +{formatPoints(level.points)}
+                        </span>
+                        {isCurrentLevel && (
+                          <p className="text-xs text-cyan-400 mt-1">Current</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-3 space-y-1">
+                      <p className="text-xs text-gray-400 font-medium mb-1">Requirements:</p>
+                      {level.requirements.map((req, reqIndex) => (
+                        <div key={reqIndex} className="flex items-center gap-2">
+                          <div
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              isCompleted ? 'bg-green-400' : 'bg-gray-600'
+                            }`}
+                          />
+                          <p
+                            className={`text-xs ${
+                              isCompleted ? 'text-green-300' : 'text-gray-400'
+                            }`}
+                          >
+                            {req}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+
+              <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-4 mt-4">
+                <p className="text-sm text-blue-300">
+                  <span className="font-medium">💡 Tip:</span> Try each feature to unlock the next level. Start with Astra Guided Chat to get personalized prompt suggestions based on your data!
+                </p>
+              </div>
+
+              <div className="flex justify-center pt-2">
+                <button
+                  onClick={() => setShowLevelInfoModal(false)}
+                  className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl min-h-[44px]"
+                >
+                  Got It
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
