@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { X, Compass, CheckCircle, ArrowRight, Settings, Newspaper, UserPlus, Briefcase, BookOpen, Info } from 'lucide-react';
+import { X, Compass, CheckCircle, ArrowRight, Settings, Newspaper, UserPlus, Briefcase, BookOpen, Info, Sparkles } from 'lucide-react';
 import { StageProgress } from '../../hooks/useLaunchPreparation';
 import { useLaunchPreparation } from '../../hooks/useLaunchPreparation';
 import { GUIDANCE_LEVELS, formatPoints } from '../../lib/launch-preparation-utils';
-import { TeamSettingsModal } from '../TeamSettingsModal';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { StageProgressBar } from './StageProgressBar';
+import { GuidanceTeamConfigModal } from './GuidanceTeamConfigModal';
+import { GuidanceNewsModal } from './GuidanceNewsModal';
+import { GuidanceInviteMemberModal } from './GuidanceInviteMemberModal';
 
 interface GuidanceStageProps {
   progress: StageProgress | null;
@@ -19,11 +21,11 @@ interface GuidanceStageProps {
 
 export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProgress, boostersProgress, guidanceProgress, onBack, onComplete }) => {
   const { user } = useAuth();
-  const { updateStageLevel, completeAchievement } = useLaunchPreparation();
-  const [showTeamSettings, setShowTeamSettings] = useState(false);
-  const [teamConfigured, setTeamConfigured] = useState(false);
-  const [newsEnabled, setNewsEnabled] = useState(false);
-  const [memberInvited, setMemberInvited] = useState(false);
+  const { updateStageLevel, completeAchievement, fetchStageProgress } = useLaunchPreparation();
+  const [showTeamConfigModal, setShowTeamConfigModal] = useState(false);
+  const [showNewsModal, setShowNewsModal] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showLevelInfo, setShowLevelInfo] = useState(false);
 
   const currentLevel = progress?.level || 0;
   const targetLevel = currentLevel + 1;
@@ -38,71 +40,41 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
     return progress?.achievements?.includes(key) || false;
   };
 
-  // Check team configuration status
-  useEffect(() => {
-    const checkTeamStatus = async () => {
-      if (!user) return;
+  // Handle modal proceeds with achievements
+  const handleTeamConfigProceed = async () => {
+    setShowTeamConfigModal(false);
+    // Award task achievement
+    await completeAchievement('guidance_team_settings', 'guidance');
+    // Award level achievement
+    await completeAchievement('guidance_level_1', 'guidance');
+    // Update level
+    await updateStageLevel('guidance', 1);
+    // Refresh progress
+    await fetchStageProgress();
+  };
 
-      try {
-        // Check if team settings are configured
-        const { data: userData } = await supabase
-          .from('users')
-          .select('team_id')
-          .eq('id', user.id)
-          .single();
+  const handleNewsProceed = async () => {
+    setShowNewsModal(false);
+    // Award task achievement
+    await completeAchievement('guidance_news_enabled', 'guidance');
+    // Award level achievement
+    await completeAchievement('guidance_level_2', 'guidance');
+    // Update level
+    await updateStageLevel('guidance', 2);
+    // Refresh progress
+    await fetchStageProgress();
+  };
 
-        if (userData?.team_id) {
-          const { data: teamSettings } = await supabase
-            .from('team_settings')
-            .select('*')
-            .eq('team_id', userData.team_id)
-            .maybeSingle();
-
-          setTeamConfigured(!!teamSettings);
-          setNewsEnabled(teamSettings?.news_enabled || false);
-
-          // Check if user has invited anyone
-          const { data: teamMembers } = await supabase
-            .from('users')
-            .select('id')
-            .eq('team_id', userData.team_id)
-            .neq('id', user.id);
-
-          setMemberInvited((teamMembers?.length || 0) > 0);
-        }
-      } catch (err) {
-        console.error('Error checking team status:', err);
-      }
-    };
-
-    checkTeamStatus();
-  }, [user]);
-
-  // Auto-complete levels based on status
-  useEffect(() => {
-    const autoCompleteLevel = async () => {
-      if (teamConfigured && currentLevel < 1) {
-        await completeAchievement('guidance_team_settings', 'guidance');
-        await updateStageLevel('guidance', 1);
-      }
-
-      if (newsEnabled && currentLevel < 2) {
-        await completeAchievement('guidance_news_enabled', 'guidance');
-        await updateStageLevel('guidance', 2);
-      }
-
-      if (memberInvited && currentLevel < 3) {
-        await completeAchievement('guidance_member_invited', 'guidance');
-        await updateStageLevel('guidance', 3);
-      }
-    };
-
-    autoCompleteLevel();
-  }, [teamConfigured, newsEnabled, memberInvited, currentLevel, completeAchievement, updateStageLevel]);
-
-  const handleTeamSettingsSaved = async () => {
-    setShowTeamSettings(false);
-    setTeamConfigured(true);
+  const handleInviteProceed = async () => {
+    setShowInviteModal(false);
+    // Award task achievement
+    await completeAchievement('guidance_member_invited', 'guidance');
+    // Award level achievement
+    await completeAchievement('guidance_level_3', 'guidance');
+    // Update level
+    await updateStageLevel('guidance', 3);
+    // Refresh progress
+    await fetchStageProgress();
   };
 
   const featureCards = [
@@ -113,9 +85,9 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
       icon: Settings,
       color: 'green',
       level: 1,
-      action: () => setShowTeamSettings(true),
+      action: () => setShowTeamConfigModal(true),
       actionText: 'Configure Team',
-      completed: hasCompletedAchievement('guidance_team_settings') || teamConfigured
+      completed: hasCompletedAchievement('guidance_team_settings')
     },
     {
       id: 'news',
@@ -124,9 +96,9 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
       icon: Newspaper,
       color: 'blue',
       level: 2,
-      action: () => setShowTeamSettings(true),
+      action: () => setShowNewsModal(true),
       actionText: 'Enable News',
-      completed: hasCompletedAchievement('guidance_news_enabled') || newsEnabled
+      completed: hasCompletedAchievement('guidance_news_enabled')
     },
     {
       id: 'invite_member',
@@ -135,9 +107,9 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
       icon: UserPlus,
       color: 'purple',
       level: 3,
-      action: () => setShowTeamSettings(true),
+      action: () => setShowInviteModal(true),
       actionText: 'Invite Members',
-      completed: hasCompletedAchievement('guidance_member_invited') || memberInvited
+      completed: hasCompletedAchievement('guidance_member_invited')
     },
     {
       id: 'ai_job',
@@ -213,7 +185,11 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
               <LevelIcon className="w-5 h-5 mr-2 text-green-400" />
               {currentLevel === 0 ? 'Get Started' : `Level ${currentLevel}: ${currentLevelInfo.name}`}
             </h2>
-            <button className="text-gray-400 hover:text-white transition-colors">
+            <button
+              onClick={() => setShowLevelInfo(true)}
+              className="text-gray-400 hover:text-white transition-colors"
+              title="View all levels"
+            >
               <Info className="w-5 h-5" />
             </button>
           </div>
@@ -276,6 +252,55 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
             </div>
           )}
         </div>
+
+        {/* Next Action - Prominent */}
+        {currentLevel < 5 && targetLevelInfo && (
+          <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-xl p-6 mb-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Sparkles className="w-5 h-5 text-green-400" />
+                  <h3 className="text-lg font-bold text-white">Next: {targetLevelInfo.name}</h3>
+                </div>
+                <p className="text-gray-300 text-sm mb-4">{targetLevelInfo.description}</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <span className="text-yellow-400 font-semibold">
+                      {formatPoints(targetLevelInfo.points)} points
+                    </span>
+                  </div>
+                  {targetLevel === 1 && !featureCards[0].completed && (
+                    <button
+                      onClick={() => setShowTeamConfigModal(true)}
+                      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors flex items-center space-x-2"
+                    >
+                      <span>Configure Team</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  )}
+                  {targetLevel === 2 && !featureCards[1].completed && (
+                    <button
+                      onClick={() => setShowNewsModal(true)}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center space-x-2"
+                    >
+                      <span>Enable News</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  )}
+                  {targetLevel === 3 && !featureCards[2].completed && (
+                    <button
+                      onClick={() => setShowInviteModal(true)}
+                      className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors flex items-center space-x-2"
+                    >
+                      <span>Invite Members</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Feature Cards */}
         <div className="space-y-4 mb-6">
@@ -405,12 +430,140 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
         </div>
       </div>
 
-      {/* Team Settings Modal */}
-      {showTeamSettings && (
-        <TeamSettingsModal
-          onClose={() => setShowTeamSettings(false)}
-          onSaved={handleTeamSettingsSaved}
+      {/* Modals */}
+      {showTeamConfigModal && (
+        <GuidanceTeamConfigModal
+          onClose={() => setShowTeamConfigModal(false)}
+          onProceed={handleTeamConfigProceed}
         />
+      )}
+
+      {showNewsModal && (
+        <GuidanceNewsModal
+          onClose={() => setShowNewsModal(false)}
+          onProceed={handleNewsProceed}
+        />
+      )}
+
+      {showInviteModal && (
+        <GuidanceInviteMemberModal
+          onClose={() => setShowInviteModal(false)}
+          onProceed={handleInviteProceed}
+        />
+      )}
+
+      {/* Level Info Modal */}
+      {showLevelInfo && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden border border-gray-700">
+            <div className="sticky top-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-b border-green-500/30 px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Compass className="w-6 h-6 text-green-400" />
+                <h2 className="text-xl font-bold text-white">Guidance Stage Levels</h2>
+              </div>
+              <button
+                onClick={() => setShowLevelInfo(false)}
+                className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="space-y-4">
+                {GUIDANCE_LEVELS.map((level, index) => {
+                  const LevelIconComp = levelIcons[index];
+                  const isCompleted = currentLevel > index;
+                  const isCurrent = currentLevel === index;
+
+                  return (
+                    <div
+                      key={index}
+                      className={`
+                        border rounded-lg p-4
+                        ${isCompleted ? 'bg-green-500/10 border-green-500/30' :
+                          isCurrent ? 'bg-blue-500/10 border-blue-500/30' :
+                          'bg-gray-700/30 border-gray-600'}
+                      `}
+                    >
+                      <div className="flex items-start space-x-4">
+                        <div className={`
+                          w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0
+                          ${isCompleted ? 'bg-green-500/20' :
+                            isCurrent ? 'bg-blue-500/20' :
+                            'bg-gray-700'}
+                        `}>
+                          {isCompleted ? (
+                            <CheckCircle className="w-6 h-6 text-green-400" />
+                          ) : (
+                            <LevelIconComp className={`w-6 h-6 ${isCurrent ? 'text-blue-400' : 'text-gray-500'}`} />
+                          )}
+                        </div>
+
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-lg font-semibold text-white">
+                              Level {index + 1}: {level.name}
+                            </h3>
+                            {isCompleted && (
+                              <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded">
+                                Completed
+                              </span>
+                            )}
+                            {isCurrent && (
+                              <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded">
+                                Current
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="text-gray-300 text-sm mb-3">{level.description}</p>
+
+                          <div className="space-y-2">
+                            <p className="text-xs font-medium text-gray-400">Requirements:</p>
+                            <ul className="space-y-1">
+                              {level.requirements.map((req, reqIndex) => (
+                                <li key={reqIndex} className="flex items-center space-x-2 text-sm text-gray-300">
+                                  <div className={`
+                                    w-1.5 h-1.5 rounded-full
+                                    ${isCompleted ? 'bg-green-400' :
+                                      isCurrent ? 'bg-blue-400' :
+                                      'bg-gray-500'}
+                                  `} />
+                                  <span>{req}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          <div className="mt-3 flex items-center space-x-4">
+                            <span className={`
+                              text-xs font-semibold
+                              ${isCompleted ? 'text-green-400' :
+                                isCurrent ? 'text-yellow-400' :
+                                'text-gray-500'}
+                            `}>
+                              {formatPoints(level.points)} points
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-800 border-t border-gray-700 px-6 py-4">
+              <button
+                onClick={() => setShowLevelInfo(false)}
+                className="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
