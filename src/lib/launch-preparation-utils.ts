@@ -207,7 +207,7 @@ export function getMinimumPointsToLaunch(): number {
 export function getRecommendedPointsToLaunch(): number {
   // Maximum points possible: All levels 5 in all stages = 150 + 150 + 150 = 450 points
   // Note: This includes both task achievements and level achievements
-  return 150;
+  return 450;
 }
 
 // Get stage color theme

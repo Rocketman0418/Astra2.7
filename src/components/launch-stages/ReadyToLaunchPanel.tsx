@@ -138,25 +138,6 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
                   <p className="text-sm text-gray-300">{formatPoints(recommendedPoints)}</p>
                 </div>
               </div>
-
-              {/* Launch Requirements */}
-              <div className="mt-4 pt-4 border-t border-gray-700">
-                <p className="text-xs font-medium text-gray-400 mb-2">Minimum Requirements to Launch:</p>
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  <div className={`text-center p-2 rounded ${fuelLevel >= 1 ? 'bg-green-500/20 text-green-400' : 'bg-gray-700/50 text-gray-400'}`}>
-                    <p className="font-medium">Fuel</p>
-                    <p>Level 1</p>
-                  </div>
-                  <div className={`text-center p-2 rounded ${boostersLevel >= 4 ? 'bg-green-500/20 text-green-400' : 'bg-gray-700/50 text-gray-400'}`}>
-                    <p className="font-medium">Boosters</p>
-                    <p>Level 4</p>
-                  </div>
-                  <div className={`text-center p-2 rounded ${guidanceLevel >= 2 ? 'bg-green-500/20 text-green-400' : 'bg-gray-700/50 text-gray-400'}`}>
-                    <p className="font-medium">Guidance</p>
-                    <p>Level 2</p>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -168,16 +149,20 @@ export const ReadyToLaunchPanel: React.FC<ReadyToLaunchPanelProps> = ({
                   onClick={handleLaunch}
                   disabled={launching}
                   className={`
-                    w-full text-white font-bold py-4 px-6 rounded-xl text-lg
-                    transition-all transform
+                    w-full text-white font-bold py-6 px-8 rounded-2xl text-2xl
+                    transition-all transform relative overflow-hidden
                     ${launching
                       ? 'bg-gradient-to-r from-blue-600 to-blue-500 cursor-wait scale-95'
-                      : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:scale-105 hover:shadow-2xl'
+                      : 'bg-gradient-to-r from-blue-500 via-purple-600 to-blue-500 hover:scale-105 hover:shadow-[0_0_40px_rgba(147,51,234,0.6)] shadow-[0_0_20px_rgba(147,51,234,0.4)] animate-pulse'
                     }
                     flex items-center justify-center space-x-3
+                    before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000
                   `}
                 >
-                  <span>{launching ? 'Launching...' : '🚀 Launch AI Rocket'}</span>
+                  <span className="relative z-10 flex items-center space-x-3">
+                    <span className="text-3xl">🚀</span>
+                    <span>{launching ? 'Launching...' : 'Launch AI Rocket'}</span>
+                  </span>
                 </button>
 
                 {hasRecommendedLevel && (
