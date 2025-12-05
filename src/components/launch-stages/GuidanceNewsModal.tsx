@@ -175,7 +175,7 @@ export const GuidanceNewsModal: React.FC<GuidanceNewsModalProps> = ({
               </div>
 
               <NewsPreferencesSection
-                newsPreferences={newsPreferences}
+                preferences={newsPreferences}
                 onChange={setNewsPreferences}
               />
             </>

@@ -176,8 +176,8 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
         {/* Compact Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
-              <Compass className="w-6 h-6 text-green-400" />
+            <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+              <Compass className="w-6 h-6 text-purple-400" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-white">Guidance Stage</h1>
@@ -197,7 +197,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
         <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 mb-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-bold text-white flex items-center">
-              <LevelIcon className="w-5 h-5 mr-2 text-green-400" />
+              <LevelIcon className="w-5 h-5 mr-2 text-purple-400" />
               {currentLevel === 0 ? 'Get Started' : `Level ${currentLevel} → ${currentLevelInfo.name}`}
             </h2>
             <button
@@ -209,8 +209,8 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
           </div>
 
           {currentLevel === 0 ? (
-            <div className="bg-green-900/20 border border-green-700 rounded-lg p-3 mb-3">
-              <p className="text-sm text-green-300">
+            <div className="bg-purple-900/20 border border-purple-700 rounded-lg p-3 mb-3">
+              <p className="text-sm text-purple-300">
                 <strong>👇 Start with Level 1 below:</strong> Configure your team settings to unlock more features!
               </p>
             </div>
@@ -244,8 +244,8 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
           )}
 
           {currentLevel === 5 && (
-            <div className="mt-3 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-lg p-3 flex items-center gap-3">
-              <BookOpen className="w-6 h-6 text-green-400 flex-shrink-0" />
+            <div className="mt-3 bg-gradient-to-r from-purple-500/20 to-violet-500/20 border border-purple-500/30 rounded-lg p-3 flex items-center gap-3">
+              <BookOpen className="w-6 h-6 text-purple-400 flex-shrink-0" />
               <div>
                 <p className="text-sm font-bold text-white">Mission Parameters Set!</p>
                 <p className="text-xs text-gray-300">Ready to launch your AI Rocket</p>
@@ -265,27 +265,27 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
             return (
               <div key={feature.id} className="mb-6">
                 <h3 className="text-sm font-semibold text-white mb-3 flex items-center">
-                  <span className="text-green-400">→</span>
+                  <span className="text-purple-400">→</span>
                   <span className="ml-2">Your Next Step</span>
                 </h3>
                 <button
                   onClick={feature.action}
                   disabled={isDisabled}
-                  className="w-full bg-gradient-to-br from-green-900/40 to-emerald-900/40 border-2 border-green-500 rounded-xl p-6 text-left transition-all hover:from-green-900/60 hover:to-emerald-900/60 hover:border-green-400 hover:shadow-lg hover:shadow-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed group"
+                  className="w-full bg-gradient-to-br from-purple-900/40 to-violet-900/40 border-2 border-purple-500 rounded-xl p-6 text-left transition-all hover:from-purple-900/60 hover:to-violet-900/60 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed group"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 bg-green-500/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-green-500/30 transition-colors">
-                      <FeatureIcon className="w-8 h-8 text-green-400" />
+                    <div className="w-16 h-16 bg-purple-500/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-purple-500/30 transition-colors">
+                      <FeatureIcon className="w-8 h-8 text-purple-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
                         <h4 className="text-xl font-bold text-white">{feature.name}</h4>
-                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full font-medium">
+                        <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded-full font-medium">
                           Level {feature.level}
                         </span>
                       </div>
                       <p className="text-sm text-gray-300 mb-3">{feature.description}</p>
-                      <div className="flex items-center text-green-400 text-sm font-medium">
+                      <div className="flex items-center text-purple-400 text-sm font-medium">
                         <span>Click to get started</span>
                         <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                       </div>
@@ -374,21 +374,13 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
         </div>
 
         {/* Action Button */}
-        {currentLevel >= 1 && (
-          <button
-            onClick={onComplete}
-            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-all flex items-center justify-center space-x-2 shadow-lg"
-          >
-            <span>Continue to Ready</span>
-            <ArrowRight className="w-5 h-5" />
-          </button>
-        )}
-
-        {currentLevel < 1 && (
-          <p className="text-center text-gray-400 text-xs">
-            Complete Level 1 to unlock Ready
-          </p>
-        )}
+        <button
+          onClick={onComplete}
+          className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all flex items-center justify-center space-x-2 shadow-lg"
+        >
+          <span>To Mission Control</span>
+          <ArrowRight className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Modals */}
@@ -417,11 +409,11 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
       {showLevelInfo && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-900 rounded-lg border border-gray-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 border-b border-gray-700 p-4">
+            <div className="bg-gradient-to-r from-purple-900/30 to-violet-900/30 border-b border-gray-700 p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-600/20 flex items-center justify-center">
-                    <Compass className="w-6 h-6 text-green-400" />
+                  <div className="w-10 h-10 rounded-full bg-purple-600/20 flex items-center justify-center">
+                    <Compass className="w-6 h-6 text-purple-400" />
                   </div>
                   <h3 className="text-lg font-semibold text-white">Guidance Stage Levels</h3>
                 </div>
@@ -449,7 +441,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
                     key={level.level}
                     className={`border rounded-lg p-4 ${
                       isCurrentLevel
-                        ? 'border-green-500 bg-green-900/10'
+                        ? 'border-purple-500 bg-purple-900/10'
                         : isCompleted
                         ? 'border-green-700 bg-green-900/10'
                         : 'border-gray-700 bg-gray-800/50'
@@ -460,7 +452,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
                         <div
                           className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                             isCurrentLevel
-                              ? 'bg-green-600/20'
+                              ? 'bg-purple-600/20'
                               : isCompleted
                               ? 'bg-green-600/20'
                               : 'bg-gray-700/50'
@@ -471,7 +463,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
                           ) : (
                             <LevelIcon
                               className={`w-6 h-6 ${
-                                isCurrentLevel ? 'text-green-400' : 'text-gray-400'
+                                isCurrentLevel ? 'text-purple-400' : 'text-gray-400'
                               }`}
                             />
                           )}
@@ -480,7 +472,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
                           <h4
                             className={`font-semibold ${
                               isCurrentLevel
-                                ? 'text-green-400'
+                                ? 'text-purple-400'
                                 : isCompleted
                                 ? 'text-green-400'
                                 : 'text-white'
@@ -500,7 +492,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
                           +{formatPoints(level.points)}
                         </span>
                         {isCurrentLevel && (
-                          <p className="text-xs text-green-400 mt-1">Current</p>
+                          <p className="text-xs text-purple-400 mt-1">Current</p>
                         )}
                       </div>
                     </div>
@@ -528,8 +520,8 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
                 );
               })}
 
-              <div className="bg-green-900/20 border border-green-700 rounded-lg p-4 mt-4">
-                <p className="text-sm text-green-300">
+              <div className="bg-purple-900/20 border border-purple-700 rounded-lg p-4 mt-4">
+                <p className="text-sm text-purple-300">
                   <span className="font-medium">💡 Tip:</span> Start with Team Configuration to set up your workspace. Then enable news preferences and invite team members for better collaboration!
                 </p>
               </div>
@@ -537,7 +529,7 @@ export const GuidanceStage: React.FC<GuidanceStageProps> = ({ progress, fuelProg
               <div className="flex justify-center pt-2">
                 <button
                   onClick={() => setShowLevelInfo(false)}
-                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl min-h-[44px]"
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl min-h-[44px]"
                 >
                   Got It
                 </button>

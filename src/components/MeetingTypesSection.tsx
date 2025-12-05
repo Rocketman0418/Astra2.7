@@ -12,6 +12,8 @@ export const MeetingTypesSection: React.FC<MeetingTypesSectionProps> = ({
   meetingTypes,
   onChange,
 }) => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
   const handleAddMeetingType = () => {
     const newType: MeetingType = {
       type: 'New Meeting Type',
@@ -19,6 +21,16 @@ export const MeetingTypesSection: React.FC<MeetingTypesSectionProps> = ({
       enabled: true,
     };
     onChange([...meetingTypes, newType]);
+
+    // Scroll to bottom after adding new meeting type
+    setTimeout(() => {
+      if (containerRef.current) {
+        containerRef.current.scrollTo({
+          top: containerRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
   };
 
   const handleUpdateMeetingType = (index: number, updated: MeetingType) => {
@@ -56,7 +68,10 @@ export const MeetingTypesSection: React.FC<MeetingTypesSectionProps> = ({
           <p>Add your first meeting type to get started.</p>
         </div>
       ) : (
-        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+        <div
+          ref={containerRef}
+          className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar"
+        >
           {meetingTypes.map((type, index) => (
             <MeetingTypeCard
               key={index}
