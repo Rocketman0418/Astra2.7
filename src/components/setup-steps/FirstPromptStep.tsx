@@ -220,6 +220,12 @@ export const FirstPromptStep: React.FC<FirstPromptStepProps> = ({ onComplete, pr
       });
 
       if (!response.ok) {
+        // Handle specific error cases
+        if (response.status === 500) {
+          throw new Error('The request was too large to process. Try asking for "recent meetings" or "a sampling of documents" instead of all documents at once.');
+        } else if (response.status === 504 || response.status === 408) {
+          throw new Error('The request timed out. Try narrowing your question to focus on specific documents or recent data.');
+        }
         throw new Error(`Webhook request failed: ${response.status}`);
       }
 
@@ -266,14 +272,21 @@ export const FirstPromptStep: React.FC<FirstPromptStepProps> = ({ onComplete, pr
       });
 
       setShowVisualizationHint(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error);
+      const errorText = error.message || 'I apologize, but I encountered an issue processing your request. Please try again.';
+
+      let errorContent = errorText;
+      if (errorText.includes('too large')) {
+        errorContent = `${errorText}\n\nTips for better results:\n• Request "recent meetings" instead of "all meetings"\n• Ask for "a sampling of documents" rather than everything\n• Be specific: "latest 5 meetings" or "this month's data"\n• Focus your question on specific topics or time periods`;
+      }
+
       setMessages(prev => {
         const filtered = prev.filter(m => m.id !== thinkingMessage.id);
         const errorMessage: Message = {
           id: `error-${Date.now()}`,
           role: 'assistant',
-          content: 'I apologize, but I encountered an issue processing your request. Please try again.',
+          content: errorContent,
           timestamp: new Date(),
         };
         return [...filtered, errorMessage];

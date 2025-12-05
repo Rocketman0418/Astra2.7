@@ -166,6 +166,12 @@ PROMPT REQUIREMENTS:
 4. Focus on insights, patterns, trends, and actionable recommendations
 5. Be specific enough to drive valuable AI responses
 6. Use natural language - if there are only 8 strategy documents, say "8 strategy documents" not "100 documents"
+7. CRITICAL FOR MEETINGS: When referencing meeting documents, ALWAYS use limiting language:
+   - Say "recent meetings" NOT "all 16 meeting transcripts"
+   - Say "a sampling of our meetings" NOT "the meeting transcripts"
+   - Say "our latest 3-5 meetings" NOT "analyze all meetings"
+   - Meeting documents are VERY LARGE - requesting all meetings will cause system overload
+8. Apply similar limiting language to large document sets (if >10 documents of any type)
 
 PROMPT STRUCTURE:
 - Title: 4-6 words, action-oriented
@@ -187,9 +193,16 @@ OUTPUT FORMAT (JSON only, no other text):
   {
     "title": "Strategic Alignment Check",
     "prompt": "Review our ${dataSnapshot.strategyDocCount} strategy documents and recent meeting notes to assess how well our day-to-day activities align with our strategic goals. Identify any gaps or misalignments.",
-    "description": "Connects your ${dataSnapshot.strategyDocCount} strategy documents with ${dataSnapshot.meetingCount} meeting notes to ensure execution matches vision."
+    "description": "Connects your ${dataSnapshot.strategyDocCount} strategy documents with recent meetings to ensure execution matches vision."
   }
 ]
+
+EXAMPLE PROMPTS WITH PROPER LIMITING LANGUAGE:
+- ✅ "Analyze our recent meetings to identify..." (GOOD - uses "recent")
+- ✅ "Review a sampling of our meetings from the past month..." (GOOD - uses "sampling")
+- ✅ "Compare our 3 strategy documents with our latest 5 meetings..." (GOOD - specific limit)
+- ❌ "Analyze all 16 meeting transcripts..." (BAD - requests all meetings)
+- ❌ "Review the meeting transcripts..." (BAD - implies all meetings)
 
 Generate 3 prompts now as JSON:`;
 

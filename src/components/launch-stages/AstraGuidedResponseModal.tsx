@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Loader2, CheckCircle, Sparkles } from 'lucide-react';
+import { X, Loader2, CheckCircle, Sparkles, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
@@ -91,6 +91,12 @@ export const AstraGuidedResponseModal: React.FC<AstraGuidedResponseModalProps> =
       });
 
       if (!response.ok) {
+        // Handle specific error cases
+        if (response.status === 500) {
+          throw new Error('The request was too large to process. Try asking for "recent meetings" or "a sampling of documents" instead of all documents at once.');
+        } else if (response.status === 504 || response.status === 408) {
+          throw new Error('The request timed out. Try narrowing your question to focus on specific documents or recent data.');
+        }
         throw new Error(`Webhook request failed: ${response.status} ${response.statusText}`);
       }
 
@@ -210,14 +216,41 @@ export const AstraGuidedResponseModal: React.FC<AstraGuidedResponseModalProps> =
 
           {/* Error state */}
           {error && (
-            <div className="bg-red-900/20 border border-red-700 rounded-lg p-4">
-              <p className="text-red-400">{error}</p>
-              <button
-                onClick={sendPromptToAstra}
-                className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-              >
-                Try Again
-              </button>
+            <div className="bg-red-900/20 border border-red-700 rounded-lg p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="text-red-400 font-semibold text-lg mb-2">Request Failed</h3>
+                  <p className="text-red-300">{error}</p>
+                </div>
+              </div>
+
+              {error.includes('too large') && (
+                <div className="mt-4 p-4 bg-red-900/30 rounded-lg border border-red-700/50">
+                  <p className="text-sm text-red-200 font-medium mb-2">Tips for better results:</p>
+                  <ul className="text-sm text-red-200 space-y-1 list-disc list-inside">
+                    <li>Request "recent meetings" instead of "all meetings"</li>
+                    <li>Ask for "a sampling of documents" rather than everything</li>
+                    <li>Be specific: "latest 5 meetings" or "this month's data"</li>
+                    <li>Focus your question on specific topics or time periods</li>
+                  </ul>
+                </div>
+              )}
+
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={sendPromptToAstra}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  Try Again
+                </button>
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  Modify Prompt
+                </button>
+              </div>
             </div>
           )}
 
