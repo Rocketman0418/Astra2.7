@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { X, BarChart, Loader2, CheckCircle, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, BarChart, Loader2, CheckCircle, Sparkles, TrendingUp, Eye, Zap } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatAstraMessage } from '../../utils/formatAstraMessage';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { supabase } from '../../lib/supabase';
 
 interface VisualizationBoosterModalProps {
   onClose: () => void;
@@ -16,15 +17,111 @@ export const VisualizationBoosterModal: React.FC<VisualizationBoosterModalProps>
   astraResponse
 }) => {
   const { user } = useAuth();
-  const [step, setStep] = useState<'show_message' | 'generating' | 'showing_viz'>('show_message');
+  const [step, setStep] = useState<'loading' | 'show_message' | 'generating' | 'showing_viz'>('loading');
   const [visualizationHtml, setVisualizationHtml] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  const [fetchedAstraResponse, setFetchedAstraResponse] = useState<string>('');
+  const [carouselIndex, setCarouselIndex] = useState(0);
+
+  const carouselItems = [
+    {
+      icon: Eye,
+      title: 'See Patterns Instantly',
+      description: 'Transform complex data into clear visual insights that reveal patterns you might miss in text.',
+      color: 'from-blue-500 to-cyan-500'
+    },
+    {
+      icon: TrendingUp,
+      title: 'Track Progress',
+      description: 'Monitor trends and changes over time with interactive charts and graphs.',
+      color: 'from-purple-500 to-pink-500'
+    },
+    {
+      icon: Zap,
+      title: 'Make Faster Decisions',
+      description: 'Quickly identify key metrics and make data-driven decisions with confidence.',
+      color: 'from-orange-500 to-yellow-500'
+    },
+    {
+      icon: BarChart,
+      title: 'Share With Your Team',
+      description: 'Create compelling visualizations that communicate insights effectively to stakeholders.',
+      color: 'from-green-500 to-emerald-500'
+    }
+  ];
+
+  // Rotate carousel during generation
+  useEffect(() => {
+    if (step === 'generating') {
+      const interval = setInterval(() => {
+        setCarouselIndex((prev) => (prev + 1) % carouselItems.length);
+      }, 3000); // Change every 3 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [step]);
+
+  // Fetch the most recent Astra chat response from database
+  useEffect(() => {
+    const fetchLatestAstraResponse = async () => {
+      if (!user) return;
+
+      try {
+        // Fetch user's team_id
+        const { data: userData } = await supabase
+          .from('users')
+          .select('team_id')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (!userData?.team_id) {
+          console.error('No team_id found for user');
+          setError('Unable to find your team data');
+          setStep('show_message');
+          return;
+        }
+
+        // Fetch the most recent Astra response from astra_chats
+        const { data: chatData, error: chatError } = await supabase
+          .from('astra_chats')
+          .select('message')
+          .eq('team_id', userData.team_id)
+          .eq('sender', 'astra')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (chatError) {
+          console.error('Error fetching Astra chat:', chatError);
+        }
+
+        if (chatData?.message) {
+          console.log('✅ Fetched Astra response from database:', chatData.message.substring(0, 200));
+          setFetchedAstraResponse(chatData.message);
+        } else {
+          console.log('No Astra response found in database, using prop or fallback');
+        }
+
+        setStep('show_message');
+      } catch (err) {
+        console.error('Error in fetchLatestAstraResponse:', err);
+        setStep('show_message');
+      }
+    };
+
+    if (step === 'loading') {
+      fetchLatestAstraResponse();
+    }
+  }, [user, step]);
 
   const handleCreateVisualization = async () => {
     if (!user) return;
 
-    // Use astraResponse if available, otherwise use a fallback message
-    const messageText = astraResponse || 'Create a visualization showing key insights from recent data';
+    // Priority: fetched from database > prop > fallback
+    const messageText = fetchedAstraResponse || astraResponse || 'Create a visualization showing key insights from recent data';
+
+    console.log('📊 Creating visualization with message length:', messageText.length);
+    console.log('📊 Message source:', fetchedAstraResponse ? 'database' : astraResponse ? 'prop' : 'fallback');
 
     setStep('generating');
     setError(null);
@@ -177,17 +274,27 @@ Return only the HTML code - no other text or formatting.`;
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
+          {/* Loading Step */}
+          {step === 'loading' && (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <Loader2 className="w-12 h-12 text-cyan-400 animate-spin mx-auto mb-4" />
+                <p className="text-gray-300">Loading your data...</p>
+              </div>
+            </div>
+          )}
+
           {/* Step 1: Show Astra's previous message */}
           {step === 'show_message' && (
             <div className="space-y-6">
-              {astraResponse && (
+              {(fetchedAstraResponse || astraResponse) && (
                 <div className="bg-purple-900/10 border border-purple-700/30 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Sparkles className="w-5 h-5 text-purple-400" />
                     <p className="text-sm text-gray-400">Astra's Previous Insights:</p>
                   </div>
                   <div className="text-white prose prose-invert max-w-none">
-                    {formatAstraMessage(astraResponse)}
+                    {formatAstraMessage(fetchedAstraResponse || astraResponse || '')}
                   </div>
                 </div>
               )}
@@ -214,26 +321,51 @@ Return only the HTML code - no other text or formatting.`;
             </div>
           )}
 
-          {/* Step 2: Generating visualization */}
+          {/* Step 2: Generating visualization with Carousel */}
           {step === 'generating' && (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="w-16 h-16 text-blue-400 animate-spin mb-4" />
-              <p className="text-white text-lg font-medium mb-2">Creating your visualization...</p>
-              <p className="text-gray-400 text-sm">This may take a moment</p>
+            <div className="py-8">
+              <div className="text-center mb-8">
+                <Loader2 className="w-16 h-16 text-cyan-400 animate-spin mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">Creating Your Visualization</h3>
+                <p className="text-gray-400">Astra is analyzing your data and generating a visual dashboard...</p>
+              </div>
 
-              {/* Animated progress indicators */}
-              <div className="mt-8 space-y-3 max-w-md w-full">
-                <div className="bg-gray-700/50 rounded-lg p-3 flex items-center gap-3 animate-pulse">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                  <span className="text-sm text-gray-300">Analyzing data structure...</span>
+              {/* Benefits Carousel */}
+              <div className="max-w-2xl mx-auto">
+                <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border border-gray-700 rounded-xl p-8 min-h-[200px] flex flex-col items-center justify-center relative">
+                  {carouselItems.map((item, index) => {
+                    const Icon = item.icon;
+                    return (
+                      <div
+                        key={index}
+                        className={`text-center transition-all duration-500 ${
+                          index === carouselIndex
+                            ? 'opacity-100 scale-100 relative'
+                            : 'opacity-0 scale-95 absolute'
+                        }`}
+                      >
+                        <div className={`w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br ${item.color} flex items-center justify-center`}>
+                          <Icon className="w-8 h-8 text-white" />
+                        </div>
+                        <h4 className="text-xl font-bold text-white mb-3">{item.title}</h4>
+                        <p className="text-gray-300 text-sm max-w-md">{item.description}</p>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="bg-gray-700/50 rounded-lg p-3 flex items-center gap-3 animate-pulse" style={{ animationDelay: '0.2s' }}>
-                  <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-                  <span className="text-sm text-gray-300">Generating chart...</span>
-                </div>
-                <div className="bg-gray-700/50 rounded-lg p-3 flex items-center gap-3 animate-pulse" style={{ animationDelay: '0.4s' }}>
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <span className="text-sm text-gray-300">Rendering visualization...</span>
+
+                {/* Carousel Indicators */}
+                <div className="flex justify-center gap-2 mt-4">
+                  {carouselItems.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        index === carouselIndex
+                          ? 'w-8 bg-cyan-400'
+                          : 'w-2 bg-gray-600'
+                      }`}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
