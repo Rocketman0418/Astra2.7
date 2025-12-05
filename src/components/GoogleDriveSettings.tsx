@@ -423,6 +423,10 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ fromLa
         ? 'document_chunks_meetings'
         : doc.folder_type === 'financial'
         ? 'document_chunks_financial'
+        : doc.folder_type === 'projects'
+        ? 'document_chunks_projects'
+        : doc.folder_type === 'emails'
+        ? 'document_chunks_emails'
         : null;
 
       console.log('Chunks table:', chunksTable);
