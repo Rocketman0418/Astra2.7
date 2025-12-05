@@ -17,9 +17,11 @@ interface BoostersStageProps {
   guidanceProgress: StageProgress | null;
   onBack: () => void;
   onComplete: () => void;
+  showLevelUp?: (stage: string, level: number, points: number) => void;
+  onExitToChat?: (prompt: string) => void;
 }
 
-export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProgress, boostersProgress, guidanceProgress, onBack, onComplete }) => {
+export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProgress, boostersProgress, guidanceProgress, onBack, onComplete, showLevelUp, onExitToChat }) => {
   const { user } = useAuth();
   const { updateStageLevel, completeAchievement } = useLaunchPreparation();
   const [showGuidedChat, setShowGuidedChat] = useState(false);
@@ -44,19 +46,25 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
     return progress?.achievements?.includes(key) || false;
   };
 
-  const handleGuidedChatComplete = async () => {
+  const handleGuidedChatComplete = async (prompt?: string) => {
     if (!hasCompletedAchievement('boosters_first_prompt')) {
       await completeAchievement('boosters_guided_chat_used', 'boosters');
       await completeAchievement('boosters_first_prompt', 'boosters');
       await updateStageLevel('boosters', 1);
 
-      setTimeout(() => {
-        if (confirm('Congratulations! You\'ve completed Boosters Level 1!\n\nReady to continue to Level 2?')) {
-          // User can continue in this stage
-        }
-      }, 1000);
+      // Show toast notification
+      if (showLevelUp) {
+        const levelInfo = BOOSTERS_LEVELS[0]; // Level 1 info
+        showLevelUp('boosters', 1, levelInfo?.points || 25);
+      }
     }
-    setShowGuidedChat(false);
+
+    // If a prompt was provided and onExitToChat is available, navigate to chat
+    if (prompt && onExitToChat) {
+      onExitToChat(prompt);
+    } else {
+      setShowGuidedChat(false);
+    }
   };
 
   const handleVisualizationComplete = async () => {
@@ -64,11 +72,11 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
       await completeAchievement('boosters_first_visualization', 'boosters');
       await updateStageLevel('boosters', 2);
 
-      setTimeout(() => {
-        if (confirm('Great job! You\'ve completed Boosters Level 2!\n\nReady for Level 3?')) {
-          // User can continue in this stage
-        }
-      }, 1000);
+      // Show toast notification
+      if (showLevelUp) {
+        const levelInfo = BOOSTERS_LEVELS[1]; // Level 2 info
+        showLevelUp('boosters', 2, levelInfo?.points || 30);
+      }
     }
     setShowVisualizationModal(false);
   };
@@ -78,11 +86,11 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
       await completeAchievement('boosters_manual_report', 'boosters');
       await updateStageLevel('boosters', 3);
 
-      setTimeout(() => {
-        if (confirm('Excellent! You\'ve completed Boosters Level 3!\n\nReady for Level 4?')) {
-          // User can continue in this stage
-        }
-      }, 1000);
+      // Show toast notification
+      if (showLevelUp) {
+        const levelInfo = BOOSTERS_LEVELS[2]; // Level 3 info
+        showLevelUp('boosters', 3, levelInfo?.points || 35);
+      }
     }
     setShowManualReportModal(false);
   };
@@ -92,11 +100,11 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
       await completeAchievement('boosters_scheduled_report', 'boosters');
       await updateStageLevel('boosters', 4);
 
-      setTimeout(() => {
-        if (confirm('Amazing! You\'ve completed Boosters Level 4!\n\nYou\'re almost ready for Guidance!')) {
-          // User can continue in this stage
-        }
-      }, 1000);
+      // Show toast notification
+      if (showLevelUp) {
+        const levelInfo = BOOSTERS_LEVELS[3]; // Level 4 info
+        showLevelUp('boosters', 4, levelInfo?.points || 40);
+      }
     }
     setShowScheduledReportModal(false);
   };
@@ -403,7 +411,7 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
           isOpen={showGuidedChat}
           onClose={() => setShowGuidedChat(false)}
           onSelectPrompt={(prompt) => {
-            handleGuidedChatComplete();
+            handleGuidedChatComplete(prompt);
           }}
           teamId={teamId}
         />

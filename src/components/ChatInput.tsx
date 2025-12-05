@@ -1,4 +1,4 @@
-import React, { KeyboardEvent, useState, useRef } from 'react';
+import React, { KeyboardEvent, useState, useRef, useEffect } from 'react';
 import { Send, Bookmark, X, Reply, Sparkles } from 'lucide-react';
 import { FavoritesDropdown } from './FavoritesDropdown';
 import { SuggestedPromptsModal } from './SuggestedPromptsModal';
@@ -16,6 +16,8 @@ interface ChatInputProps {
   onCancelReply?: () => void;
   teamId?: string;
   onGuidedPromptSelected?: (prompt: string) => void;
+  guidedPromptToSubmit?: string | null;
+  onGuidedPromptSubmitted?: () => void;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -28,7 +30,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   replyState,
   onCancelReply,
   teamId,
-  onGuidedPromptSelected
+  onGuidedPromptSelected,
+  guidedPromptToSubmit,
+  onGuidedPromptSubmitted
 }) => {
   const isSubmittingRef = useRef(false);
 
@@ -59,6 +63,22 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   const [showSuggestedPrompts, setShowSuggestedPrompts] = useState(false);
   const [showGuidedChat, setShowGuidedChat] = useState(false);
+
+  // Auto-submit guided prompt from Launch Prep
+  useEffect(() => {
+    if (guidedPromptToSubmit && !disabled) {
+      // Set the input value
+      onChange(guidedPromptToSubmit);
+      // Auto-send after a brief delay to ensure input is updated
+      setTimeout(() => {
+        onSend(guidedPromptToSubmit);
+        // Notify parent that prompt was submitted
+        if (onGuidedPromptSubmitted) {
+          onGuidedPromptSubmitted();
+        }
+      }, 100);
+    }
+  }, [guidedPromptToSubmit, disabled, onChange, onSend, onGuidedPromptSubmitted]);
 
   const handleSelectFavorite = (text: string) => {
     onChange(text);

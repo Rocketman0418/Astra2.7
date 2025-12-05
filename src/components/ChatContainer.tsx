@@ -19,6 +19,8 @@ interface ChatContainerProps {
   onConversationLoaded: () => void;
   onNewChatStarted: () => void;
   onConversationChange: (conversationId: string | null) => void;
+  guidedPromptToSubmit?: string | null;
+  onGuidedPromptSubmitted?: () => void;
 }
 
 export const ChatContainer: React.FC<ChatContainerProps> = ({
@@ -28,7 +30,9 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   shouldStartNewChat,
   onConversationLoaded,
   onNewChatStarted,
-  onConversationChange
+  onConversationChange,
+  guidedPromptToSubmit,
+  onGuidedPromptSubmitted
 }) => {
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -445,6 +449,8 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
           replyState={replyState}
           onCancelReply={cancelReply}
           teamId={teamId || undefined}
+          guidedPromptToSubmit={guidedPromptToSubmit}
+          onGuidedPromptSubmitted={onGuidedPromptSubmitted}
           onGuidedPromptSelected={async (prompt) => {
             await startNewConversation();
             setInputValue(prompt);

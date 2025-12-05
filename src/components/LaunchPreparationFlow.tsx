@@ -34,7 +34,7 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
   const [showStageSelector, setShowStageSelector] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [checkingOnboarding, setCheckingOnboarding] = useState(true);
-  const { notifications, dismissToast, showLaunch } = useLaunchToast();
+  const { notifications, dismissToast, showLaunch, showLevelUp } = useLaunchToast();
 
   // Enable background activity tracking
   useLaunchActivity();
@@ -269,6 +269,14 @@ export const LaunchPreparationFlow: React.FC<LaunchPreparationFlowProps> = ({ on
             } else {
               navigateToStage('guidance');
             }
+          }}
+          showLevelUp={showLevelUp}
+          onExitToChat={(prompt: string) => {
+            // Store prompt for main chat to pick up
+            sessionStorage.setItem('astra_guided_prompt', prompt);
+            sessionStorage.setItem('exit_launch_prep', 'true');
+            // Exit to main app
+            onLaunch();
           }}
         />
       )}

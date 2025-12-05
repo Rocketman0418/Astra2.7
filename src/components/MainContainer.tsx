@@ -44,6 +44,7 @@ export const MainContainer: React.FC = () => {
   const [hasExpiredToken, setHasExpiredToken] = useState(false);
   const [tokenBannerDismissed, setTokenBannerDismissed] = useState(false);
   const [showDriveFolderSelection, setShowDriveFolderSelection] = useState(false);
+  const [guidedPromptToSubmit, setGuidedPromptToSubmit] = useState<string | null>(null);
 
   // OAuth Reconnect Prompt Hook
   const {
@@ -218,6 +219,20 @@ export const MainContainer: React.FC = () => {
       sessionStorage.removeItem('reopen_fuel_stage');
       console.log('🚀 [MainContainer] Reopening Drive folder selection after OAuth return');
       setShowDriveFolderSelection(true);
+    }
+  }, []);
+
+  // Check if coming from Astra Guided Chat in Launch Prep
+  React.useEffect(() => {
+    const guidedPrompt = sessionStorage.getItem('astra_guided_prompt');
+    if (guidedPrompt) {
+      sessionStorage.removeItem('astra_guided_prompt');
+      console.log('🚀 [MainContainer] Submitting guided prompt from Launch Prep');
+      // Switch to private chat mode
+      setChatMode('private');
+      // Start a new chat with the prompt
+      setShouldStartNewChat(true);
+      setGuidedPromptToSubmit(guidedPrompt);
     }
   }, []);
 
@@ -404,6 +419,8 @@ export const MainContainer: React.FC = () => {
               onConversationLoaded={() => setConversationToLoad(null)}
               onNewChatStarted={() => setShouldStartNewChat(false)}
               onConversationChange={setActiveConversationId}
+              guidedPromptToSubmit={guidedPromptToSubmit}
+              onGuidedPromptSubmitted={() => setGuidedPromptToSubmit(null)}
             />
           ) : (
             <GroupChat
