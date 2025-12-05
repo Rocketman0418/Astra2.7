@@ -23,7 +23,7 @@ export const VisualizationBoosterModal: React.FC<VisualizationBoosterModalProps>
   const [error, setError] = useState<string | null>(null);
 
   const handleCreateVisualization = async () => {
-    if (!user || !astraResponse) return;
+    if (!user) return;
 
     setStep('generating');
     setError(null);
@@ -61,8 +61,11 @@ export const VisualizationBoosterModal: React.FC<VisualizationBoosterModalProps>
         viewFinancial = user.user_metadata?.view_financial !== false;
       }
 
-      // Create a visualization prompt based on the Astra response
-      const vizPrompt = 'Create a visualization of the data you just analyzed in your previous response';
+      // Create a visualization prompt - if we have previous Astra response, reference it
+      // Otherwise, create a general visualization request
+      const vizPrompt = astraResponse
+        ? 'Create a visualization of the data you just analyzed in your previous response'
+        : 'Create a visualization showing key insights from my recent meeting notes and strategic priorities';
 
       // Send to webhook
       const response = await fetch(WEBHOOK_URL, {

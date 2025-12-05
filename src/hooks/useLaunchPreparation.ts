@@ -508,6 +508,7 @@ export function useLaunchPreparation() {
     updateStageLevel,
     updateCurrentStage,
     markActiveToday,
+    fetchStageProgress,
     refresh: async () => {
       await Promise.all([
         fetchLaunchStatus(),

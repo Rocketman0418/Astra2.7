@@ -24,7 +24,7 @@ interface BoostersStageProps {
 
 export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProgress, boostersProgress, guidanceProgress, onBack, onComplete, showLevelUp, onExitToChat }) => {
   const { user } = useAuth();
-  const { updateStageLevel, completeAchievement } = useLaunchPreparation();
+  const { updateStageLevel, completeAchievement, fetchStageProgress } = useLaunchPreparation();
   const [showGuidedChat, setShowGuidedChat] = useState(false);
   const [showResponseModal, setShowResponseModal] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<string>('');
@@ -68,6 +68,9 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
       await completeAchievement('boosters_first_prompt', 'boosters');
       await updateStageLevel('boosters', 1);
 
+      // Refresh progress data to update UI
+      await fetchStageProgress();
+
       // Show toast notification
       if (showLevelUp) {
         const levelInfo = BOOSTERS_LEVELS[0]; // Level 1 info
@@ -85,6 +88,9 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
       await completeAchievement('boosters_first_visualization', 'boosters');
       await updateStageLevel('boosters', 2);
 
+      // Refresh progress data to update UI
+      await fetchStageProgress();
+
       // Show toast notification
       if (showLevelUp) {
         const levelInfo = BOOSTERS_LEVELS[1]; // Level 2 info
@@ -99,6 +105,9 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
       await completeAchievement('boosters_manual_report', 'boosters');
       await updateStageLevel('boosters', 3);
 
+      // Refresh progress data to update UI
+      await fetchStageProgress();
+
       // Show toast notification
       if (showLevelUp) {
         const levelInfo = BOOSTERS_LEVELS[2]; // Level 3 info
@@ -112,6 +121,9 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
     if (!hasCompletedAchievement('boosters_scheduled_report')) {
       await completeAchievement('boosters_scheduled_report', 'boosters');
       await updateStageLevel('boosters', 4);
+
+      // Refresh progress data to update UI
+      await fetchStageProgress();
 
       // Show toast notification
       if (showLevelUp) {
