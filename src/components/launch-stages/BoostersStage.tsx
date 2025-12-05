@@ -45,16 +45,14 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
 
   // Refresh local progress from hook after operations
   const refreshLocalProgress = useCallback(async () => {
-    await fetchStageProgress();
-    // Give a moment for the state to update
-    setTimeout(() => {
-      const updatedProgress = getStageProgress('boosters');
-      if (updatedProgress) {
-        setLocalProgress(updatedProgress);
-        console.log('✅ Local progress updated:', updatedProgress);
-      }
-    }, 200);
-  }, [fetchStageProgress, getStageProgress]);
+    const allProgress = await fetchStageProgress();
+    // Directly get the boosters progress from the fresh data
+    const updatedProgress = allProgress.find(p => p.stage === 'boosters') || null;
+    if (updatedProgress) {
+      setLocalProgress(updatedProgress);
+      console.log('✅ Local progress updated:', updatedProgress);
+    }
+  }, [fetchStageProgress]);
 
   const currentLevel = localProgress?.level || 0;
   const targetLevel = currentLevel + 1;

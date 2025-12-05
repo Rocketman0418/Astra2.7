@@ -153,8 +153,8 @@ export function useLaunchPreparation() {
   }, [user, initializeLaunchStatus]);
 
   // Fetch stage progress for all stages
-  const fetchStageProgress = useCallback(async () => {
-    if (!user) return;
+  const fetchStageProgress = useCallback(async (): Promise<StageProgress[]> => {
+    if (!user) return [];
 
     try {
       const { data, error } = await supabase
@@ -164,9 +164,12 @@ export function useLaunchPreparation() {
         .order('stage');
 
       if (error) throw error;
-      setStageProgress(data || []);
+      const progressData = data || [];
+      setStageProgress(progressData);
+      return progressData;
     } catch (err) {
       console.error('Error fetching stage progress:', err);
+      return [];
     }
   }, [user]);
 
