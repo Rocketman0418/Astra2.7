@@ -223,7 +223,25 @@ Return ONLY valid JSON in this exact format:
         // Use raw text if not JSON
       }
 
-      // Save report to astra_chats table
+      // First, create the report configuration in astra_reports table
+      const { data: reportConfig, error: reportConfigError } = await supabase
+        .from('astra_reports')
+        .insert({
+          user_id: user?.id,
+          title: suggestion.title,
+          prompt: suggestion.prompt,
+          schedule_type: 'manual',
+          is_active: true,
+          last_run_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (reportConfigError) {
+        throw new Error(`Failed to create report configuration: ${reportConfigError.message}`);
+      }
+
+      // Save report execution result to astra_chats table
       const { data: chatData, error: chatError } = await supabase
         .from('astra_chats')
         .insert({
@@ -237,6 +255,7 @@ Return ONLY valid JSON in this exact format:
           tokens_used: {},
           model_used: 'n8n-workflow',
           metadata: {
+            reportId: reportConfig.id,
             title: suggestion.title,
             report_title: suggestion.title,
             is_manual_run: true,
