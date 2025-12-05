@@ -31,7 +31,7 @@ const STEP_TITLES = [
   'Configure Team Settings',
   'Send Your First Prompt',
   'Create a Visualization',
-  'Run a Manual Report',
+  'Run an Astra Report',
   'Schedule a Report',
   'Invite Team Members (Optional)'
 ];

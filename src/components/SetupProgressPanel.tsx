@@ -39,7 +39,7 @@ const STEP_NAMES = [
   'Team Settings Configured',
   'First Prompt Sent',
   'Visualization Created',
-  'Manual Report Run',
+  'Astra Report Run',
   'Scheduled Report Created',
   'Team Members Invited',
 ];

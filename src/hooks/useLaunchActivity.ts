@@ -94,7 +94,7 @@ export function useLaunchActivity() {
       showLevelUp('Boosters', 3, 600);
     }
 
-    showAchievement('Manual Report', 'Generated your first manual report', 600);
+    showAchievement('Astra Report', 'Generated your first Astra report', 600);
   }, [user, launchStatus, getStageProgress, completeAchievement, updateStageLevel, showLevelUp, showAchievement]);
 
   // Monitor for scheduled report

@@ -2294,7 +2294,7 @@ Sign up here: https://airocket.app`;
                     <div className="text-2xl font-bold text-white">
                       {activeUsersToday.reduce((sum, u) => sum + u.reports_today, 0)}
                     </div>
-                    <div className="text-sm text-gray-400">Manual Reports Today</div>
+                    <div className="text-sm text-gray-400">Astra Reports Today</div>
                   </div>
                 </div>
 

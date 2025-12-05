@@ -177,7 +177,7 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
     },
     {
       id: 'manual_report',
-      name: 'Manual Reports',
+      name: 'Astra Reports',
       description: 'Generate on-demand insights',
       icon: FileBarChart,
       color: 'green',
@@ -480,7 +480,7 @@ export const BoostersStage: React.FC<BoostersStageProps> = ({ progress, fuelProg
         />
       )}
 
-      {/* Manual Report Modal */}
+      {/* Astra Report Modal */}
       {showManualReportModal && (
         <ManualReportBoosterModal
           onClose={() => setShowManualReportModal(false)}
