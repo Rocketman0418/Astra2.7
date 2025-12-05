@@ -61,16 +61,20 @@ export const ScheduledReportBoosterModal: React.FC<ScheduledReportBoosterModalPr
     setErrorMessage('');
 
     try {
+      // Format schedule time as HH:MM
+      const scheduleTime = `${scheduleHour.toString().padStart(2, '0')}:00`;
+
       // Create the scheduled report
       const { error: reportError } = await supabase
-        .from('user_reports')
+        .from('astra_reports')
         .insert({
           user_id: user?.id,
           title: reportTitle,
           prompt: reportPrompt,
+          schedule_type: 'scheduled',
           schedule_frequency: frequency,
           schedule_day: scheduleDay,
-          schedule_hour: scheduleHour,
+          schedule_time: scheduleTime,
           is_active: true,
           metadata: { from_launch_prep: true, timezone }
         });
