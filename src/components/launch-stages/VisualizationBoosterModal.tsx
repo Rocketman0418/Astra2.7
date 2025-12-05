@@ -67,26 +67,13 @@ export const VisualizationBoosterModal: React.FC<VisualizationBoosterModalProps>
       if (!user) return;
 
       try {
-        // Fetch user's team_id
-        const { data: userData } = await supabase
-          .from('users')
-          .select('team_id')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        if (!userData?.team_id) {
-          console.error('No team_id found for user');
-          setError('Unable to find your team data');
-          setStep('show_message');
-          return;
-        }
-
         // Fetch the most recent Astra response from astra_chats
+        // Note: astra_chats uses user_id and message_type, not team_id and sender
         const { data: chatData, error: chatError } = await supabase
           .from('astra_chats')
           .select('message')
-          .eq('team_id', userData.team_id)
-          .eq('sender', 'astra')
+          .eq('user_id', user.id)
+          .eq('message_type', 'astra')
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
