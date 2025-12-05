@@ -75,8 +75,7 @@ export const ScheduledReportBoosterModal: React.FC<ScheduledReportBoosterModalPr
           schedule_frequency: frequency,
           schedule_day: scheduleDay,
           schedule_time: scheduleTime,
-          is_active: true,
-          metadata: { from_launch_prep: true, timezone }
+          is_active: true
         });
 
       if (reportError) throw reportError;
