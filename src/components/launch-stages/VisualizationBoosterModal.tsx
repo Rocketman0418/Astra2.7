@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { X, BarChart, Loader2, CheckCircle, Sparkles } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { supabase } from '../../lib/supabase';
 import { formatAstraMessage } from '../../utils/formatAstraMessage';
-
-const WEBHOOK_URL = import.meta.env.VITE_N8N_WEBHOOK_URL;
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 interface VisualizationBoosterModalProps {
   onClose: () => void;
@@ -25,88 +23,124 @@ export const VisualizationBoosterModal: React.FC<VisualizationBoosterModalProps>
   const handleCreateVisualization = async () => {
     if (!user) return;
 
+    // Use astraResponse if available, otherwise use a fallback message
+    const messageText = astraResponse || 'Create a visualization showing key insights from recent data';
+
     setStep('generating');
     setError(null);
 
     try {
-      // Fetch user data
-      const userId = user.id;
-      const userEmail = user.email || '';
-      let teamId = '';
-      let teamName = '';
-      let role = 'member';
-      let viewFinancial = true;
-      let userName = user.email?.split('@')[0] || 'User';
+      // Get API key from environment
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
-      try {
-        const { data: userData, error: userError } = await supabase
-          .rpc('get_user_team_info', { p_user_id: userId });
-
-        if (!userError && userData && userData.length > 0) {
-          const userInfo = userData[0];
-          teamId = userInfo.team_id || '';
-          teamName = userInfo.team_name || '';
-          role = userInfo.role || 'member';
-          viewFinancial = userInfo.view_financial !== false;
-          userName = userInfo.user_name || userName;
-        } else {
-          teamId = user.user_metadata?.team_id || '';
-          role = user.user_metadata?.role || 'member';
-          viewFinancial = user.user_metadata?.view_financial !== false;
-        }
-      } catch (err) {
-        console.error('Error fetching user data:', err);
-        teamId = user.user_metadata?.team_id || '';
-        role = user.user_metadata?.role || 'member';
-        viewFinancial = user.user_metadata?.view_financial !== false;
+      if (!apiKey) {
+        throw new Error('Gemini API key not found');
       }
 
-      // Create a visualization prompt - if we have previous Astra response, reference it
-      // Otherwise, create a general visualization request
-      const vizPrompt = astraResponse
-        ? 'Create a visualization of the data you just analyzed in your previous response'
-        : 'Create a visualization showing key insights from my recent meeting notes and strategic priorities';
-
-      // Send to webhook
-      const response = await fetch(WEBHOOK_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chatInput: vizPrompt,
-          user_id: userId,
-          user_email: userEmail,
-          user_name: userName,
-          conversation_id: null,
-          team_id: teamId,
-          team_name: teamName,
-          role: role,
-          view_financial: viewFinancial,
-          mode: 'private',
-          request_visualization: true
-        })
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({
+        model: 'gemini-flash-latest',
+        generationConfig: {
+          temperature: 1.0,
+          topK: 64,
+          topP: 0.95,
+          maxOutputTokens: 100000,
+        }
       });
 
-      if (!response.ok) {
-        throw new Error(`Webhook request failed: ${response.status} ${response.statusText}`);
+      const baseDesign = `DESIGN REQUIREMENTS:
+- Use a dark theme with gray-900 (#111827) background
+- Use gray-800 (#1f2937) and gray-700 (#374151) for card backgrounds
+- Use white (#ffffff) and gray-300 (#d1d5db) for text
+- Use blue (#3b82f6), purple (#8b5cf6), and cyan (#06b6d4) for accents and highlights
+- Match the visual style of a modern dark dashboard
+- Include proper spacing, rounded corners, and subtle shadows
+- Use responsive layouts with flexbox or CSS grid
+- Ensure all content fits within containers without overflow`;
+
+      const prompt = `Create a comprehensive visual dashboard to help understand the information in the message below.
+
+${baseDesign}
+- Use graphics, emojis, and charts as needed to enhance the visualization
+- Include visual elements like progress bars, icons, charts, and infographics where appropriate
+- Make the dashboard visually engaging with relevant emojis and graphical elements
+
+CRITICAL TYPOGRAPHY & SIZING RULES:
+- Headings: Use max font-size of 1.875rem (30px)
+- Large numbers/metrics: Use max font-size of 2rem (32px) with clamp() for responsiveness
+- Subheadings: 1rem to 1.25rem (16-20px)
+- Body text: 0.875rem to 1rem (14-16px)
+
+CRITICAL LAYOUT RULES TO PREVENT OVERFLOW:
+- Add padding inside ALL cards and containers (minimum 1rem on all sides)
+- Use word-wrap: break-word on all text elements
+- Use overflow-wrap: break-word to handle long numbers and text
+- For responsive card grids, use: display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;
+- Never use fixed widths that might cause overflow
+- Ensure numbers scale down on smaller containers using clamp() or max-width with text wrapping
+
+MESSAGE TEXT:
+${messageText}
+
+Return only the HTML code - no other text or formatting.`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      let cleanedContent = response.text();
+
+      // Clean up the response - remove markdown code blocks if present
+      cleanedContent = cleanedContent.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
+
+      // Ensure it starts with DOCTYPE if it's a complete HTML document
+      if (!cleanedContent.toLowerCase().includes('<!doctype') && !cleanedContent.toLowerCase().includes('<html')) {
+        cleanedContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualization</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            background: #111827;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            width: 100%;
+            overflow-x: hidden;
+        }
+        /* Prevent text overflow in all elements */
+        h1, h2, h3, h4, h5, h6, p, div, span {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+        }
+        /* Enforce maximum font sizes */
+        h1 { font-size: clamp(1.5rem, 4vw, 1.875rem) !important; }
+        h2 { font-size: clamp(1.25rem, 3.5vw, 1.5rem) !important; }
+        h3 { font-size: clamp(1.125rem, 3vw, 1.25rem) !important; }
+        /* Responsive images */
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        /* Ensure all containers have proper padding and prevent overflow */
+        [class*="card"], [class*="container"], [class*="box"], [style*="padding"] {
+            padding: 1rem !important;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    ${cleanedContent}
+</body>
+</html>`;
       }
 
-      const data = await response.json();
-
-      // Extract visualization HTML
-      let vizHtml = '';
-      if (data.visualization_data) {
-        vizHtml = data.visualization_data;
-      } else if (data.output && data.output.includes('<div')) {
-        vizHtml = data.output;
-      }
-
-      if (!vizHtml) {
-        throw new Error('No visualization data received');
-      }
-
-      setVisualizationHtml(vizHtml);
+      setVisualizationHtml(cleanedContent);
       setStep('showing_viz');
     } catch (err: any) {
       console.error('Error creating visualization:', err);
